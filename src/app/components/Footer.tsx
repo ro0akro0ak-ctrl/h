@@ -19,7 +19,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative mt-24 bg-[#0796A8] text-white border-t border-white/10 overflow-hidden">
+    <footer className="relative mt-24 bg-[#16B8BE] text-white border-t border-white/10 overflow-hidden">
       {/* Background Gradient / Glow Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
