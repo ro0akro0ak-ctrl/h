@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Search, ShoppingBag, Menu, X, Sun, Moon, Globe, User, LogOut, Settings } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Globe, User, LogOut, Settings } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from 'next-themes';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,7 +14,6 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, setLanguage, t } = useLanguage();
-  const { theme, setTheme } = useTheme();
   const { totalItems } = useCart();
   const { user, logout, isAdmin } = useAuth();
 
@@ -97,17 +95,6 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
               className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               <Search className="w-5 h-5" />
-            </motion.button>
-
-            {/* Theme Toggle */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </motion.button>
 
             {/* Language Toggle */}
