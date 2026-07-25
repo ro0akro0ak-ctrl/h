@@ -29,7 +29,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-br from-[#0796A8] via-[#08A8B0] to-[#0BB8B0] text-white">
+    <section className="py-24 px-6 bg-[#16B8BE] text-white">
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => {
