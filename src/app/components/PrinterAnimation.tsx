@@ -1,10 +1,10 @@
 import { motion } from 'motion/react';
 
-const layers = Array.from({ length: 22 }, (_, index) => ({
+const layers = Array.from({ length: 24 }, (_, index) => ({
   id: index,
-  width: 92 - index * 2.4,
-  y: 388 - index * 5.1,
-  delay: index * 0.28,
+  width: 75 - index * 1.8,
+  y: 395 - index * 4.8,
+  delay: index * 0.25,
 }));
 
 export default function PrinterAnimation() {
@@ -24,42 +24,37 @@ export default function PrinterAnimation() {
           viewBox="0 0 760 620"
           className="h-auto w-full overflow-visible drop-shadow-[0_35px_55px_rgba(5,45,49,0.28)]"
           role="img"
-          aria-label="طابعة ثلاثية الأبعاد تطبع مجسمًا"
+          aria-label="طابعة ثلاثية الأبعاد احترافية تطبع مجسمًا واقعيًا"
         >
           <defs>
-            <linearGradient id="frame" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#18373B" />
-              <stop offset="55%" stopColor="#10292D" />
-              <stop offset="100%" stopColor="#081B1E" />
+            {/* تدرجات ألوان طابعة هيكلية مغلقة احترافية (مثل سلسلة Bambu Lab / Creality CoreXY) */}
+            <linearGradient id="chassisDark" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#1e2229" />
+              <stop offset="50%" stopColor="#14171c" />
+              <stop offset="100%" stopColor="#0b0d10" />
             </linearGradient>
 
-            <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#A8B8BC" />
-              <stop offset="45%" stopColor="#E5EEF0" />
-              <stop offset="100%" stopColor="#85989D" />
+            <linearGradient id="chassisMetal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#374151" />
+              <stop offset="100%" stopColor="#1f2937" />
             </linearGradient>
 
-            <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#D9FFFF" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="#0E555C" stopOpacity="0.22" />
+            <linearGradient id="glassReal" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.08" />
+              <stop offset="50%" stopColor="#0e7490" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#164e63" stopOpacity="0.3" />
             </linearGradient>
 
-            <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7AF3EF" />
-              <stop offset="45%" stopColor="#21D1D3" />
-              <stop offset="100%" stopColor="#078D98" />
+            <linearGradient id="extrudBody" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#2b3441" />
+              <stop offset="100%" stopColor="#111827" />
             </linearGradient>
 
-            <linearGradient id="model" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#A6FFFB" />
-              <stop offset="50%" stopColor="#34D9D8" />
-              <stop offset="100%" stopColor="#0A8D97" />
+            <linearGradient id="realModel" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="60%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#0891b2" />
             </linearGradient>
-
-            <radialGradient id="innerLight" cx="50%" cy="38%" r="65%">
-              <stop offset="0%" stopColor="#44DFDE" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#44DFDE" stopOpacity="0" />
-            </radialGradient>
 
             <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
               <feDropShadow
@@ -71,8 +66,8 @@ export default function PrinterAnimation() {
               />
             </filter>
 
-            <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
+            <filter id="modelGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -91,146 +86,100 @@ export default function PrinterAnimation() {
             transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
           />
 
-          {/* جسم الطابعة */}
+          {/* هيكل الطابعة الخارجي الحديث */}
           <g filter="url(#softShadow)">
-            <rect x="110" y="38" width="540" height="510" rx="30" fill="url(#frame)" />
-            <rect
-              x="126"
-              y="54"
-              width="508"
-              height="478"
-              rx="22"
-              fill="#0A1F22"
-              stroke="#35565B"
-              strokeWidth="2"
-            />
+            {/* الإطار الخارجي الأسود المطفي */}
+            <rect x="110" y="38" width="540" height="510" rx="28" fill="url(#chassisDark)" stroke="#27303f" strokeWidth="3" />
+            
+            {/* الحواف المعدنية الداخلية للإطار */}
+            <rect x="124" y="52" width="512" height="482" rx="20" fill="#0c0e12" stroke="#1f2937" strokeWidth="2" />
 
-            {/* الباب الزجاجي */}
-            <rect
-              x="150"
-              y="92"
-              width="460"
-              height="376"
-              rx="16"
-              fill="url(#glass)"
-              stroke="#5D777B"
-              strokeWidth="2"
-            />
-            <rect x="164" y="106" width="432" height="348" rx="12" fill="url(#innerLight)" />
+            {/* الغرفة الداخلية للطابعة (الكابينة) */}
+            <rect x="150" y="85" width="460" height="390" rx="14" fill="url(#glassReal)" stroke="#374151" strokeWidth="2" />
+            
+            {/* إضاءة LED داخلية خافتة من السقف */}
+            <ellipse cx="380" cy="86" rx="140" ry="12" fill="#22d3ee" opacity="0.15" />
+            <circle cx="380" cy="92" r="6" fill="#67e8f9" opacity="0.8" />
 
-            {/* لمعان الزجاج */}
-            <path
-              d="M180 116 L300 116 L215 446 L164 446 Z"
-              fill="#FFFFFF"
-              opacity="0.035"
-            />
+            {/* القضبان المعدنية الخلفية والجانبية (أعمدة الحركة المحورية X/Y/Z) */}
+            <rect x="170" y="120" width="8" height="330" rx="4" fill="#4b5563" />
+            <rect x="582" y="120" width="8" height="330" rx="4" fill="#4b5563" />
+            <rect x="178" y="145" width="404" height="10" rx="5" fill="#374151" stroke="#6b7280" strokeWidth="1" />
 
-            {/* الشريط العلوي */}
-            <rect x="144" y="70" width="472" height="34" rx="12" fill="#142F33" />
-            <rect x="164" y="82" width="318" height="7" rx="3.5" fill="#2B4B50" />
-            <motion.circle
-              cx="586"
-              cy="87"
-              r="6"
-              fill="#65EEE9"
-              animate={{ opacity: [0.35, 1, 0.35] }}
-              transition={{ duration: 1.3, repeat: Infinity }}
-            />
-
-            {/* الأعمدة */}
-            <rect x="158" y="112" width="24" height="356" rx="8" fill="#1B3A3F" />
-            <rect x="578" y="112" width="24" height="356" rx="8" fill="#1B3A3F" />
-
-            {/* محور الحركة */}
-            <rect x="182" y="170" width="396" height="16" rx="8" fill="#213F44" />
-            <rect x="195" y="175" width="370" height="5" rx="2.5" fill="url(#metal)" opacity="0.75" />
-
-            {/* سرير الطباعة */}
+            {/* سرير الطباعة السفلي (Print Bed / PEI Plate) */}
             <motion.g
               animate={{ y: [0, 3, 0] }}
               transition={{ duration: 0.55, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <path
-                d="M215 430 L545 430 L580 460 L180 460 Z"
-                fill="#1A383D"
-                stroke="#5E7A7F"
-                strokeWidth="2"
-              />
-              <path d="M237 438 L523 438 L548 455 L212 455 Z" fill="#31545A" />
-              <path d="M250 442 L510 442" stroke="#54E2DF" strokeWidth="3" opacity="0.42" />
+              {/* قاعدة السرير */}
+              <rect x="200" y="430" width="360" height="16" rx="4" fill="#1f2937" stroke="#4b5563" strokeWidth="2" />
+              {/* سطح الطباعة المغناطيسي الأسود */}
+              <rect x="215" y="423" width="330" height="8" rx="3" fill="#111827" stroke="#22d3ee" strokeWidth="1" strokeOpacity="0.5" />
+              {/* مشابك التثبيت الجانبية */}
+              <rect x="220" y="421" width="14" height="12" rx="2" fill="#9ca3af" />
+              <rect x="526" y="421" width="14" height="12" rx="2" fill="#9ca3af" />
             </motion.g>
 
-            {/* قاعدة الطابعة */}
-            <rect x="140" y="500" width="480" height="42" rx="14" fill="#122E32" />
-            <rect x="166" y="512" width="300" height="8" rx="4" fill="#27484D" />
+            {/* قاعدة الطابعة السفلية والشاشة */}
+            <rect x="110" y="495" width="540" height="53" rx="16" fill="url(#chassisMetal)" />
+            
+            {/* شعار أو خط تزييني أنيق */}
+            <rect x="140" y="518" width="120" height="6" rx="3" fill="#111827" />
 
-            {/* شاشة صغيرة */}
-            <rect x="490" y="507" width="102" height="28" rx="8" fill="#071719" stroke="#426268" />
-            <motion.rect
-              x="503"
-              y="516"
-              width="42"
-              height="4"
-              rx="2"
-              fill="#41E1DF"
-              animate={{ width: [16, 66, 16] }}
-              transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
-            />
+            {/* شاشة تحكم رقمية تعمل باللمس (Touchscreen) */}
+            <rect x="490" y="508" width="115" height="32" rx="8" fill="#030712" stroke="#4b5563" strokeWidth="1.5" />
+            <motion.div
+              initial={false}
+            >
+              <rect x="502" y="518" width="45" height="12" rx="3" fill="#22d3ee" opacity="0.9" />
+              <circle cx="575" cy="524" r="5" fill="#10b981" />
+            </motion.div>
           </g>
 
-          {/* بكرة الفيلامنت */}
+          {/* بكرة الفيلامنت العلوية (Spool Holder & Filament Spool) */}
           <motion.g
-            style={{ transformOrigin: '550px 92px' }}
+            style={{ transformOrigin: '560px 55px' }}
             animate={{ rotate: 360 }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
           >
-            <circle cx="550" cy="92" r="48" fill="#10262A" stroke="#48666B" strokeWidth="8" />
-            <circle
-              cx="550"
-              cy="92"
-              r="31"
-              fill="none"
-              stroke="#2DD7D7"
-              strokeWidth="9"
-              strokeDasharray="16 9"
-            />
-            <circle cx="550" cy="92" r="12" fill="#89F6F2" />
+            {/* حامل البكرة */}
+            <circle cx="560" cy="55" r="35" fill="#111827" stroke="#4b5563" strokeWidth="6" />
+            <circle cx="560" cy="55" r="22" fill="none" stroke="#22d3ee" strokeWidth="5" strokeDasharray="12 8" />
+            <circle cx="560" cy="55" r="8" fill="#9ca3af" />
           </motion.g>
 
-          {/* مسار الفيلامنت */}
-          <motion.path
-            d="M550 139 C550 162 470 164 420 200"
+          {/* أنبوب توجيه الفيلامنت الشفاف (PTFE Tube) من البكرة إلى رأس الطباعة */}
+          <path
+            d="M545 78 C545 110 460 115 380 148"
             fill="none"
-            stroke="#79F1ED"
+            stroke="#22d3ee"
             strokeWidth="4"
             strokeLinecap="round"
-            strokeDasharray="11 9"
-            animate={{ strokeDashoffset: [0, -40] }}
-            transition={{ duration: 1.25, repeat: Infinity, ease: 'linear' }}
+            strokeOpacity="0.75"
           />
 
-          {/* المجسم المطبوع */}
-          <g filter="url(#glow)">
-            {layers.map((layer, index) => (
+          {/* المجسم المطبوع ثلاثي الأبعاد (طبقات تتصاعد بواقعية) */}
+          <g filter="url(#modelGlow)">
+            {layers.map((layer) => (
               <motion.path
                 key={layer.id}
-                d={`M${380 - layer.width / 2} ${layer.y} Q380 ${layer.y - 8} ${
+                d={`M${380 - layer.width / 2} ${layer.y} Q380 ${layer.y - 6} ${
                   380 + layer.width / 2
-                } ${layer.y} L${380 + layer.width / 2 - 5} ${layer.y + 5} Q380 ${
+                } ${layer.y} L${380 + layer.width / 2 - 3} ${layer.y + 4} Q380 ${
                   layer.y - 2
-                } ${380 - layer.width / 2 + 5} ${layer.y + 5} Z`}
-                fill="url(#model)"
-                initial={{ opacity: 0, scaleX: 0.12 }}
+                } ${380 - layer.width / 2 + 3} ${layer.y + 4} Z`}
+                fill="url(#realModel)"
+                initial={{ opacity: 0, scaleX: 0.1 }}
                 animate={{
                   opacity: [0, 0, 1, 1, 0],
-                  scaleX: [0.12, 0.12, 1, 1, 0.12],
+                  scaleX: [0.1, 0.1, 1, 1, 0.1],
                 }}
                 transition={{
-                  duration: 11,
+                  duration: 10,
                   delay: layer.delay,
                   repeat: Infinity,
-                  repeatDelay: 1.2,
-                  times: [0, 0.1, 0.72, 0.92, 1],
+                  repeatDelay: 1,
+                  times: [0, 0.1, 0.78, 0.92, 1],
                   ease: 'easeInOut',
                 }}
                 style={{ transformOrigin: '380px center' }}
@@ -238,33 +187,36 @@ export default function PrinterAnimation() {
             ))}
           </g>
 
-          {/* رأس الطباعة */}
+          {/* رأس الطباعة الاحترافي (Extruder / Direct Drive Print Head) يتحرك بذكاء فوق المجسم */}
           <motion.g
-            animate={{ x: [-112, 112, -112], y: [0, 44, 0] }}
+            animate={{
+              x: [-110, 110, -110],
+              y: [0, 38, 0],
+            }}
             transition={{
-              x: { duration: 2.25, repeat: Infinity, ease: 'easeInOut' },
-              y: { duration: 11, repeat: Infinity, ease: 'linear' },
+              x: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+              y: { duration: 10, repeat: Infinity, ease: 'linear' },
             }}
           >
-            <rect x="337" y="148" width="86" height="70" rx="18" fill="url(#accent)" stroke="#B8FFFC" strokeWidth="2" />
-            <rect x="353" y="165" width="54" height="30" rx="9" fill="#10353A" />
-            <motion.circle
-              cx="380"
-              cy="180"
-              r="6"
-              fill="#9CFFFA"
-              animate={{ opacity: [0.35, 1, 0.35] }}
-              transition={{ duration: 0.75, repeat: Infinity }}
-            />
-            <path d="M362 218 L398 218 L390 239 L370 239 Z" fill="#DFFFFD" />
-            <path d="M374 239 L386 239 L390 258 L370 258 Z" fill="#28D5D4" />
+            {/* جسم الإكسترودر المعدني والأسود */}
+            <rect x="338" y="132" width="84" height="64" rx="10" fill="url(#extrudBody)" stroke="#4b5563" strokeWidth="2" />
+            
+            {/* مروحة تبريد الجزء المطبوع (Part Cooling Fan grill) */}
+            <circle cx="380" cy="164" r="16" fill="#1f2937" stroke="#374151" strokeWidth="2" />
+            <circle cx="380" cy="164" r="6" fill="#22d3ee" opacity="0.8" />
+
+            {/* كتلة التسخين (Heater Block) والنوزل (Nozzle Tip) */}
+            <rect x="362" y="196" width="36" height="18" rx="4" fill="#d97706" />
+            <path d="M374 214 L386 214 L383 226 L377 226 Z" fill="#9ca3af" />
+            
+            {/* شعاع أو قطرة البلاستيك المنصهر الخارجة من النوزل أثناء الطباعة */}
             <motion.path
-              d="M380 258 L380 278"
-              stroke="#9BFFFB"
-              strokeWidth="4"
+              d="M380 226 L380 242"
+              stroke="#22d3ee"
+              strokeWidth="3.5"
               strokeLinecap="round"
-              animate={{ opacity: [0.2, 1, 0.2] }}
-              transition={{ duration: 0.38, repeat: Infinity }}
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 0.35, repeat: Infinity }}
             />
           </motion.g>
         </svg>
