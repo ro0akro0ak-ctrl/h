@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Search, ShoppingBag, Menu, X, Globe, User, LogOut, Settings } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Globe } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
   onNavigate: (page: string) => void;
@@ -12,10 +11,8 @@ interface HeaderProps {
 
 export default function Header({ onNavigate, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, setLanguage } = useLanguage();
   const { totalItems } = useCart();
-  const { user, logout, isAdmin } = useAuth();
 
   const navItems = [
     {
@@ -43,21 +40,6 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
       labelEn: 'Contact Us',
     },
   ];
-
-  // Close user menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.user-menu-container')) {
-        setShowUserMenu(false);
-      }
-    };
-
-    if (showUserMenu) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [showUserMenu]);
 
   return (
     <motion.header
@@ -141,93 +123,6 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
                 </span>
               )}
             </motion.button>
-
-            {/* User Menu */}
-            {user ? (
-              <div className="relative user-menu-container">
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="p-2 rounded-full hover:bg-white/10 transition-colors text-white"
-                >
-                  <User className="w-5 h-5" />
-                </motion.button>
-
-                {/* User Dropdown */}
-                {showUserMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute right-0 mt-2 w-48 p-2 rounded-2xl bg-[#10292D] backdrop-blur-xl border border-white/10 shadow-lg z-50 text-white"
-                  >
-                    <div className="px-4 py-3 border-b border-white/10">
-                      <p className="text-sm font-semibold">{user.name}</p>
-                      <p className="text-xs text-white/70">{user.email}</p>
-                      {user.role === 'wholesale' && (
-                        <span className="inline-block mt-1 px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs">
-                          {language === 'ar' ? 'جملة' : 'Wholesale'}
-                        </span>
-                      )}
-                    </div>
-
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onNavigate('admin');
-                          setShowUserMenu(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-white/10 rounded-xl flex items-center gap-2"
-                      >
-                        <Settings className="w-4 h-4" />
-                        {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
-                      </button>
-                    )}
-
-                   
-
-                    {user.role === 'user' && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onNavigate('customer-dashboard');
-                          setShowUserMenu(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-white/10 rounded-xl flex items-center gap-2"
-                      >
-                        <User className="w-4 h-4" />
-                        {language === 'ar' ? 'حسابي' : 'My Account'}
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        logout();
-                        setShowUserMenu(false);
-                        onNavigate('home');
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-white/10 rounded-xl flex items-center gap-2 text-red-300"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      {language === 'ar' ? 'تسجيل الخروج' : 'Logout'}
-                    </button>
-                  </motion.div>
-                )}
-              </div>
-            ) : (
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onNavigate('login')}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors text-white"
-              >
-                <User className="w-5 h-5" />
-              </motion.button>
-            )}
 
             {/* Mobile Menu Toggle */}
             <motion.button
