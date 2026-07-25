@@ -29,7 +29,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="py-24 px-6">
+    <section className="py-24 px-6 bg-gradient-to-br from-[#0796A8] via-[#08A8B0] to-[#0BB8B0] text-white">
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => {
@@ -45,29 +45,29 @@ export default function Features() {
                 className="relative group"
               >
                 {/* Glassmorphism Card */}
-                <div className="relative p-8 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10 text-center">
+                <div className="relative p-8 rounded-3xl bg-black/15 dark:bg-black/40 backdrop-blur-xl border border-white/30 text-center shadow-lg">
                   {/* Icon Container */}
                   <motion.div
                     whileHover={{ rotate: 360 }}
                     transition={{ duration: 0.6 }}
-                    className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-black/10 to-black/5 dark:from-white/10 dark:to-white/5 flex items-center justify-center"
+                    className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-white/10 flex items-center justify-center text-white"
                   >
                     <Icon className="w-8 h-8" />
                   </motion.div>
 
                   {/* Title */}
-                  <h3 className="text-xl font-bold mb-3">
+                  <h3 className="text-xl font-bold mb-3 text-white">
                     {t(feature.titleKey)}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-white/80">
                     {t(feature.descKey)}
                   </p>
 
                   {/* Hover Glow Effect */}
                   <motion.div
-                    className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-b from-black/10 to-transparent dark:from-white/10 blur-xl"
+                    className="absolute inset-0 -z-10 rounded-3xl bg-white/10 blur-xl"
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
