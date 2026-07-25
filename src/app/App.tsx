@@ -19,7 +19,6 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import WholesaleDashboard from './pages/WholesaleDashboard';
 import CustomerDashboard from './pages/CustomerDashboard';
-import { useAuth } from './contexts/AuthContext';
 
 type Page = 'home' | 'product-detail' | 'cart' | 'about' | 'contact' | 'wholesale' | 'login' | 'admin' | 'wholesale-dashboard' | 'customer-dashboard' | 'shop';
 
@@ -92,7 +91,7 @@ export default function App() {
         <CartProvider>
           <LanguageProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-              <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-950 transition-colors duration-500">
+              <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500">
                 <Header
                   onNavigate={handleNavigate}
                   onCartClick={() => handleNavigate('cart')}
