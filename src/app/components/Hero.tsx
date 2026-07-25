@@ -49,12 +49,12 @@ export default function Hero({ onNavigate }: HeroProps) {
 
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(45)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0 }}
             animate={{
-              opacity: [0.15, 0.45, 0.15],
+              opacity: [0.2, 0.55, 0.2],
               y: [0, -100, 0],
               x: [0, Math.random() * 100 - 50, 0],
             }}
@@ -63,7 +63,7 @@ export default function Hero({ onNavigate }: HeroProps) {
               repeat: Infinity,
               delay: Math.random() * 5,
             }}
-            className="absolute w-1 h-1 bg-white rounded-full"
+            className="absolute w-1.5 h-1.5 bg-white rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
