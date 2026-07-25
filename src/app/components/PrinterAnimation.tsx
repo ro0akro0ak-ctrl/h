@@ -1,414 +1,256 @@
 import { motion } from 'motion/react';
 
-const printLayers = Array.from({ length: 26 }, (_, index) => {
-  const progress = index / 25;
-
+const printLayers = Array.from({ length: 34 }, (_, index) => {
+  const progress = index / 33;
+  // A more realistic organic shape profile (like a futuristic mech helmet or turbine core)
+  const widthMultiplier = 1 - Math.pow(progress - 0.5, 2) * 0.9;
   return {
     id: index,
-    y: 392 - index * 4.2,
-    width: 78 - Math.sin(progress * Math.PI) * 12,
-    delay: index * 0.22,
+    y: 405 - index * 3.4,
+    width: (55 + Math.sin(progress * Math.PI * 2.5) * 16) * widthMultiplier,
+    delay: index * 0.09,
   };
 });
 
 export default function PrinterAnimation() {
   return (
-        <motion.div
-          initial={{ opacity: 0, x: -35 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="flex w-full items-center justify-center"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.9, ease: 'easeOut' }}
+      className="flex w-full items-center justify-center"
+    >
+      <div className="relative w-full max-w-[760px]">
+        <svg
+          viewBox="0 0 820 650"
+          className="h-auto w-full overflow-visible drop-shadow-[0_45px_70px_rgba(2,24,28,0.55)]"
+          role="img"
+          aria-label="طابعة ثلاثية الأبعاد احترافية عالية الواقعية أثناء عملية التصنيع"
         >
-          <div className="relative w-full max-w-[720px]">
-            <svg
-              viewBox="0 0 820 650"
-              className="h-auto w-full overflow-visible drop-shadow-[0_35px_60px_rgba(4,44,48,0.28)]"
-              role="img"
-              aria-label="طابعة ثلاثية الأبعاد واقعية تطبع مجسمًا صغيرًا"
-            >
-              <defs>
-                <linearGradient id="silverMetal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f3f4f6" />
-                  <stop offset="38%" stopColor="#d1d5db" />
-                  <stop offset="72%" stopColor="#9ca3af" />
-                  <stop offset="100%" stopColor="#6b7280" />
-                </linearGradient>
+          <defs>
+            {/* Ultra Realistic Metallic Gradients */}
+            <linearGradient id="anodizedAluminum" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#2c3540" />
+              <stop offset="25%" stopColor="#1a222c" />
+              <stop offset="50%" stopColor="#3d4a59" />
+              <stop offset="75%" stopColor="#151b22" />
+              <stop offset="100%" stopColor="#0d1117" />
+            </linearGradient>
 
-                <linearGradient id="darkMetal" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#303845" />
-                  <stop offset="55%" stopColor="#1f2937" />
-                  <stop offset="100%" stopColor="#111827" />
-                </linearGradient>
+            <linearGradient id="gantryBeam" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#4f5d6f" />
+              <stop offset="20%" stopColor="#2b3440" />
+              <stop offset="80%" stopColor="#1b232c" />
+              <stop offset="100%" stopColor="#0f141a" />
+            </linearGradient>
 
-                <linearGradient id="bedSurface" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#202a35" />
-                  <stop offset="100%" stopColor="#0b1118" />
-                </linearGradient>
+            <linearGradient id="stepperMotor" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#1e252e" />
+              <stop offset="50%" stopColor="#3a4756" />
+              <stop offset="100%" stopColor="#151a21" />
+            </linearGradient>
 
-                <linearGradient id="printedObject" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#53d7ff" />
-                  <stop offset="52%" stopColor="#149fd2" />
-                  <stop offset="100%" stopColor="#0873a3" />
-                </linearGradient>
+            <linearGradient id="heatedBed" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#141c24" />
+              <stop offset="85%" stopColor="#0a0f15" />
+              <stop offset="100%" stopColor="#06090d" />
+            </linearGradient>
 
-                <radialGradient id="screenGlow" cx="50%" cy="50%" r="60%">
-                  <stop offset="0%" stopColor="#39c6f4" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#0a4660" stopOpacity="0.2" />
-                </radialGradient>
+            <linearGradient id="moltenFilament" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="20%" stopColor="#67e8f9" />
+              <stop offset="60%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#0e7490" />
+            </linearGradient>
 
-                <filter id="printerShadow" x="-40%" y="-40%" width="180%" height="190%">
-                  <feDropShadow
-                    dx="0"
-                    dy="20"
-                    stdDeviation="18"
-                    floodColor="#04383d"
-                    floodOpacity="0.38"
-                  />
-                </filter>
+            <radialGradient id="nozzleHeatGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#ff7b00" stopOpacity="0.95" />
+              <stop offset="40%" stopColor="#ff3300" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#ff0000" stopOpacity="0" />
+            </radialGradient>
 
-                <filter id="objectGlow" x="-80%" y="-80%" width="260%" height="260%">
-                  <feGaussianBlur stdDeviation="5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
+            <radialGradient id="bedLED" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="#0891b2" stopOpacity="0" />
+            </radialGradient>
 
-              <ellipse
-                cx="410"
-                cy="590"
-                rx="260"
-                ry="24"
-                fill="#07393E"
-                opacity="0.2"
-              />
+            <filter id="realisticShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="25" stdDeviation="20" floodColor="#01161a" floodOpacity="0.5" />
+            </filter>
 
-              <g filter="url(#printerShadow)">
-                <rect
-                  x="175"
-                  y="500"
-                  width="470"
-                  height="54"
-                  rx="15"
-                  fill="url(#silverMetal)"
-                  stroke="#4b5563"
-                  strokeWidth="2"
-                />
+            <filter id="intenseGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComponentTransfer in="blur" result="brightBlur">
+                <feFuncA type="linear" slope="1.8" />
+              </feComponentTransfer>
+              <feMerge>
+                <feMergeNode in="brightBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-                <rect
-                  x="198"
-                  y="514"
-                  width="260"
-                  height="25"
-                  rx="5"
-                  fill="#101722"
-                />
+          {/* Floor Contact Shadow */}
+          <ellipse cx="410" cy="595" rx="280" ry="18" fill="#031114" opacity="0.45" />
 
-                <rect
-                  x="207"
-                  y="520"
-                  width="122"
-                  height="4"
-                  rx="2"
-                  fill="#43c5ef"
-                  opacity="0.7"
-                />
+          {/* --- MAIN PRINTER CHASSIS & FRAME --- */}
+          <g filter="url(#realisticShadow)">
+            {/* Base Enclosure / Electronics Housing */}
+            <rect x="150" y="495" width="520" height="65" rx="12" fill="url(#anodizedAluminum)" stroke="#475569" strokeWidth="1.5" />
+            
+            {/* Rubber Feet */}
+            <rect x="180" y="560" width="55" height="10" rx="4" fill="#0b0f14" />
+            <rect x="585" y="560" width="55" height="10" rx="4" fill="#0b0f14" />
 
-                <g transform="translate(525 505) rotate(-12 46 28)">
-                  <rect
-                    x="0"
-                    y="0"
-                    width="92"
-                    height="56"
-                    rx="9"
-                    fill="#222b36"
-                    stroke="#64748b"
-                    strokeWidth="2"
-                  />
-                  <rect
-                    x="9"
-                    y="9"
-                    width="74"
-                    height="34"
-                    rx="5"
-                    fill="#08121e"
-                  />
-                  <rect
-                    x="16"
-                    y="16"
-                    width="45"
-                    height="5"
-                    rx="2.5"
-                    fill="#41c9f2"
-                    opacity="0.8"
-                  />
-                  <rect
-                    x="16"
-                    y="27"
-                    width="57"
-                    height="4"
-                    rx="2"
-                    fill="#708399"
-                    opacity="0.55"
-                  />
-                  <circle cx="73" cy="47" r="3.5" fill="#41c9f2" />
-                </g>
+            {/* Front Control Panel & OLED Screen */}
+            <rect x="195" y="512" width="180" height="38" rx="6" fill="#070a0f" stroke="#1e293b" strokeWidth="2" />
+            <rect x="207" y="520" width="110" height="6" rx="3" fill="#22d3ee" opacity="0.9" />
+            <rect x="207" y="532" width="75" height="4" rx="2" fill="#64748b" opacity="0.7" />
+            <circle cx="345" cy="531" r="11" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
+            <circle cx="345" cy="531" r="4" fill="#22d3ee" />
 
-                <rect
-                  x="210"
-                  y="135"
-                  width="28"
-                  height="372"
-                  rx="5"
-                  fill="url(#silverMetal)"
-                  stroke="#6b7280"
-                  strokeWidth="1.5"
-                />
+            {/* Brand Badge */}
+            <rect x="530" y="515" width="105" height="32" rx="4" fill="#0a0e14" stroke="#334155" strokeWidth="1" />
+            <text x="582" y="535" fill="#e2e8f0" fontSize="13" fontWeight="900" fontFamily="sans-serif" letterSpacing="2" textAnchor="middle">3D TECH</text>
 
-                <rect
-                  x="582"
-                  y="135"
-                  width="28"
-                  height="372"
-                  rx="5"
-                  fill="url(#silverMetal)"
-                  stroke="#6b7280"
-                  strokeWidth="1.5"
-                />
+            {/* Vertical Extrusion Profiles (Left & Right Aluminum Towers) */}
+            <rect x="185" y="110" width="34" height="395" rx="4" fill="url(#gantryBeam)" stroke="#475569" strokeWidth="1.5" />
+            <line x1="202" y1="110" x2="202" y2="505" stroke="#000000" strokeWidth="2" opacity="0.6" />
 
-                <rect
-                  x="190"
-                  y="156"
-                  width="440"
-                  height="26"
-                  rx="7"
-                  fill="url(#silverMetal)"
-                  stroke="#555f6d"
-                  strokeWidth="1.5"
-                />
+            <rect x="601" y="110" width="34" height="395" rx="4" fill="url(#gantryBeam)" stroke="#475569" strokeWidth="1.5" />
+            <line x1="618" y1="110" x2="618" y2="505" stroke="#000000" strokeWidth="2" opacity="0.6" />
 
-                <rect
-                  x="232"
-                  y="188"
-                  width="356"
-                  height="12"
-                  rx="6"
-                  fill="#151d27"
-                />
+            {/* Top Frame Crossbar */}
+            <rect x="165" y="90" width="490" height="30" rx="6" fill="url(#anodizedAluminum)" stroke="#475569" strokeWidth="1.5" />
+            
+            {/* Filament Spool Holder & Spool on Top */}
+            <path d="M410 90 V45" stroke="#94a3b8" strokeWidth="8" strokeLinecap="round" />
+            <circle cx="410" cy="40" r="32" fill="none" stroke="#0891b2" strokeWidth="12" strokeDasharray="160 25" strokeDashoffset="10" />
+            <circle cx="410" cy="40" r="32" fill="none" stroke="#164e63" strokeWidth="12" opacity="0.6" />
+            <circle cx="410" cy="40" r="10" fill="#cbd5e1" />
 
-                <rect
-                  x="240"
-                  y="192"
-                  width="340"
-                  height="3"
-                  rx="1.5"
-                  fill="#7b8795"
-                  opacity="0.55"
-                />
+            {/* Filament Guide Tube (PTFE Bowden Tube - Realistic Curved Path) */}
+            <path d="M410 72 C410 30 580 30 595 135" fill="none" stroke="#e2e8f0" strokeWidth="6" strokeLinecap="round" opacity="0.9" />
+            <path d="M410 72 C410 30 580 30 595 135" fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 8" />
 
-                <g>
-                  <rect
-                    x="250"
-                    y="422"
-                    width="320"
-                    height="20"
-                    rx="6"
-                    fill="#4b5563"
-                    stroke="#9ca3af"
-                    strokeWidth="1.5"
-                  />
+            {/* Smooth Steel Rods (Z-Axis Lead Screws & Guide Rails) */}
+            <line x1="228" y1="120" x2="228" y2="500" stroke="#cbd5e1" strokeWidth="3" />
+            <line x1="592" y1="120" x2="592" y2="500" stroke="#cbd5e1" strokeWidth="3" />
 
-                  <rect
-                    x="266"
-                    y="431"
-                    width="288"
-                    height="76"
-                    rx="7"
-                    fill="url(#bedSurface)"
-                    stroke="#66778a"
-                    strokeWidth="2"
-                  />
+            {/* Heated Print Bed Assembly */}
+            <g transform="translate(0, 0)">
+              {/* Bed Carriage Bracket */}
+              <rect x="235" y="435" width="350" height="18" rx="4" fill="#334155" stroke="#64748b" strokeWidth="1" />
+              
+              {/* Glass/Magnetic Build Plate */}
+              <rect x="250" y="420" width="320" height="20" rx="3" fill="url(#heatedBed)" stroke="#475569" strokeWidth="1.5" />
+              
+              {/* Build Surface Grid Lines */}
+              <rect x="270" y="424" width="280" height="12" fill="#06090f" />
+              <line x1="410" y1="424" x2="410" y2="436" stroke="#1e293b" strokeWidth="1" />
+              <line x1="270" y1="430" x2="550" y2="430" stroke="#1e293b" strokeWidth="1" />
 
-                  <rect
-                    x="278"
-                    y="442"
-                    width="264"
-                    height="53"
-                    rx="5"
-                    fill="#0c131c"
-                  />
+              {/* Bed leveling knobs under corners */}
+              <circle cx="280" cy="445" r="7" fill="#0f172a" stroke="#475569" strokeWidth="1.5" />
+              <circle cx="540" cy="445" r="7" fill="#0f172a" stroke="#475569" strokeWidth="1.5" />
+            </g>
+          </g>
 
-                  <path
-                    d="M290 451 H530"
-                    stroke="#334155"
-                    strokeWidth="1"
-                    opacity="0.65"
-                  />
-                  <path
-                    d="M290 463 H530"
-                    stroke="#334155"
-                    strokeWidth="1"
-                    opacity="0.45"
-                  />
-                  <path
-                    d="M290 475 H530"
-                    stroke="#334155"
-                    strokeWidth="1"
-                    opacity="0.3"
-                  />
-                </g>
-              </g>
-
-              <path
-                d="M596 166 C600 83 393 62 362 176"
-                fill="none"
-                stroke="#aab4c0"
-                strokeWidth="9"
-                strokeLinecap="round"
-              />
-
-              <motion.path
-                d="M596 166 C600 83 393 62 362 176"
-                fill="none"
-                stroke="#44c9f3"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray="12 10"
-                animate={{ strokeDashoffset: [0, -44] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-              />
-
-              <g filter="url(#objectGlow)">
-                {printLayers.map((layer, index) => (
-                  <motion.rect
-                    key={layer.id}
-                    x={410 - layer.width / 2}
-                    y={layer.y}
-                    width={layer.width}
-                    height="4.6"
-                    rx="2.3"
-                    fill="url(#printedObject)"
-                    initial={{ opacity: 0, scaleX: 0.15 }}
-                    animate={{
-                      opacity: [0, 0, 1, 1, 0],
-                      scaleX: [0.15, 0.15, 1, 1, 0.15],
-                    }}
-                    transition={{
-                      duration: 11,
-                      delay: layer.delay,
-                      repeat: Infinity,
-                      repeatDelay: 1.5,
-                      times: [
-                        0,
-                        Math.min(0.72, 0.08 + index * 0.024),
-                        Math.min(0.82, 0.13 + index * 0.024),
-                        0.93,
-                        1,
-                      ],
-                      ease: 'easeInOut',
-                    }}
-                    style={{ transformOrigin: '410px center' }}
-                  />
-                ))}
-
-                <motion.ellipse
-                  cx="410"
-                  cy="392"
-                  rx="38"
-                  ry="7"
-                  fill="#72defe"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0, 0.9, 0.9, 0] }}
-                  transition={{
-                    duration: 11,
-                    repeat: Infinity,
-                    repeatDelay: 1.5,
-                    times: [0, 0.7, 0.82, 0.93, 1],
-                  }}
-                />
-              </g>
-
-              <motion.g
-                animate={{ x: [-118, 118, -118] }}
+          {/* --- REALISTIC DYNAMIC PRINTED OBJECT (ANIMATED LAYER BY LAYER) --- */}
+          <g filter="url(#intenseGlow)">
+            {printLayers.map((layer, index) => (
+              <motion.rect
+                key={layer.id}
+                x={410 - layer.width / 2}
+                y={layer.y}
+                width={layer.width}
+                height="3.6"
+                rx="1.8"
+                fill="url(#moltenFilament)"
+                initial={{ opacity: 0, scaleX: 0.1 }}
+                animate={{
+                  opacity: [0, 0, 1, 1, 0],
+                  scaleX: [0.1, 0.1, 1, 1, 0.1],
+                }}
                 transition={{
-                  duration: 2.6,
+                  duration: 8.5,
+                  delay: layer.delay,
                   repeat: Infinity,
+                  repeatDelay: 0.8,
+                  times: [0, 0.05, 0.15, 0.88, 1],
                   ease: 'easeInOut',
                 }}
-              >
-                <rect
-                  x="372"
-                  y="170"
-                  width="76"
-                  height="63"
-                  rx="12"
-                  fill="url(#darkMetal)"
-                  stroke="#4b5563"
-                  strokeWidth="2"
-                />
-
-                <rect
-                  x="382"
-                  y="180"
-                  width="56"
-                  height="42"
-                  rx="9"
-                  fill="#252f3a"
-                />
-
-                <circle
-                  cx="410"
-                  cy="201"
-                  r="16"
-                  fill="#101923"
-                  stroke="#4bcdf5"
-                  strokeWidth="2"
-                />
-
-                <circle
-                  cx="410"
-                  cy="201"
-                  r="6"
-                  fill="url(#screenGlow)"
-                />
-
-                <path
-                  d="M399 233 H421 L417 245 H403 Z"
-                  fill="#c87b18"
-                />
-
-                <path
-                  d="M406 245 H414 L412 256 H408 Z"
-                  fill="#b9c1cc"
-                />
-
-                <motion.path
-                  d="M410 256 V274"
-                  stroke="#4fd4ff"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  animate={{ opacity: [0.25, 1, 0.25] }}
-                  transition={{ duration: 0.38, repeat: Infinity }}
-                />
-              </motion.g>
-
-              <path
-                d="M219 155 V490"
-                stroke="#ffffff"
-                strokeWidth="3"
-                opacity="0.22"
+                style={{ transformOrigin: '410px center' }}
               />
+            ))}
 
-              <path
-                d="M590 155 V490"
-                stroke="#ffffff"
-                strokeWidth="3"
-                opacity="0.18"
-              />
-            </svg>
-          </div>
-        </motion.div>
+            {/* Molten Pool Spark / Active Nozzle Glow Point */}
+            <motion.ellipse
+              cx="410"
+              cy="405"
+              rx="24"
+              ry="5"
+              fill="url(#nozzleHeatGlow)"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0, 0.95, 0.95, 0] }}
+              transition={{
+                duration: 8.5,
+                repeat: Infinity,
+                repeatDelay: 0.8,
+                times: [0, 0.05, 0.15, 0.88, 1],
+              }}
+            />
+          </g>
+
+          {/* --- MOVING X/Y GANTRY & EXTRUDER HEAD (SYNCHRONIZED WITH PRINTING) --- */}
+          <motion.g
+            animate={{
+              x: [-110, 110, -70, 70, -110],
+              y: [0, -15, 10, -5, 0],
+            }}
+            transition={{
+              duration: 4.2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            {/* Horizontal X-Axis Gantry Beam */}
+            <rect x="180" y="138" width="460" height="24" rx="5" fill="url(#gantryBeam)" stroke="#64748b" strokeWidth="1.5" />
+            <line x1="180" y1="150" x2="640" y2="150" stroke="#0f172a" strokeWidth="2" />
+
+            {/* Direct Drive Extruder Carriage Assembly */}
+            <g transform="translate(372, 130)">
+              {/* Stepper Motor Housing */}
+              <rect x="0" y="0" width="76" height="52" rx="8" fill="url(#stepperMotor)" stroke="#475569" strokeWidth="2" />
+              <rect x="12" y="8" width="52" height="36" rx="4" fill="#111827" />
+              <circle cx="38" cy="26" r="14" fill="#090d12" stroke="#22d3ee" strokeWidth="1.5" />
+              <circle cx="38" cy="26" r="5" fill="#22d3ee" />
+
+              {/* Heatsink Fins */}
+              <line x1="12" y1="46" x2="64" y2="46" stroke="#94a3b8" strokeWidth="1.5" />
+              <line x1="12" y1="50" x2="64" y2="50" stroke="#94a3b8" strokeWidth="1.5" />
+
+              {/* Heater Block & Brass Nozzle */}
+              <rect x="24" y="52" width="28" height="18" rx="3" fill="#ca8a04" stroke="#eab308" strokeWidth="1" />
+              <polygon points="32,70 44,70 38,82" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
+
+              {/* Real-time Extrusion Heat Spark / Light Emission */}
+              <circle cx="38" cy="82" r="6" fill="#ffffff" filter="url(#intenseGlow)" />
+
+              {/* Part Cooling Fan Shroud (Realistic Air Duct) */}
+              <path d="M12 55 L3 74 H24 Z" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+              <path d="M64 55 L73 74 H52 Z" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+              <circle cx="15" cy="65" r="4" fill="#22d3ee" opacity="0.8" />
+              <circle cx="61" cy="65" r="4" fill="#22d3ee" opacity="0.8" />
+            </g>
+          </motion.g>
+
+          {/* Subtle Ambient Light Reflections on Glass Frame Edges */}
+          <line x1="188" y1="115" x2="188" y2="495" stroke="#ffffff" strokeWidth="2" opacity="0.25" />
+          <line x1="604" y1="115" x2="604" y2="495" stroke="#ffffff" strokeWidth="2" opacity="0.15" />
+        </svg>
+      </div>
+    </motion.div>
   );
 }
