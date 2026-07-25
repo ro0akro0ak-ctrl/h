@@ -73,16 +73,15 @@ export default function Hero({ onNavigate }: HeroProps) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/30 bg-[#10292D]/20 px-6 py-3 shadow-lg backdrop-blur-xl"
+            className="mb-7 inline-flex items-center gap-2.5 rounded-full border border-white/25 bg-[#10292D]/30 px-7 py-3.5 shadow-xl backdrop-blur-md"
           >
-            <Sparkles className="h-4 w-4 shrink-0 text-white" />
-
-            <span className="whitespace-nowrap text-sm font-medium text-white">
+            <Sparkles className="h-4 w-4 shrink-0 text-[#E8FFFF]" />
+            <span className="whitespace-nowrap font-sans text-sm font-semibold tracking-wide text-white">
               {content.badge}
             </span>
           </motion.div>
 
-          {/* العنوان */}
+          {/* العنوان بخط عربي فخم، انسيابي، وبوزن متناسق */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -90,16 +89,17 @@ export default function Hero({ onNavigate }: HeroProps) {
               duration: 0.85,
               delay: 0.18,
             }}
-            className="relative text-5xl font-black leading-[1.08] tracking-tight sm:text-6xl md:text-7xl lg:text-[82px]"
+            className="relative font-sans text-5xl font-black leading-[1.25] tracking-tight sm:text-6xl md:text-7xl lg:text-[76px]"
+            style={{ fontFamily: 'var(--font-heading, system-ui), sans-serif' }}
           >
-            <span className="block text-white drop-shadow-[0_8px_18px_rgba(4,44,48,0.22)]">
+            <span className="block text-white drop-shadow-[0_10px_20px_rgba(4,44,48,0.25)]">
               {content.titleFirst}
             </span>
 
-            <span className="relative mt-2 inline-block bg-gradient-to-l from-white via-[#E8FFFF] to-[#BFF8FA] bg-clip-text text-transparent drop-shadow-[0_8px_18px_rgba(4,44,48,0.18)]">
+            <span className="relative mt-3 inline-block bg-gradient-to-l from-white via-[#F0FFFF] to-[#C8FBFD] bg-clip-text text-transparent drop-shadow-[0_10px_20px_rgba(4,44,48,0.2)]">
               {content.titleSecond}
 
-              {/* خط مزخرف تحت الكلمة */}
+              {/* خط مزخرف أنيق وناعم تحت الكلمة */}
               <motion.span
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
@@ -107,7 +107,7 @@ export default function Hero({ onNavigate }: HeroProps) {
                   duration: 0.8,
                   delay: 0.7,
                 }}
-                className="absolute -bottom-3 left-1/2 h-1.5 w-[72%] -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-white to-transparent"
+                className="absolute -bottom-3.5 left-1/2 h-1 w-[80%] -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-white/80 to-transparent shadow-[0_0_12px_rgba(255,255,255,0.6)]"
               />
             </span>
           </motion.h1>
@@ -127,7 +127,7 @@ export default function Hero({ onNavigate }: HeroProps) {
               y: -3,
             }}
             whileTap={{ scale: 0.97 }}
-            className="group relative mt-12 inline-flex min-w-[185px] items-center justify-center gap-3 overflow-hidden rounded-full border border-white/15 bg-[#10292D] px-9 py-4 text-base font-bold text-white shadow-[0_18px_40px_rgba(4,44,48,0.28)]"
+            className="group relative mt-14 inline-flex min-w-[200px] items-center justify-center gap-3 overflow-hidden rounded-full border border-white/20 bg-[#10292D] px-10 py-4.5 text-base font-bold text-white shadow-[0_20px_45px_rgba(4,44,48,0.3)]"
           >
             {/* لمعة تمر فوق الزر */}
             <motion.span
@@ -143,15 +143,15 @@ export default function Hero({ onNavigate }: HeroProps) {
               }}
             />
 
-            <span className="relative z-10">
+            <span className="relative z-10 tracking-wide">
               {content.shopButton}
             </span>
 
             <ArrowLeft
               className={`relative z-10 h-5 w-5 transition-transform duration-300 ${
                 language === 'ar'
-                  ? 'group-hover:-translate-x-1'
-                  : 'rotate-180 group-hover:translate-x-1'
+                  ? 'group-hover:-translate-x-1.5'
+                  : 'rotate-180 group-hover:translate-x-1.5'
               }`}
             />
           </motion.button>
