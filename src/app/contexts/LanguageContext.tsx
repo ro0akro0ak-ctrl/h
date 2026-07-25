@@ -14,45 +14,42 @@ const translations = {
     // Header
     'nav.home': 'الرئيسية',
     'nav.shop': 'المتجر',
-    'nav.wholesale': 'الجملة',
-    'nav.about': 'من نحن',
     'nav.contact': 'اتصل بنا',
     'nav.search': 'بحث...',
 
     // Hero
-    'hero.title': 'مجموعة العبايات الفاخرة',
-    'hero.subtitle': 'تصاميم عصرية تجمع بين الأناقة والرقي',
-    'hero.cta': 'اكتشف المجموعة',
-    'hero.wholesale': 'أسعار الجملة',
+    'hero.title': 'نطبع أفكارك بإبداع',
+    'hero.subtitle': '',
+    'hero.cta': 'تسوّق الآن',
 
     // Products
-    'products.title': 'أحدث التصاميم',
+    'products.title': 'أحدث المنتجات',
     'products.viewAll': 'عرض الكل',
-    'products.newCollection': 'المجموعة الجديدة',
+    'products.newCollection': 'منتجات جديدة',
     'products.addToCart': 'أضف للسلة',
     'products.quickView': 'عرض سريع',
     'products.wholesale': 'سعر الجملة',
-    'products.retail': 'سعر القطاعي',
+    'products.retail': 'سعر البيع',
 
     // Categories
     'categories.title': 'التصنيفات',
-    'categories.classic': 'كلاسيكي',
-    'categories.modern': 'عصري',
-    'categories.elegant': 'أنيق',
-    'categories.casual': 'يومي',
+    'categories.classic': 'طابعات',
+    'categories.modern': 'فيلمنت',
+    'categories.elegant': 'ملحقات',
+    'categories.casual': 'قطع غيار',
 
     // Features
     'features.quality': 'جودة عالية',
-    'features.qualityDesc': 'خامات فاخرة وتصنيع متقن',
+    'features.qualityDesc': 'طباعة دقيقة بأعلى جودة',
     'features.shipping': 'شحن سريع',
-    'features.shippingDesc': 'توصيل لجميع أنحاء العالم',
+    'features.shippingDesc': 'توصيل سريع وآمن لجميع المناطق',
     'features.wholesale': 'أسعار الجملة',
     'features.wholesaleDesc': 'خصومات خاصة للكميات الكبيرة',
     'features.support': 'دعم 24/7',
-    'features.supportDesc': 'فريق دعم متواجد دائماً',
+    'features.supportDesc': 'دعم فني وخدمة عملاء طوال الأسبوع',
 
     // Footer
-    'footer.description': 'وجهتك المثالية للعبايات الفاخرة بأسعار تنافسية',
+    'footer.description': 'متجرك المتخصص في الطباعة ثلاثية الأبعاد وملحقاتها',
     'footer.quickLinks': 'روابط سريعة',
     'footer.customerService': 'خدمة العملاء',
     'footer.followUs': 'تابعنا',
@@ -69,21 +66,18 @@ const translations = {
     // Header
     'nav.home': 'Home',
     'nav.shop': 'Shop',
-    'nav.wholesale': 'Wholesale',
-    'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.search': 'Search...',
 
     // Hero
-    'hero.title': 'Luxury Abaya Collection',
-    'hero.subtitle': 'Modern Designs Combining Elegance and Sophistication',
-    'hero.cta': 'Discover Collection',
-    'hero.wholesale': 'Wholesale Prices',
+    'hero.title': 'We Print Your Ideas',
+    'hero.subtitle': '',
+    'hero.cta': 'Shop Now',
 
     // Products
-    'products.title': 'Latest Designs',
+    'products.title': 'Latest Products',
     'products.viewAll': 'View All',
-    'products.newCollection': 'New Collection',
+    'products.newCollection': 'New Products',
     'products.addToCart': 'Add to Cart',
     'products.quickView': 'Quick View',
     'products.wholesale': 'Wholesale Price',
@@ -91,23 +85,23 @@ const translations = {
 
     // Categories
     'categories.title': 'Categories',
-    'categories.classic': 'Classic',
-    'categories.modern': 'Modern',
-    'categories.elegant': 'Elegant',
-    'categories.casual': 'Casual',
+    'categories.classic': 'Printers',
+    'categories.modern': 'Filaments',
+    'categories.elegant': 'Accessories',
+    'categories.casual': 'Spare Parts',
 
     // Features
     'features.quality': 'High Quality',
-    'features.qualityDesc': 'Premium fabrics and excellent craftsmanship',
+    'features.qualityDesc': 'Precision Printing with Premium Quality',
     'features.shipping': 'Fast Shipping',
-    'features.shippingDesc': 'Worldwide delivery',
+    'features.shippingDesc': 'Fast and secure delivery to all regions',
     'features.wholesale': 'Wholesale Prices',
     'features.wholesaleDesc': 'Special discounts for bulk orders',
     'features.support': '24/7 Support',
-    'features.supportDesc': 'Always here to help',
+    'features.supportDesc': 'Technical support and customer service all week',
 
     // Footer
-    'footer.description': 'Your destination for luxury abayas at competitive prices',
+    'footer.description': 'Your destination for 3D printers, filaments and accessories',
     'footer.quickLinks': 'Quick Links',
     'footer.customerService': 'Customer Service',
     'footer.followUs': 'Follow Us',
