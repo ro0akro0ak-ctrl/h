@@ -1,6 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, X, ShoppingCart, Eye, Heart, ChevronDown } from 'lucide-react';
+import {
+  Search,
+  SlidersHorizontal,
+  X,
+  ShoppingCart,
+  Eye,
+  Heart,
+  ChevronDown,
+  PackageSearch,
+  Sparkles,
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
 import { useProducts, Product } from '../contexts/ProductsContext';
@@ -9,8 +19,17 @@ interface ShopProps {
   onProductClick: (product: Product) => void;
 }
 
+interface Particle {
+  id: number;
+  left: number;
+  top: number;
+  duration: number;
+  delay: number;
+  movementX: number;
+}
+
 const SORT_OPTIONS = {
-  ar: ['الأحدث', 'السعر: الأقل أولاً', 'السعر: الأعلى أولاً', 'الاسم'],
+  ar: ['الأحدث', 'السعر: الأقل أولًا', 'السعر: الأعلى أولًا', 'الاسم'],
   en: ['Newest', 'Price: Low to High', 'Price: High to Low', 'Name'],
 };
 
@@ -21,7 +40,10 @@ export default function Shop({ onProductClick }: ShopProps) {
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    0,
+    1000,
+  ]);
   const [sortIndex, setSortIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
@@ -29,50 +51,122 @@ export default function Shop({ onProductClick }: ShopProps) {
 
   const ar = language === 'ar';
 
-  // Derive unique categories
+  const particles = useMemo<Particle[]>(
+    () =>
+      Array.from({ length: 50 }, (_, index) => ({
+        id: index,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        duration: Math.random() * 10 + 10,
+        delay: Math.random() * 5,
+        movementX: Math.random() * 100 - 50,
+      })),
+    [],
+  );
+
   const categories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category || 'all'));
-    return ['all', ...Array.from(cats).filter(c => c !== 'all')];
+    const categorySet = new Set(
+      products.map((product) => product.category || 'all'),
+    );
+
+    return [
+      'all',
+      ...Array.from(categorySet).filter(
+        (category) => category !== 'all',
+      ),
+    ];
   }, [products]);
 
-  const categoryLabel = (cat: string) => {
-    if (cat === 'all') return ar ? 'الكل' : 'All';
-    const p = products.find(p => p.category === cat);
-    return ar ? (p?.categoryAr ?? cat) : cat;
+  const categoryLabel = (category: string) => {
+    if (category === 'all') {
+      return ar ? 'الكل' : 'All';
+    }
+
+    const product = products.find(
+      (item) => item.category === category,
+    );
+
+    return ar
+      ? product?.categoryAr ?? category
+      : category;
   };
 
-  const maxPrice = useMemo(() => Math.max(...products.map(p => p.retailPrice || 0), 1000), [products]);
+  const maxPrice = useMemo(() => {
+    return Math.max(
+      ...products.map((product) => product.retailPrice || 0),
+      1000,
+    );
+  }, [products]);
 
-  // Filter + sort
   const filtered = useMemo(() => {
-    let list = products.filter(p => {
-      const pName = p.name || '';
-      const pNameAr = p.nameAr || '';
-      const pCategory = p.category || 'all';
-      const pPrice = p.retailPrice || 0;
+    let productList = products.filter((product) => {
+      const productName = product.name || '';
+      const productNameAr = product.nameAr || '';
+      const productCategory = product.category || 'all';
+      const productPrice = product.retailPrice || 0;
 
-      const matchSearch =
-        pName.toLowerCase().includes(search.toLowerCase()) ||
-        pNameAr.includes(search);
-      const matchCat = selectedCategory === 'all' || pCategory === selectedCategory;
-      const matchPrice = pPrice >= priceRange[0] && pPrice <= priceRange[1];
-      return matchSearch && matchCat && matchPrice;
+      const searchValue = search.toLowerCase().trim();
+
+      const matchesSearch =
+        productName.toLowerCase().includes(searchValue) ||
+        productNameAr.includes(search.trim());
+
+      const matchesCategory =
+        selectedCategory === 'all' ||
+        productCategory === selectedCategory;
+
+      const matchesPrice =
+        productPrice >= priceRange[0] &&
+        productPrice <= priceRange[1];
+
+      return matchesSearch && matchesCategory && matchesPrice;
     });
 
     switch (sortIndex) {
-      case 1: list = [...list].sort((a, b) => (a.retailPrice || 0) - (b.retailPrice || 0)); break;
-      case 2: list = [...list].sort((a, b) => (b.retailPrice || 0) - (a.retailPrice || 0)); break;
-      case 3: list = [...list].sort((a, b) => (a.name || '').localeCompare(b.name || '')); break;
-      default: list = [...list].sort((a, b) => (b.id || 0) - (a.id || 0)); // newest = highest id
+      case 1:
+        productList = [...productList].sort(
+          (a, b) =>
+            (a.retailPrice || 0) - (b.retailPrice || 0),
+        );
+        break;
+
+      case 2:
+        productList = [...productList].sort(
+          (a, b) =>
+            (b.retailPrice || 0) - (a.retailPrice || 0),
+        );
+        break;
+
+      case 3:
+        productList = [...productList].sort((a, b) =>
+          (ar ? a.nameAr || '' : a.name || '').localeCompare(
+            ar ? b.nameAr || '' : b.name || '',
+          ),
+        );
+        break;
+
+      default:
+        productList = [...productList].sort(
+          (a, b) => (b.id || 0) - (a.id || 0),
+        );
     }
-    return list;
-  }, [products, search, selectedCategory, priceRange, sortIndex]);
+
+    return productList;
+  }, [
+    products,
+    search,
+    selectedCategory,
+    priceRange,
+    sortIndex,
+    ar,
+  ]);
 
   const resetFilters = () => {
     setSearch('');
     setSelectedCategory('all');
     setPriceRange([0, maxPrice]);
     setSortIndex(0);
+    setShowSortMenu(false);
   };
 
   const activeFilters =
@@ -83,171 +177,296 @@ export default function Shop({ onProductClick }: ShopProps) {
     sortIndex !== 0;
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6" dir={ar ? 'rtl' : 'ltr'}>
-      <div className="max-w-[1400px] mx-auto">
+    <section
+      dir={ar ? 'rtl' : 'ltr'}
+      className="relative min-h-screen overflow-hidden bg-[#16B8BE] px-4 pb-20 pt-28 text-white sm:px-6"
+    >
+      {/* النقاط المتحركة */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {particles.map((particle) => (
+          <motion.div
+            key={particle.id}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.15, 0.55, 0.15],
+              y: [0, -100, 0],
+              x: [0, particle.movementX, 0],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              delay: particle.delay,
+              ease: 'easeInOut',
+            }}
+            className="absolute h-1.5 w-1.5 rounded-full bg-white"
+            style={{
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+            }}
+          />
+        ))}
+      </div>
 
-        {/* Page Header */}
+      {/* دوائر خلفية خفيفة */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-52 top-10 h-[450px] w-[450px] rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -left-52 bottom-10 h-[450px] w-[450px] rounded-full bg-[#075E66]/20 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-[1400px]">
+        {/* شريط البحث والفلاتر */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
+          transition={{ duration: 0.6 }}
+          className="mb-8 rounded-3xl border border-white/25 bg-[#075E66]/75 p-4 shadow-2xl backdrop-blur-xl md:p-6"
         >
-          <h1 className="text-4xl md:text-6xl font-bold mb-3">
-            {ar ? 'المتجر' : 'Shop'}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {filtered.length} {ar ? 'منتج متاح' : 'products available'}
-          </p>
-        </motion.div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            {/* البحث */}
+            <div className="relative min-w-0 flex-1">
+              <Search
+                className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 text-white/55 ${
+                  ar ? 'right-4' : 'left-4'
+                }`}
+              />
 
-        {/* Search + Filter Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex flex-wrap gap-3 mb-8 items-center"
-        >
-          {/* Search */}
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 ${ar ? 'right-4' : 'left-4'}`} />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder={ar ? 'ابحث عن منتج...' : 'Search products...'}
-              className={`w-full py-3 rounded-2xl bg-white/60 dark:bg-black/60 backdrop-blur-xl border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors text-sm ${ar ? 'pr-12 pl-4' : 'pl-12 pr-4'}`}
-            />
-            {search && (
-              <button type="button" onClick={() => setSearch('')} className={`absolute top-1/2 -translate-y-1/2 ${ar ? 'left-4' : 'right-4'}`}>
-                <X className="w-4 h-4 text-gray-400" />
-              </button>
-            )}
-          </div>
+              <input
+                type="text"
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+                placeholder={
+                  ar
+                    ? 'ابحث عن طابعة، فيلامنت أو إكسسوار...'
+                    : 'Search printers, filament, or accessories...'
+                }
+                className={`w-full rounded-2xl border border-white/20 bg-[#10292D]/65 py-4 text-sm text-white outline-none placeholder:text-white/45 focus:border-white ${
+                  ar ? 'pl-12 pr-12' : 'pl-12 pr-12'
+                }`}
+              />
 
-          {/* Filter Toggle */}
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-2xl border-2 transition-colors text-sm font-semibold ${showFilters ? 'bg-black dark:bg-white text-white dark:text-black border-transparent' : 'border-black/10 dark:border-white/10 hover:border-black/30'}`}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            {ar ? 'الفلاتر' : 'Filters'}
-            {activeFilters && <span className="w-2 h-2 bg-rose-500 rounded-full" />}
-          </motion.button>
-
-          {/* Sort */}
-          <div className="relative">
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setShowSortMenu(!showSortMenu)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl border-2 border-black/10 dark:border-white/10 hover:border-black/30 text-sm font-semibold"
-            >
-              {SORT_OPTIONS[ar ? 'ar' : 'en'][sortIndex]}
-              <ChevronDown className="w-4 h-4" />
-            </motion.button>
-            <AnimatePresence>
-              {showSortMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className={`absolute top-full mt-2 ${ar ? 'right-0' : 'left-0'} w-52 p-2 rounded-2xl bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-xl z-20`}
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className={`absolute top-1/2 -translate-y-1/2 rounded-full p-1 text-white/60 transition hover:bg-white/10 hover:text-white ${
+                    ar ? 'left-4' : 'right-4'
+                  }`}
                 >
-                  {SORT_OPTIONS[ar ? 'ar' : 'en'].map((opt, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => { setSortIndex(i); setShowSortMenu(false); }}
-                      className={`w-full text-start px-4 py-2.5 rounded-xl text-sm transition-colors ${sortIndex === i ? 'bg-black dark:bg-white text-white dark:text-black font-semibold' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </motion.div>
+                  <X className="h-4 w-4" />
+                </button>
               )}
-            </AnimatePresence>
-          </div>
+            </div>
 
-          {activeFilters && (
-            <motion.button
-              type="button"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              onClick={resetFilters}
-              className="flex items-center gap-1.5 px-4 py-3 rounded-2xl text-sm text-rose-500 border-2 border-rose-500/20 hover:bg-rose-500/10 transition-colors"
-            >
-              <X className="w-4 h-4" />
-              {ar ? 'مسح الفلاتر' : 'Clear filters'}
-            </motion.button>
-          )}
+            <div className="flex flex-wrap gap-3">
+              {/* الفلاتر */}
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() =>
+                  setShowFilters((current) => !current)
+                }
+                className={`flex items-center justify-center gap-2 rounded-2xl border px-5 py-4 text-sm font-semibold transition ${
+                  showFilters
+                    ? 'border-white bg-white text-[#10292D]'
+                    : 'border-white/25 bg-white/10 text-white hover:bg-white/15'
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+
+                {ar ? 'الفلاتر' : 'Filters'}
+
+                {activeFilters && (
+                  <span className="h-2 w-2 rounded-full bg-rose-400" />
+                )}
+              </motion.button>
+
+              {/* الترتيب */}
+              <div className="relative">
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() =>
+                    setShowSortMenu((current) => !current)
+                  }
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-5 py-4 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  {
+                    SORT_OPTIONS[ar ? 'ar' : 'en'][
+                      sortIndex
+                    ]
+                  }
+
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      showSortMenu ? 'rotate-180' : ''
+                    }`}
+                  />
+                </motion.button>
+
+                <AnimatePresence>
+                  {showSortMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      className={`absolute top-full z-30 mt-2 w-56 rounded-2xl border border-white/20 bg-[#10292D]/95 p-2 text-white shadow-2xl backdrop-blur-xl ${
+                        ar ? 'right-0' : 'left-0'
+                      }`}
+                    >
+                      {SORT_OPTIONS[
+                        ar ? 'ar' : 'en'
+                      ].map((option, index) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setSortIndex(index);
+                            setShowSortMenu(false);
+                          }}
+                          className={`w-full rounded-xl px-4 py-3 text-start text-sm transition ${
+                            sortIndex === index
+                              ? 'bg-white text-[#10292D] font-bold'
+                              : 'hover:bg-white/10'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {activeFilters && (
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  onClick={resetFilters}
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-rose-200/35 bg-rose-400/15 px-5 py-4 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/25"
+                >
+                  <X className="h-4 w-4" />
+                  {ar ? 'مسح' : 'Clear'}
+                </motion.button>
+              )}
+            </div>
+          </div>
         </motion.div>
 
-        {/* Expanded Filters Panel */}
+        {/* لوحة الفلاتر */}
         <AnimatePresence>
           {showFilters && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-8"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{
+                opacity: 1,
+                height: 'auto',
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                height: 0,
+                y: -10,
+              }}
+              className="mb-8 overflow-hidden"
             >
-              <div className="p-6 rounded-3xl bg-white/60 dark:bg-black/60 backdrop-blur-xl border border-black/10 dark:border-white/10 space-y-6">
-
-                {/* Categories */}
+              <div className="space-y-8 rounded-3xl border border-white/25 bg-[#075E66]/75 p-6 shadow-2xl backdrop-blur-xl">
+                {/* التصنيفات */}
                 <div>
-                  <p className="text-sm font-bold mb-3">{ar ? 'التصنيف' : 'Category'}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {categories.map(cat => (
+                  <p className="mb-4 text-lg font-bold">
+                    {ar ? 'التصنيفات' : 'Categories'}
+                  </p>
+
+                  <div className="flex flex-wrap gap-3">
+                    {categories.map((category) => (
                       <motion.button
-                        key={cat}
+                        key={category}
                         type="button"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() =>
+                          setSelectedCategory(category)
+                        }
+                        className={`rounded-full border px-5 py-2.5 text-sm font-semibold transition ${
+                          selectedCategory === category
+                            ? 'border-white bg-white text-[#10292D]'
+                            : 'border-white/20 bg-white/10 text-white hover:bg-white/15'
+                        }`}
                       >
-                        {categoryLabel(cat)}
+                        {categoryLabel(category)}
                       </motion.button>
                     ))}
                   </div>
                 </div>
 
-                {/* Price Range */}
+                {/* نطاق السعر */}
                 <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <p className="text-sm font-bold">{ar ? 'نطاق السعر' : 'Price Range'}</p>
-                    <span className="text-sm text-gray-500">
+                  <div className="mb-5 flex items-center justify-between">
+                    <p className="text-lg font-bold">
+                      {ar ? 'نطاق السعر' : 'Price Range'}
+                    </p>
+
+                    <span
+                      dir="ltr"
+                      className="rounded-full bg-white/10 px-4 py-2 text-sm text-white/80"
+                    >
                       ${priceRange[0]} — ${priceRange[1]}
                     </span>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-gray-400 w-8">$0</span>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <div className="rounded-2xl bg-[#10292D]/45 p-4">
+                      <p className="mb-3 text-sm text-white/70">
+                        {ar
+                          ? 'أقل سعر'
+                          : 'Minimum price'}
+                      </p>
+
                       <input
                         type="range"
                         min={0}
                         max={maxPrice}
                         value={priceRange[0]}
-                        onChange={e => setPriceRange([Math.min(Number(e.target.value), priceRange[1] - 50), priceRange[1]])}
-                        className="flex-1 accent-black dark:accent-white"
+                        onChange={(event) =>
+                          setPriceRange([
+                            Math.min(
+                              Number(event.target.value),
+                              priceRange[1] - 1,
+                            ),
+                            priceRange[1],
+                          ])
+                        }
+                        className="w-full accent-white"
                       />
-                      <span className="text-xs text-gray-400 w-10">${priceRange[0]}</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-gray-400 w-8">${priceRange[0]}</span>
+
+                    <div className="rounded-2xl bg-[#10292D]/45 p-4">
+                      <p className="mb-3 text-sm text-white/70">
+                        {ar
+                          ? 'أعلى سعر'
+                          : 'Maximum price'}
+                      </p>
+
                       <input
                         type="range"
                         min={0}
                         max={maxPrice}
                         value={priceRange[1]}
-                        onChange={e => setPriceRange([priceRange[0], Math.max(Number(e.target.value), priceRange[0] + 50)])}
-                        className="flex-1 accent-black dark:accent-white"
+                        onChange={(event) =>
+                          setPriceRange([
+                            priceRange[0],
+                            Math.max(
+                              Number(event.target.value),
+                              priceRange[0] + 1,
+                            ),
+                          ])
+                        }
+                        className="w-full accent-white"
                       />
-                      <span className="text-xs text-gray-400 w-10">${maxPrice}</span>
                     </div>
                   </div>
                 </div>
@@ -256,36 +475,67 @@ export default function Shop({ onProductClick }: ShopProps) {
           )}
         </AnimatePresence>
 
-        {/* Category Pills (quick access) */}
-        <div className="flex gap-2 flex-wrap mb-8">
-          {categories.map(cat => (
+        {/* التصنيفات السريعة */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-10 flex flex-wrap items-center justify-center gap-3"
+        >
+          {categories.map((category) => (
             <button
-              key={cat}
+              key={category}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${selectedCategory === cat ? 'bg-black dark:bg-white text-white dark:text-black border-transparent' : 'border-black/10 dark:border-white/10 hover:border-black/30'}`}
+              onClick={() =>
+                setSelectedCategory(category)
+              }
+              className={`rounded-full border px-5 py-2 text-sm font-semibold shadow-sm transition ${
+                selectedCategory === category
+                  ? 'border-white bg-white text-[#10292D]'
+                  : 'border-white/25 bg-[#075E66]/45 text-white hover:bg-[#075E66]/70'
+              }`}
             >
-              {categoryLabel(cat)}
+              {categoryLabel(category)}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Products Grid */}
+        {/* شبكة المنتجات */}
         <AnimatePresence mode="wait">
           {filtered.length === 0 ? (
             <motion.div
               key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="text-center py-24"
+              className="mx-auto max-w-2xl rounded-3xl border border-white/25 bg-[#075E66]/70 px-6 py-16 text-center shadow-2xl backdrop-blur-xl"
             >
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold mb-2">{ar ? 'لا توجد منتجات' : 'No products found'}</h3>
-              <p className="text-gray-500 mb-6">{ar ? 'جرب تغيير الفلاتر أو كلمة البحث' : 'Try adjusting your filters or search'}</p>
-              <button type="button" onClick={resetFilters} className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-semibold">
+              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10">
+                <PackageSearch className="h-12 w-12 text-white" />
+              </div>
+
+              <h3 className="mb-3 text-3xl font-bold">
+                {ar
+                  ? 'لا توجد منتجات حاليًا'
+                  : 'No products available'}
+              </h3>
+
+              <p className="mx-auto mb-8 max-w-md text-white/70">
+                {ar
+                  ? 'سيتم إضافة المنتجات قريبًا. يمكنك أيضًا تجربة تغيير الفلاتر أو كلمة البحث.'
+                  : 'Products will be added soon. You can also try changing the filters or search term.'}
+              </p>
+
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={resetFilters}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-bold text-[#10292D] shadow-xl"
+              >
+                <X className="h-5 w-5" />
                 {ar ? 'مسح الفلاتر' : 'Clear Filters'}
-              </button>
+              </motion.button>
             </motion.div>
           ) : (
             <motion.div
@@ -293,91 +543,152 @@ export default function Shop({ onProductClick }: ShopProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
               {filtered.map((product, index) => (
-                <motion.div
+                <motion.article
                   key={product.id}
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  onHoverStart={() => setHoveredId(product.id)}
-                  onHoverEnd={() => setHoveredId(null)}
+                  transition={{
+                    duration: 0.45,
+                    delay: index * 0.05,
+                  }}
+                  onHoverStart={() =>
+                    setHoveredId(product.id)
+                  }
+                  onHoverEnd={() =>
+                    setHoveredId(null)
+                  }
                   className="group relative"
                 >
-                  <div className="relative overflow-hidden rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 transition-all duration-300">
-                    {/* Image */}
-                    <div className="relative aspect-[3/4] overflow-hidden">
+                  <div className="relative h-full overflow-hidden rounded-3xl border border-white/25 bg-[#075E66]/75 shadow-xl backdrop-blur-xl transition duration-300 hover:-translate-y-2 hover:border-white/50 hover:shadow-2xl">
+                    {/* الصورة */}
+                    <div className="relative aspect-[3/4] overflow-hidden bg-white">
                       <motion.img
                         src={product.image}
-                        alt={ar ? product.nameAr : product.name}
-                        className="w-full h-full object-cover"
-                        animate={{ scale: hoveredId === product.id ? 1.08 : 1 }}
+                        alt={
+                          ar
+                            ? product.nameAr
+                            : product.name
+                        }
+                        className="h-full w-full object-cover"
+                        animate={{
+                          scale:
+                            hoveredId === product.id
+                              ? 1.08
+                              : 1,
+                        }}
                         transition={{ duration: 0.5 }}
                       />
 
-                      {/* Overlay */}
+                      {/* طبقة التحويم */}
                       <motion.div
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: hoveredId === product.id ? 1 : 0 }}
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center gap-3"
+                        animate={{
+                          opacity:
+                            hoveredId === product.id
+                              ? 1
+                              : 0,
+                        }}
+                        className="absolute inset-0 flex items-center justify-center gap-3 bg-[#10292D]/60 backdrop-blur-sm"
                       >
                         <motion.button
                           type="button"
                           whileHover={{ scale: 1.15 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={e => { e.stopPropagation(); onProductClick(product); }}
-                          className="p-3.5 bg-white dark:bg-black rounded-full shadow-lg"
-                          title={ar ? 'عرض سريع' : 'Quick view'}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onProductClick(product);
+                          }}
+                          className="rounded-full bg-white p-4 text-[#10292D] shadow-xl"
+                          title={
+                            ar
+                              ? 'عرض المنتج'
+                              : 'View product'
+                          }
                         >
-                          <Eye className="w-5 h-5" />
+                          <Eye className="h-5 w-5" />
                         </motion.button>
+
                         <motion.button
                           type="button"
                           whileHover={{ scale: 1.15 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={e => e.stopPropagation()}
-                          className="p-3.5 bg-white dark:bg-black rounded-full shadow-lg"
-                          title={ar ? 'المفضلة' : 'Wishlist'}
+                          onClick={(event) =>
+                            event.stopPropagation()
+                          }
+                          className="rounded-full bg-white p-4 text-[#10292D] shadow-xl"
+                          title={
+                            ar
+                              ? 'إضافة للمفضلة'
+                              : 'Add to wishlist'
+                          }
                         >
-                          <Heart className="w-5 h-5" />
+                          <Heart className="h-5 w-5" />
                         </motion.button>
                       </motion.div>
 
-                      {/* Category Badge */}
-                      <div className={`absolute top-3 ${ar ? 'right-3' : 'left-3'} px-3 py-1 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-xl text-xs font-medium`}>
-                        {ar ? product.categoryAr : product.category}
+                      {/* التصنيف */}
+                      <div
+                        className={`absolute top-4 rounded-full bg-[#10292D]/80 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-xl ${
+                          ar ? 'right-4' : 'left-4'
+                        }`}
+                      >
+                        {ar
+                          ? product.categoryAr
+                          : product.category}
                       </div>
+
+                      {index === 0 && (
+                        <div
+                          className={`absolute top-4 flex items-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#075E66] shadow-lg ${
+                            ar ? 'left-4' : 'right-4'
+                          }`}
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {ar ? 'جديد' : 'NEW'}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Info */}
-                    <div className="p-5">
-                      <h3 className="font-semibold text-base mb-1 truncate">
-                        {ar ? product.nameAr : product.name}
+                    {/* معلومات المنتج */}
+                    <div className="p-6">
+                      <h3 className="mb-2 truncate text-lg font-bold text-white">
+                        {ar
+                          ? product.nameAr
+                          : product.name}
                       </h3>
-                      {product.stock !== undefined && product.stock < 10 && (
-                        <p className="text-xs text-amber-500 mb-2">
-                          {ar ? `فقط ${product.stock} قطعة` : `Only ${product.stock} left`}
-                        </p>
-                      )}
 
-                      <div className="flex items-end justify-between mb-4">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-0.5">{t('products.retail')}</p>
-                          <p className="text-xl font-bold">${product.retailPrice}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-400 mb-0.5">{t('products.wholesale')}</p>
-                          <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">${product.wholesalePrice}</p>
-                        </div>
+                      {product.stock !== undefined &&
+                        product.stock < 10 && (
+                          <p className="mb-3 text-xs text-amber-200">
+                            {ar
+                              ? `متبقي ${product.stock} فقط`
+                              : `Only ${product.stock} left`}
+                          </p>
+                        )}
+
+                      <div className="mb-5">
+                        <p className="mb-1 text-xs text-white/60">
+                          {t('products.retail')}
+                        </p>
+
+                        <p
+                          dir="ltr"
+                          className="text-2xl font-bold text-white"
+                        >
+                          ${product.retailPrice}
+                        </p>
                       </div>
 
                       <motion.button
                         type="button"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={e => {
-                          e.stopPropagation();
+                        onClick={(event) => {
+                          event.stopPropagation();
+
                           addToCart({
                             id: product.id,
                             name: product.name,
@@ -387,19 +698,19 @@ export default function Shop({ onProductClick }: ShopProps) {
                             type: 'retail',
                           });
                         }}
-                        className="w-full py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center gap-2 text-sm font-semibold"
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 text-sm font-bold text-[#10292D] shadow-lg"
                       >
-                        <ShoppingCart className="w-4 h-4" />
+                        <ShoppingCart className="h-5 w-5" />
                         {t('products.addToCart')}
                       </motion.button>
                     </div>
                   </div>
-                </motion.div>
+                </motion.article>
               ))}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </section>
   );
 }
