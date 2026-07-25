@@ -14,16 +14,12 @@ export default function Hero({ onNavigate }: HeroProps) {
       ? {
           badge: 'أحدث منتجات الطباعة ثلاثية الأبعاد',
           title: 'كل ما تحتاجه للطباعة ثلاثية الأبعاد',
-          subtitle:
-            'طابعات ثلاثية الأبعاد، فيلامنت، قطع غيار وإكسسوارات بجودة عالية',
           shopButton: 'تسوق الآن',
           loginButton: 'سجّل دخولك',
         }
       : {
           badge: 'Latest 3D Printing Products',
           title: 'Everything You Need for 3D Printing',
-          subtitle:
-            '3D printers, filament, spare parts, and accessories with high quality',
           shopButton: 'Shop Now',
           loginButton: 'Sign In',
         };
@@ -68,17 +64,20 @@ export default function Hero({ onNavigate }: HeroProps) {
         ))}
       </div>
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6">
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
         <div className="text-center">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10 mb-8"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10 mb-8"
           >
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm tracking-wider">{content.badge}</span>
+            <Sparkles className="w-4 h-4 shrink-0" />
+
+            <span className="text-sm tracking-normal whitespace-nowrap">
+              {content.badge}
+            </span>
           </motion.div>
 
           {/* Main Title */}
@@ -86,28 +85,18 @@ export default function Hero({ onNavigate }: HeroProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-7xl font-bold tracking-tight mb-6"
+            className="max-w-6xl mx-auto mb-10 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight"
           >
             <span className="block bg-gradient-to-b from-black to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
               {content.title}
             </span>
           </motion.h1>
 
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto"
-          >
-            {content.subtitle}
-          </motion.p>
-
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <motion.button
@@ -125,7 +114,14 @@ export default function Hero({ onNavigate }: HeroProps) {
 
               <span className="relative flex items-center gap-2">
                 {content.shopButton}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+
+                <ArrowRight
+                  className={`w-5 h-5 transition-transform ${
+                    language === 'ar'
+                      ? 'rotate-180 group-hover:-translate-x-1'
+                      : 'group-hover:translate-x-1'
+                  }`}
+                />
               </span>
             </motion.button>
 
