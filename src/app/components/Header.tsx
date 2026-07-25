@@ -1,6 +1,21 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
-import { Search, ShoppingBag, Menu, X, Globe } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  motion,
+  AnimatePresence,
+} from 'motion/react';
+import {
+  Search,
+  ShoppingBag,
+  Menu,
+  X,
+  Globe,
+  Home,
+  Box,
+  MapPin,
+  Phone,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
 
@@ -9,161 +24,435 @@ interface HeaderProps {
   onCartClick: () => void;
 }
 
-export default function Header({ onNavigate, onCartClick }: HeaderProps) {
+interface NavItem {
+  key: string;
+  page: string;
+  labelAr: string;
+  labelEn: string;
+  icon: typeof Home;
+}
+
+export default function Header({
+  onNavigate,
+  onCartClick,
+}: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState('home');
+
   const { language, setLanguage } = useLanguage();
   const { totalItems } = useCart();
 
-  const navItems = [
+  const ar = language === 'ar';
+
+  const navItems: NavItem[] = [
     {
       key: 'home',
       page: 'home',
       labelAr: 'الرئيسية',
       labelEn: 'Home',
+      icon: Home,
     },
     {
       key: 'shop',
       page: 'shop',
       labelAr: 'المتجر',
       labelEn: 'Shop',
+      icon: Box,
     },
     {
       key: 'tracking',
       page: 'about',
       labelAr: 'تتبع الطلب',
       labelEn: 'Track Order',
+      icon: MapPin,
     },
     {
       key: 'contact',
       page: 'contact',
       labelAr: 'اتصل بنا',
       labelEn: 'Contact Us',
+      icon: Phone,
     },
   ];
 
+  useEffect(() => {
+    const updateCurrentPage = () => {
+      const page =
+        window.location.hash.replace('#', '').trim() ||
+        'home';
+
+      setCurrentPage(page);
+    };
+
+    updateCurrentPage();
+
+    window.addEventListener(
+      'hashchange',
+      updateCurrentPage,
+    );
+
+    return () => {
+      window.removeEventListener(
+        'hashchange',
+        updateCurrentPage,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
+  const handleNavigate = (page: string) => {
+    setCurrentPage(page);
+    setIsMenuOpen(false);
+    onNavigate(page);
+  };
+
+  const handleCartClick = () => {
+    setIsMenuOpen(false);
+    onCartClick();
+  };
+
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-[#10292D] text-white border-b border-white/10"
-    >
-      <div className="relative max-w-[1400px] mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <motion.button
-            type="button"
-            onClick={() => onNavigate('home')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-            className="text-2xl font-bold tracking-wider cursor-pointer"
-          >
-            <span className="text-white drop-shadow-md">
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#10292D] text-white shadow-lg"
+      >
+        <div className="relative mx-auto max-w-[1400px] px-4 py-4 sm:px-6">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <motion.button
+              type="button"
+              onClick={() => handleNavigate('home')}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              className="cursor-pointer text-xl font-black tracking-[0.12em] text-white sm:text-2xl"
+            >
               3D TECH
-            </span>
-          </motion.button>
+            </motion.button>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item, index) => (
+            {/* Desktop Navigation */}
+            <nav className="hidden items-center gap-8 md:flex">
+              {navItems.map((item, index) => {
+                const active =
+                  currentPage === item.page;
+
+                return (
+                  <motion.button
+                    key={item.key}
+                    type="button"
+                    onClick={() =>
+                      handleNavigate(item.page)
+                    }
+                    initial={{
+                      opacity: 0,
+                      y: -20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    transition={{
+                      delay: index * 0.08,
+                    }}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`relative py-2 text-sm font-semibold tracking-wide transition-colors ${
+                      active
+                        ? 'text-white'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                  >
+                    {ar
+                      ? item.labelAr
+                      : item.labelEn}
+
+                    <span
+                      className={`absolute -bottom-0.5 left-0 h-0.5 bg-[#16B8BE] transition-all duration-300 ${
+                        active
+                          ? 'w-full'
+                          : 'w-0'
+                      }`}
+                    />
+                  </motion.button>
+                );
+              })}
+            </nav>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              {/* Search */}
               <motion.button
-                key={item.key}
                 type="button"
-                onClick={() => onNavigate(item.page)}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative text-sm tracking-wide text-white/80 hover:text-white transition-colors group"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() =>
+                  handleNavigate('shop')
+                }
+                className="hidden rounded-full p-2.5 text-white transition hover:bg-white/10 sm:flex"
+                aria-label={
+                  ar ? 'البحث' : 'Search'
+                }
               >
-                {language === 'ar' ? item.labelAr : item.labelEn}
-                <motion.span
-                  className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white group-hover:w-full transition-all duration-300"
-                />
+                <Search className="h-5 w-5" />
               </motion.button>
-            ))}
-          </nav>
 
-          {/* Actions */}
-          <div className="flex items-center gap-4">
-            {/* Search */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors text-white"
-            >
-              <Search className="w-5 h-5" />
-            </motion.button>
-
-            {/* Language Toggle */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors flex items-center gap-1 text-white"
-            >
-              <Globe className="w-5 h-5" />
-              <span className="text-xs font-semibold">{language === 'ar' ? 'EN' : 'AR'}</span>
-            </motion.button>
-
-            {/* Cart */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onCartClick}
-              className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-white"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-white text-[#10292D] rounded-full text-xs flex items-center justify-center font-bold">
-                  {totalItems}
+              {/* Language */}
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() =>
+                  setLanguage(ar ? 'en' : 'ar')
+                }
+                className="flex items-center gap-1 rounded-full p-2.5 text-white transition hover:bg-white/10"
+                aria-label={
+                  ar
+                    ? 'تغيير اللغة'
+                    : 'Change language'
+                }
+              >
+                <span className="text-xs font-bold">
+                  {ar ? 'EN' : 'AR'}
                 </span>
-              )}
-            </motion.button>
 
-            {/* Mobile Menu Toggle */}
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-white"
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </motion.button>
+                <Globe className="h-5 w-5" />
+              </motion.button>
+
+              {/* Cart */}
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={handleCartClick}
+                className="relative rounded-full p-2.5 text-white transition hover:bg-white/10"
+                aria-label={
+                  ar ? 'السلة' : 'Cart'
+                }
+              >
+                <ShoppingBag className="h-5 w-5" />
+
+                {totalItems > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#16B8BE] px-1 text-[10px] font-black text-white shadow-lg">
+                    {totalItems}
+                  </span>
+                )}
+              </motion.button>
+
+              {/* Mobile Menu */}
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.92 }}
+                onClick={() =>
+                  setIsMenuOpen(true)
+                }
+                className="rounded-full p-2.5 text-white transition hover:bg-white/10 md:hidden"
+                aria-label={
+                  ar ? 'فتح القائمة' : 'Open menu'
+                }
+              >
+                <Menu className="h-6 w-6" />
+              </motion.button>
+            </div>
           </div>
         </div>
+      </motion.header>
 
-        {/* Mobile Menu */}
+      {/* Mobile Drawer */}
+      <AnimatePresence>
         {isMenuOpen && (
-          <motion.nav
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden mt-4 pb-4 border-t border-white/10 pt-4"
-          >
-            {navItems.map((item, index) => (
-              <motion.button
-                key={item.key}
-                type="button"
-                onClick={() => {
-                  onNavigate(item.page);
-                  setIsMenuOpen(false);
-                }}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileTap={{ scale: 0.98 }}
-                className="block py-3 text-sm text-white/80 hover:text-white transition-colors w-full text-left"
-              >
-                {language === 'ar' ? item.labelAr : item.labelEn}
-              </motion.button>
-            ))}
-          </motion.nav>
+          <div className="fixed inset-0 z-[100] md:hidden">
+            {/* Overlay */}
+            <motion.button
+              type="button"
+              aria-label={
+                ar ? 'إغلاق القائمة' : 'Close menu'
+              }
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() =>
+                setIsMenuOpen(false)
+              }
+              className="absolute inset-0 h-full w-full bg-black/65 backdrop-blur-sm"
+            />
+
+            {/* Side Menu */}
+            <motion.aside
+              dir={ar ? 'rtl' : 'ltr'}
+              initial={{
+                x: ar ? '100%' : '-100%',
+              }}
+              animate={{ x: 0 }}
+              exit={{
+                x: ar ? '100%' : '-100%',
+              }}
+              transition={{
+                type: 'spring',
+                damping: 28,
+                stiffness: 260,
+              }}
+              className={`absolute top-0 h-full w-[88%] max-w-[390px] overflow-y-auto bg-[#F8F7F2] text-[#10292D] shadow-2xl ${
+                ar ? 'right-0' : 'left-0'
+              }`}
+            >
+              {/* Drawer Header */}
+              <div className="border-b border-[#10292D]/10 px-6 pb-7 pt-8">
+                <div className="flex items-center justify-between">
+                  <motion.button
+                    type="button"
+                    onClick={() =>
+                      handleNavigate('home')
+                    }
+                    whileTap={{ scale: 0.97 }}
+                    className="text-2xl font-black tracking-[0.12em]"
+                  >
+                    3D TECH
+                  </motion.button>
+
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() =>
+                      setIsMenuOpen(false)
+                    }
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#10292D]/15 bg-white text-[#10292D] shadow-sm"
+                    aria-label={
+                      ar
+                        ? 'إغلاق القائمة'
+                        : 'Close menu'
+                    }
+                  >
+                    <X className="h-6 w-6" />
+                  </motion.button>
+                </div>
+
+                <p className="mt-6 text-sm font-medium text-[#10292D]/55">
+                  {ar
+                    ? 'كل ما تحتاجه للطباعة ثلاثية الأبعاد'
+                    : 'Everything you need for 3D printing'}
+                </p>
+              </div>
+
+              {/* Navigation Title */}
+              <div className="px-6 pb-3 pt-8">
+                <p className="text-sm font-black text-[#10292D]/45">
+                  {ar ? 'التنقل' : 'Navigation'}
+                </p>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="space-y-3 px-5">
+                {navItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const active =
+                    currentPage === item.page;
+                  const ArrowIcon = ar
+                    ? ChevronLeft
+                    : ChevronRight;
+
+                  return (
+                    <motion.button
+                      key={item.key}
+                      type="button"
+                      initial={{
+                        opacity: 0,
+                        x: ar ? 30 : -30,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        x: 0,
+                      }}
+                      transition={{
+                        delay: index * 0.07,
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() =>
+                        handleNavigate(item.page)
+                      }
+                      className={`flex w-full items-center justify-between rounded-[24px] px-5 py-5 text-start transition-all ${
+                        active
+                          ? 'bg-[#10292D] text-white shadow-xl'
+                          : 'text-[#10292D] hover:bg-[#10292D]/5'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span
+                          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                            active
+                              ? 'bg-white/10 text-[#D7C89A]'
+                              : 'bg-[#10292D]/5 text-[#10292D]/60'
+                          }`}
+                        >
+                          <Icon className="h-6 w-6" />
+                        </span>
+
+                        <span className="text-xl font-black">
+                          {ar
+                            ? item.labelAr
+                            : item.labelEn}
+                        </span>
+                      </div>
+
+                      <ArrowIcon
+                        className={`h-5 w-5 ${
+                          active
+                            ? 'text-[#D7C89A]'
+                            : 'text-[#10292D]/30'
+                        }`}
+                      />
+                    </motion.button>
+                  );
+                })}
+              </nav>
+
+              {/* Bottom Section */}
+              <div className="mt-10 px-6 pb-10">
+                <div className="rounded-3xl bg-[#16B8BE]/10 p-5">
+                  <p className="text-sm font-bold text-[#10292D]">
+                    {ar
+                      ? 'تحتاج مساعدة؟'
+                      : 'Need help?'}
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-[#10292D]/60">
+                    {ar
+                      ? 'تواصل معنا وسنرد عليك في أقرب وقت.'
+                      : 'Contact us and we will reply as soon as possible.'}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleNavigate('contact')
+                    }
+                    className="mt-4 w-full rounded-full bg-[#16B8BE] py-3.5 font-black text-white shadow-lg"
+                  >
+                    {ar
+                      ? 'اتصل بنا'
+                      : 'Contact Us'}
+                  </button>
+                </div>
+
+                <p className="mt-8 text-center text-xs font-bold tracking-[0.18em] text-[#10292D]/35">
+                  3DTECH.STORE
+                </p>
+              </div>
+            </motion.aside>
+          </div>
         )}
-      </div>
-    </motion.header>
+      </AnimatePresence>
+    </>
   );
 }
