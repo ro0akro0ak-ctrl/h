@@ -13,6 +13,7 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import SplashScreen from './components/SplashScreen'; // استيراد شاشة البداية
 
 type Page =
   | 'home'
@@ -41,6 +42,17 @@ export default function App() {
   });
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // حالة التحكم في ظهور شاشة البداية
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1700);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -124,6 +136,9 @@ export default function App() {
       <CartProvider>
         <LanguageProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            {/* وضع شاشة البداية في الأعلى */}
+            <SplashScreen show={showSplash} />
+
             <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500" dir="rtl" lang="ar">
               <Header
                 onNavigate={handleNavigate}
