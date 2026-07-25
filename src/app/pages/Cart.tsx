@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,19 +8,25 @@ import { useState } from 'react';
 
 interface CartProps {
   onNavigate: (page: string) => void;
+  onClose: () => void;
 }
 
-export default function Cart({ onNavigate }: CartProps) {
-  const { language, t } = useLanguage();
+export default function Cart({ onNavigate, onClose }: CartProps) {
+  const { language } = useLanguage();
   const { items, removeFromCart, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
   const { user } = useAuth();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState('');
 
+  const handleNavigateAndClose = (page: string) => {
+    onClose();
+    onNavigate(page);
+  };
+
   const handleCheckout = async () => {
     if (!user) {
       alert(language === 'ar' ? 'الرجاء تسجيل الدخول لإتمام الطلب' : 'Please login to checkout');
-      onNavigate('login');
+      handleNavigateAndClose('login');
       return;
     }
 
@@ -28,23 +34,16 @@ export default function Cart({ onNavigate }: CartProps) {
     setCheckoutMessage('');
 
     try {
-      const finalPrice = totalPrice * 1.15; // Including tax
-
-      // 1. Create the order
+      const finalPrice = totalPrice * 1.15;
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: user.id,
-          total_price: finalPrice,
-          status: 'pending'
-        })
+        .insert({ user_id: user.id, total_price: finalPrice, status: 'pending' })
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // 2. Create the order items
-      const orderItemsData = items.map(item => ({
+      const orderItemsData = items.map((item) => ({
         order_id: orderData.id,
         product_id: item.id,
         quantity: item.quantity,
@@ -53,20 +52,12 @@ export default function Cart({ onNavigate }: CartProps) {
         size: item.size || null,
       }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItemsData);
-
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItemsData);
       if (itemsError) throw itemsError;
 
-      // 3. Clear cart and show success
       clearCart();
       setCheckoutMessage(language === 'ar' ? 'تم إتمام الطلب بنجاح!' : 'Order placed successfully!');
-      
-      setTimeout(() => {
-        onNavigate('home');
-      }, 3000);
-
+      window.setTimeout(() => handleNavigateAndClose('home'), 2200);
     } catch (error) {
       console.error('Checkout error:', error);
       setCheckoutMessage(language === 'ar' ? 'حدث خطأ أثناء إتمام الطلب' : 'Error placing order');
@@ -75,252 +66,94 @@ export default function Cart({ onNavigate }: CartProps) {
     }
   };
 
-  if (items.length === 0 && !checkoutMessage) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 px-6 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-gray-400" />
-          <h2 className="text-3xl font-bold mb-4">
-            {language === 'ar' ? 'سلة التسوق فارغة' : 'Your cart is empty'}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            {language === 'ar'
-              ? 'ابدأ بإضافة منتجات إلى سلة التسوق'
-              : 'Start adding products to your cart'}
-          </p>
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onNavigate('home')}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full"
-          >
-            {language === 'ar' ? 'تسوق الآن' : 'Shop Now'}
-            <ArrowRight className="w-5 h-5" />
-          </motion.button>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (items.length === 0 && checkoutMessage) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 px-6 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="w-24 h-24 mx-auto mb-6 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center">
-            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-bold mb-4">{checkoutMessage}</h2>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-[1400px] mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">
-            {language === 'ar' ? 'سلة التسوق' : 'Shopping Cart'}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {totalItems} {language === 'ar' ? 'منتجات' : 'items'}
-          </p>
-        </motion.div>
+    <div className="flex h-full flex-col bg-[#F7F7F5] text-[#092D31]" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="flex items-center justify-between border-b border-black/10 px-5 py-5">
+        <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5" aria-label="إغلاق السلة">
+          <X className="h-5 w-5" />
+        </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+        <div className="text-center">
+          <h2 className="text-xl font-black">{language === 'ar' ? 'السلة' : 'Cart'}</h2>
+          <p className="mt-0.5 text-xs text-black/50">{totalItems} {language === 'ar' ? 'منتج' : 'items'}</p>
+        </div>
+
+        <div className="flex h-10 min-w-10 items-center justify-center rounded-full bg-white px-3 text-sm font-black shadow-sm">{totalItems}</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-5">
+        {items.length === 0 && !checkoutMessage ? (
+          <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
+            <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-[#16B8BE]/10">
+              <ShoppingBag className="h-11 w-11 text-[#16B8BE]" />
+            </div>
+            <h3 className="mb-2 text-2xl font-black">{language === 'ar' ? 'سلة التسوق فارغة' : 'Your cart is empty'}</h3>
+            <p className="mb-7 max-w-xs text-sm leading-6 text-black/50">{language === 'ar' ? 'أضف منتجاتك المفضلة وستظهر هنا مباشرة.' : 'Add your favourite products and they will appear here.'}</p>
+            <button type="button" onClick={() => handleNavigateAndClose('shop')} className="rounded-full bg-[#092D31] px-8 py-3.5 font-bold text-white transition hover:scale-[1.03]">
+              {language === 'ar' ? 'تصفح المتجر' : 'Browse shop'}
+            </button>
+          </motion.div>
+        ) : items.length === 0 && checkoutMessage ? (
+          <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
+            <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-green-500/15 text-green-600">
+              <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h3 className="text-2xl font-black">{checkoutMessage}</h3>
+          </motion.div>
+        ) : (
+          <div className="space-y-3">
             {items.map((item, index) => (
-              <motion.div
-                key={`${item.id}-${item.type}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="relative p-6 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
-              >
-                <div className="flex gap-6">
-                  {/* Product Image */}
-                  <div className="w-32 h-32 rounded-2xl overflow-hidden bg-black/5 dark:bg-white/5 flex-shrink-0">
-                    <img
-                      src={item.image}
-                      alt={language === 'ar' ? item.nameAr : item.name}
-                      className="w-full h-full object-cover"
-                    />
+              <motion.div key={`${item.id}-${item.type}`} initial={{ opacity: 0, x: 35 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05 }} className="rounded-[22px] bg-[#092D31] p-3.5 text-white shadow-sm">
+                <div className="flex gap-3">
+                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-white">
+                    <img src={item.image} alt={language === 'ar' ? item.nameAr : item.name} className="h-full w-full object-cover" />
                   </div>
 
-                  {/* Product Info */}
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold mb-2">
-                        {language === 'ar' ? item.nameAr : item.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <div className="inline-block px-3 py-1 rounded-full bg-black/10 dark:bg-white/10 text-xs">
-                          {item.type === 'retail'
-                            ? t('products.retail')
-                            : t('products.wholesale')}
-                        </div>
-                        {item.size && (
-                          <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs">
-                            {language === 'ar' ? 'مقاس مخصص' : 'Custom Size'}
-                          </div>
-                        )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-sm font-black">{language === 'ar' ? item.nameAr : item.name}</h3>
+                        <p className="mt-1 text-base font-black">${item.price}</p>
                       </div>
-
-                      {item.size && (
-                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex gap-3">
-                          <span>{language === 'ar' ? 'طول' : 'H'}: {item.size.height}cm</span>
-                          <span>{language === 'ar' ? 'عرض' : 'W'}: {item.size.width}cm</span>
-                          <span>{language === 'ar' ? 'يد' : 'S'}: {item.size.sleeveLength}cm</span>
-                        </div>
-                      )}
-
-                      <div className="text-2xl font-bold">
-                        ${item.price}
-                      </div>
+                      <button type="button" onClick={() => removeFromCart(item.id, item.type)} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-red-400 transition hover:bg-white/10" aria-label="حذف المنتج">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-4 mt-4">
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => updateQuantity(item.id, item.type, item.quantity - 1)}
-                        className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </motion.button>
-                      <span className="text-lg font-semibold w-12 text-center">
-                        {item.quantity}
-                      </span>
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => updateQuantity(item.id, item.type, item.quantity + 1)}
-                        className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </motion.button>
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center rounded-full bg-white text-[#092D31]">
+                        <button type="button" onClick={() => updateQuantity(item.id, item.type, Math.max(1, item.quantity - 1))} className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-black/5"><Minus className="h-3.5 w-3.5" /></button>
+                        <span className="min-w-8 text-center text-sm font-black">{item.quantity}</span>
+                        <button type="button" onClick={() => updateQuantity(item.id, item.type, item.quantity + 1)} className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-black/5"><Plus className="h-3.5 w-3.5" /></button>
+                      </div>
+                      <span className="text-sm font-black">${(item.price * item.quantity).toFixed(2)}</span>
                     </div>
-                  </div>
-
-                  {/* Remove Button */}
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => removeFromCart(item.id, item.type)}
-                    className="p-3 h-fit rounded-full hover:bg-red-500/10 text-red-500"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </motion.button>
-                </div>
-
-                {/* Item Total */}
-                <div className="mt-4 pt-4 border-t border-black/10 dark:border-white/10 text-right">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {language === 'ar' ? 'الإجمالي' : 'Total'}
-                  </div>
-                  <div className="text-2xl font-bold">
-                    ${(item.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="sticky top-24 p-8 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
-            >
-              <h2 className="text-2xl font-bold mb-6">
-                {language === 'ar' ? 'ملخص الطلب' : 'Order Summary'}
-              </h2>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {language === 'ar' ? 'المجموع الفرعي' : 'Subtotal'}
-                  </span>
-                  <span className="font-semibold">${totalPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {language === 'ar' ? 'الشحن' : 'Shipping'}
-                  </span>
-                  <span className="font-semibold text-green-600 dark:text-green-400">
-                    {language === 'ar' ? 'مجاني' : 'Free'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {language === 'ar' ? 'الضريبة' : 'Tax'}
-                  </span>
-                  <span className="font-semibold">${(totalPrice * 0.15).toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-black/10 dark:border-white/10 mb-6">
-                <div className="flex justify-between text-xl font-bold">
-                  <span>{language === 'ar' ? 'الإجمالي' : 'Total'}</span>
-                  <span>${(totalPrice * 1.15).toFixed(2)}</span>
-                </div>
-              </div>
-
-              <motion.button
-                type="button"
-                onClick={handleCheckout}
-                disabled={isCheckingOut}
-                whileHover={{ scale: isCheckingOut ? 1 : 1.02 }}
-                whileTap={{ scale: isCheckingOut ? 1 : 0.98 }}
-                className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center gap-2 text-lg font-semibold disabled:opacity-50"
-              >
-                {isCheckingOut 
-                  ? (language === 'ar' ? 'جاري التنفيذ...' : 'Processing...')
-                  : (language === 'ar' ? 'إتمام الطلب' : 'Checkout')}
-                {!isCheckingOut && <ArrowRight className="w-5 h-5" />}
-              </motion.button>
-              
-              {checkoutMessage && !isCheckingOut && (
-                <p className="mt-4 text-center text-red-500 font-semibold text-sm">
-                  {checkoutMessage}
-                </p>
-              )}
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full mt-3 py-4 rounded-full border-2 border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white transition-colors"
-                onClick={() => onNavigate('home')}
-              >
-                {language === 'ar' ? 'متابعة التسوق' : 'Continue Shopping'}
-              </motion.button>
-            </motion.div>
-          </div>
-        </div>
+        )}
       </div>
+
+      {items.length > 0 && (
+        <div className="border-t border-black/10 bg-[#F7F7F5] px-5 pb-5 pt-4">
+          <div className="mb-2 flex items-center justify-between text-sm"><span className="text-black/55">{language === 'ar' ? 'المجموع الفرعي' : 'Subtotal'}</span><span className="font-bold">${totalPrice.toFixed(2)}</span></div>
+          <div className="mb-2 flex items-center justify-between text-sm"><span className="text-black/55">{language === 'ar' ? 'الضريبة' : 'Tax'}</span><span className="font-bold">${(totalPrice * 0.15).toFixed(2)}</span></div>
+          <div className="mb-5 mt-4 flex items-center justify-between border-t border-black/10 pt-4"><span className="font-black">{language === 'ar' ? 'الإجمالي' : 'Total'}</span><span className="text-2xl font-black">${(totalPrice * 1.15).toFixed(2)}</span></div>
+
+          <button type="button" onClick={handleCheckout} disabled={isCheckingOut} className="flex w-full items-center justify-center gap-2 rounded-full bg-[#092D31] py-4 text-base font-black text-white transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50">
+            {isCheckingOut ? (language === 'ar' ? 'جاري التنفيذ...' : 'Processing...') : (language === 'ar' ? 'إتمام الطلب' : 'Checkout')}
+            {!isCheckingOut && <ArrowRight className="h-5 w-5" />}
+          </button>
+
+          {checkoutMessage && !isCheckingOut && <p className="mt-3 text-center text-sm font-semibold text-red-500">{checkoutMessage}</p>}
+
+          <button type="button" onClick={() => handleNavigateAndClose('shop')} className="mt-3 w-full rounded-full border border-[#092D31] py-3.5 font-bold text-[#092D31] transition hover:bg-[#092D31] hover:text-white">
+            {language === 'ar' ? 'متابعة التسوق' : 'Continue Shopping'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
