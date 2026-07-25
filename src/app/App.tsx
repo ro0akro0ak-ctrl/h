@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ThemeProvider } from 'next-themes';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { CartProvider } from './contexts/CartContext';
-import { AuthProvider } from './contexts/AuthContext';
 import { ProductsProvider } from './contexts/ProductsContext';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -15,18 +14,12 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
-import CustomerDashboard from './pages/CustomerDashboard';
 
 type Page =
   | 'home'
   | 'product-detail'
   | 'about'
   | 'contact'
-  | 'login'
-  | 'admin'
-  | 'customer-dashboard'
   | 'shop';
 
 const allowedPages: Page[] = [
@@ -34,9 +27,6 @@ const allowedPages: Page[] = [
   'product-detail',
   'about',
   'contact',
-  'login',
-  'admin',
-  'customer-dashboard',
   'shop',
 ];
 
@@ -101,10 +91,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleLoginSuccess = (role: string) => {
-    handleNavigate(role === 'admin' ? 'admin' : 'customer-dashboard');
-  };
-
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
@@ -134,75 +120,62 @@ export default function App() {
         return <About />;
       case 'contact':
         return <Contact />;
-      case 'login':
-        return <Login onSuccess={handleLoginSuccess} />;
-      case 'admin':
-        return <AdminDashboard />;
-      case 'customer-dashboard':
-        return <CustomerDashboard onNavigate={handleNavigate} />;
       default:
         return null;
     }
   };
 
-  const showFooter =
-    currentPage !== 'admin' && currentPage !== 'customer-dashboard';
-
   return (
-    <AuthProvider>
-      <ProductsProvider>
-        <CartProvider>
-          <LanguageProvider>
-            <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-              <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500" dir="rtl" lang="ar">
-                {currentPage !== 'admin' && (
-                  <Header
-                    onNavigate={handleNavigate}
-                    onCartClick={() => setIsCartOpen(true)}
-                  />
-                )}
+    <ProductsProvider>
+      <CartProvider>
+        <LanguageProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500" dir="rtl" lang="ar">
+              <Header
+                onNavigate={handleNavigate}
+                onCartClick={() => setIsCartOpen(true)}
+              />
 
-                <main>{renderPage()}</main>
-                {showFooter && <Footer />}
+              <main>{renderPage()}</main>
+              <Footer />
 
-                <AnimatePresence>
-                  {isCartOpen && (
-                    <motion.div
-                      className="fixed inset-0 z-[99999]"
+              <AnimatePresence>
+                {isCartOpen && (
+                  <motion.div
+                    className="fixed inset-0 z-[99999]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <motion.button
+                      type="button"
+                      aria-label="إغلاق السلة"
+                      className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-[2px]"
+                      onClick={() => setIsCartOpen(false)}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                    >
-                      <motion.button
-                        type="button"
-                        aria-label="إغلاق السلة"
-                        className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-[2px]"
-                        onClick={() => setIsCartOpen(false)}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      />
+                    />
 
-                      <motion.aside
-                        className="absolute right-0 top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#F7F7F5] shadow-2xl"
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', stiffness: 330, damping: 34 }}
-                      >
-                        <Cart
-                          onNavigate={handleNavigate}
-                          onClose={() => setIsCartOpen(false)}
-                        />
-                      </motion.aside>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </ThemeProvider>
-          </LanguageProvider>
-        </CartProvider>
-      </ProductsProvider>
-    </AuthProvider>
+                    <motion.aside
+                      className="absolute right-0 top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#F7F7F5] shadow-2xl"
+                      initial={{ x: '100%' }}
+                      animate={{ x: 0 }}
+                      exit={{ x: '100%' }}
+                      transition={{ type: 'spring', stiffness: 330, damping: 34 }}
+                    >
+                      <Cart
+                        onNavigate={handleNavigate}
+                        onClose={() => setIsCartOpen(false)}
+                      />
+                    </motion.aside>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </ThemeProvider>
+        </LanguageProvider>
+      </CartProvider>
+    </ProductsProvider>
   );
 }
