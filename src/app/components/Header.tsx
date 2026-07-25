@@ -20,7 +20,7 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
   const navItems = [
     { key: 'nav.home', page: 'home' },
     { key: 'nav.shop', page: 'shop' },
-    { key: 'nav.about', page: 'about' },
+    { key: 'nav.about', page: 'about' }, // تظهر الآن باسم "تتبع الطلب" بعد تعديل ملف الترجمة
     { key: 'nav.contact', page: 'contact' },
   ];
 
