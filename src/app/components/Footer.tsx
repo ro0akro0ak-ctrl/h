@@ -19,9 +19,9 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative mt-24 border-t border-black/10 dark:border-white/10">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 dark:to-white/5 pointer-events-none" />
+    <footer className="relative mt-24 bg-[#0796A8] text-white border-t border-white/10 overflow-hidden">
+      {/* Background Gradient / Glow Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
       <div className="relative max-w-[1400px] mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
@@ -31,16 +31,16 @@ export default function Footer() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="text-2xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-                LUXURY
+            <div className="text-2xl font-bold mb-4 tracking-wider">
+              <span className="text-white drop-shadow-md">
+                3D TECH
               </span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-white/80 mb-6 leading-relaxed">
               {t('footer.description')}
             </p>
             <div className="flex gap-3">
-              {socialLinks.map((social, index) => {
+              {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
                   <motion.a
@@ -48,7 +48,7 @@ export default function Footer() {
                     href={social.href}
                     whileHover={{ scale: 1.1, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
                   >
                     <Icon className="w-5 h-5" />
                   </motion.a>
@@ -64,14 +64,14 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="text-lg font-bold mb-4">{t('footer.quickLinks')}</h3>
+            <h3 className="text-lg font-bold mb-4 text-white">{t('footer.quickLinks')}</h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.key}>
                   <motion.a
                     href={link.href}
                     whileHover={{ x: 5 }}
-                    className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors inline-block"
+                    className="text-white/80 hover:text-white transition-colors inline-block"
                   >
                     {t(link.key)}
                   </motion.a>
@@ -87,25 +87,25 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <h3 className="text-lg font-bold mb-4">{t('footer.customerService')}</h3>
+            <h3 className="text-lg font-bold mb-4 text-white">{t('footer.customerService')}</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
                   {t('nav.contact')}
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
                   Returns
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
                   Shipping
                 </a>
               </li>
@@ -119,19 +119,19 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            <h3 className="text-lg font-bold mb-4">{t('nav.contact')}</h3>
+            <h3 className="text-lg font-bold mb-4 text-white">{t('nav.contact')}</h3>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-gray-600 dark:text-gray-400">
-                <Mail className="w-5 h-5 mt-0.5" />
-                <span>info@luxuryabaya.com</span>
+              <li className="flex items-start gap-3 text-white/80">
+                <Mail className="w-5 h-5 mt-0.5 shrink-0" />
+                <span>support@3dtech.com</span>
               </li>
-              <li className="flex items-start gap-3 text-gray-600 dark:text-gray-400">
-                <Phone className="w-5 h-5 mt-0.5" />
+              <li className="flex items-start gap-3 text-white/80">
+                <Phone className="w-5 h-5 mt-0.5 shrink-0" />
                 <span>+967 777 123 4567</span>
               </li>
-              <li className="flex items-start gap-3 text-gray-600 dark:text-gray-400">
-                <MapPin className="w-5 h-5 mt-0.5" />
-                <span>sana'a, Yemen</span>
+              <li className="flex items-start gap-3 text-white/80">
+                <MapPin className="w-5 h-5 mt-0.5 shrink-0" />
+                <span>Sana'a, Yemen</span>
               </li>
             </ul>
           </motion.div>
@@ -142,9 +142,9 @@ export default function Footer() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="pt-8 border-t border-black/10 dark:border-white/10 text-center text-gray-600 dark:text-gray-400"
+          className="pt-8 border-t border-white/10 text-center text-white/70 text-sm"
         >
-          <p>© 2026 LUXURY. {t('footer.rights')}</p>
+          <p>© 2026 3D TECH. {t('footer.rights')}</p>
         </motion.div>
       </div>
     </footer>
