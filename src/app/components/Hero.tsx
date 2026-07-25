@@ -29,24 +29,7 @@ export default function Hero({ onNavigate }: HeroProps) {
         };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 bg-gradient-to-br from-[#0796A8] via-[#08A8B0] to-[#0BB8B0]">
-      {/* Animated Background Gradient */}
-      <motion.div
-        animate={{
-          background: [
-            'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.18) 0%, transparent 50%)',
-            'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.18) 0%, transparent 50%)',
-            'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.18) 0%, transparent 50%)',
-          ],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        className="absolute inset-0 opacity-70"
-      />
-
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 bg-[#16B8BE] text-white">
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(45)].map((_, i) => (
