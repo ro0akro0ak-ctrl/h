@@ -1,9 +1,9 @@
 import { motion } from 'motion/react';
 
-const layers = Array.from({ length: 24 }, (_, index) => ({
+const layers = Array.from({ length: 20 }, (_, index) => ({
   id: index,
-  width: 75 - index * 1.8,
-  y: 395 - index * 4.8,
+  width: 60 - index * 1.5,
+  y: 350 - index * 4.5,
   delay: index * 0.25,
 }));
 
@@ -24,36 +24,23 @@ export default function PrinterAnimation() {
           viewBox="0 0 760 620"
           className="h-auto w-full overflow-visible drop-shadow-[0_35px_55px_rgba(5,45,49,0.28)]"
           role="img"
-          aria-label="طابعة ثلاثية الأبعاد احترافية تطبع مجسمًا واقعيًا"
+          aria-label="طابعة Bambu Lab A1 الحقيقية ثلاثية الأبعاد تطبع مجسمًا"
         >
           <defs>
-            {/* تدرجات ألوان طابعة هيكلية مغلقة احترافية (مثل سلسلة Bambu Lab / Creality CoreXY) */}
-            <linearGradient id="chassisDark" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#1e2229" />
-              <stop offset="50%" stopColor="#14171c" />
-              <stop offset="100%" stopColor="#0b0d10" />
+            <linearGradient id="metalBase" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#d1d5db" />
+              <stop offset="50%" stopColor="#9ca3af" />
+              <stop offset="100%" stopColor="#6b7280" />
             </linearGradient>
 
-            <linearGradient id="chassisMetal" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#374151" />
-              <stop offset="100%" stopColor="#1f2937" />
+            <linearGradient id="gantryMetal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#e5e7eb" />
+              <stop offset="100%" stopColor="#9ca3af" />
             </linearGradient>
 
-            <linearGradient id="glassReal" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.08" />
-              <stop offset="50%" stopColor="#0e7490" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#164e63" stopOpacity="0.3" />
-            </linearGradient>
-
-            <linearGradient id="extrudBody" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#2b3441" />
-              <stop offset="100%" stopColor="#111827" />
-            </linearGradient>
-
-            <linearGradient id="realModel" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22d3ee" />
-              <stop offset="60%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#0891b2" />
+            <linearGradient id="printModel" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#0284c7" />
             </linearGradient>
 
             <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
@@ -65,121 +52,89 @@ export default function PrinterAnimation() {
                 floodOpacity="0.4"
               />
             </filter>
-
-            <filter id="modelGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
 
           {/* ظل الطابعة */}
           <motion.ellipse
             cx="380"
-            cy="578"
-            rx="245"
-            ry="24"
+            cy="555"
+            rx="250"
+            ry="22"
             fill="#062A2E"
-            animate={{ rx: [245, 220, 245], opacity: [0.24, 0.14, 0.24] }}
+            animate={{ rx: [250, 230, 250], opacity: [0.25, 0.15, 0.25] }}
             transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
           />
 
-          {/* هيكل الطابعة الخارجي الحديث */}
+          {/* === تصميم طابعة Bambu Lab A1 الحقيقية (Bed Slinger) === */}
           <g filter="url(#softShadow)">
-            {/* الإطار الخارجي الأسود المطفي */}
-            <rect x="110" y="38" width="540" height="510" rx="28" fill="url(#chassisDark)" stroke="#27303f" strokeWidth="3" />
-            
-            {/* الحواف المعدنية الداخلية للإطار */}
-            <rect x="124" y="52" width="512" height="482" rx="20" fill="#0c0e12" stroke="#1f2937" strokeWidth="2" />
+            {/* القاعدة السفلية للطابعة (Base Unit) */}
+            <rect x="180" y="470" width="400" height="45" rx="12" fill="url(#metalBase)" stroke="#4b5563" strokeWidth="2" />
+            <rect x="200" y="482" width="220" height="20" rx="4" fill="#111827" />
 
-            {/* الغرفة الداخلية للطابعة (الكابينة) */}
-            <rect x="150" y="85" width="460" height="390" rx="14" fill="url(#glassReal)" stroke="#374151" strokeWidth="2" />
-            
-            {/* إضاءة LED داخلية خافتة من السقف */}
-            <ellipse cx="380" cy="86" rx="140" ry="12" fill="#22d3ee" opacity="0.15" />
-            <circle cx="380" cy="92" r="6" fill="#67e8f9" opacity="0.8" />
+            {/* شاشة التحكم اللمسية الجانبية المميزة للطراز A1 */}
+            <g transform="translate(480, 475) rotate(-15)">
+              <rect x="0" y="0" width="75" height="45" rx="6" fill="#1f2937" stroke="#4b5563" strokeWidth="2" />
+              <rect x="8" y="8" width="59" height="22" rx="3" fill="#0f172a" />
+              <circle cx="37" cy="19" r="4" fill="#38bdf8" />
+            </g>
 
-            {/* القضبان المعدنية الخلفية والجانبية (أعمدة الحركة المحورية X/Y/Z) */}
-            <rect x="170" y="120" width="8" height="330" rx="4" fill="#4b5563" />
-            <rect x="582" y="120" width="8" height="330" rx="4" fill="#4b5563" />
-            <rect x="178" y="145" width="404" height="10" rx="5" fill="#374151" stroke="#6b7280" strokeWidth="1" />
+            {/* القائمين الرأسيين الأيمن والأيسر (Vertical Z-Axis Towers) */}
+            <rect x="205" y="150" width="24" height="325" rx="4" fill="url(#gantryMetal)" stroke="#6b7280" strokeWidth="1.5" />
+            <rect x="531" y="150" width="24" height="325" rx="4" fill="url(#gantryMetal)" stroke="#6b7280" strokeWidth="1.5" />
 
-            {/* سرير الطباعة السفلي (Print Bed / PEI Plate) */}
+            {/* العارضة الأفقية المتحركة للأعلى والأسفل (X-Axis Gantry) */}
+            <rect x="190" y="175" width="380" height="22" rx="6" fill="url(#gantryMetal)" stroke="#4b5563" strokeWidth="1.5" />
+
+            {/* سرير الطباعة السفلي المتحرك للأمام والخلف (Y-Axis Bed) */}
             <motion.g
-              animate={{ y: [0, 3, 0] }}
-              transition={{ duration: 0.55, repeat: Infinity, ease: 'easeInOut' }}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
             >
-              {/* قاعدة السرير */}
-              <rect x="200" y="430" width="360" height="16" rx="4" fill="#1f2937" stroke="#4b5563" strokeWidth="2" />
-              {/* سطح الطباعة المغناطيسي الأسود */}
-              <rect x="215" y="423" width="330" height="8" rx="3" fill="#111827" stroke="#22d3ee" strokeWidth="1" strokeOpacity="0.5" />
-              {/* مشابك التثبيت الجانبية */}
-              <rect x="220" y="421" width="14" height="12" rx="2" fill="#9ca3af" />
-              <rect x="526" y="421" width="14" height="12" rx="2" fill="#9ca3af" />
+              <rect x="230" y="380" width="300" height="95" rx="8" fill="#374151" stroke="#9ca3af" strokeWidth="2" />
+              {/* لوح الطباعة المغناطيسي PEI الأسود */}
+              <rect x="245" y="388" width="270" height="80" rx="4" fill="#111827" stroke="#38bdf8" strokeWidth="1" strokeOpacity="0.6" />
             </motion.g>
-
-            {/* قاعدة الطابعة السفلية والشاشة */}
-            <rect x="110" y="495" width="540" height="53" rx="16" fill="url(#chassisMetal)" />
-            
-            {/* شعار أو خط تزييني أنيق */}
-            <rect x="140" y="518" width="120" height="6" rx="3" fill="#111827" />
-
-            {/* شاشة تحكم رقمية تعمل باللمس (Touchscreen) */}
-            <rect x="490" y="508" width="115" height="32" rx="8" fill="#030712" stroke="#4b5563" strokeWidth="1.5" />
-            <motion.div
-              initial={false}
-            >
-              <rect x="502" y="518" width="45" height="12" rx="3" fill="#22d3ee" opacity="0.9" />
-              <circle cx="575" cy="524" r="5" fill="#10b981" />
-            </motion.div>
           </g>
 
-          {/* بكرة الفيلامنت العلوية (Spool Holder & Filament Spool) */}
-          <motion.g
-            style={{ transformOrigin: '560px 55px' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          >
-            {/* حامل البكرة */}
-            <circle cx="560" cy="55" r="35" fill="#111827" stroke="#4b5563" strokeWidth="6" />
-            <circle cx="560" cy="55" r="22" fill="none" stroke="#22d3ee" strokeWidth="5" strokeDasharray="12 8" />
-            <circle cx="560" cy="55" r="8" fill="#9ca3af" />
-          </motion.g>
-
-          {/* أنبوب توجيه الفيلامنت الشفاف (PTFE Tube) من البكرة إلى رأس الطباعة */}
+          {/* انحناء أنبوب الفلمنت العلوي الشهير لطراز A1 (Bowden/Semi-Direct Tube Curve) */}
           <path
-            d="M545 78 C545 110 460 115 380 148"
+            d="M543 162 C543 70 320 50 320 175"
             fill="none"
-            stroke="#22d3ee"
-            strokeWidth="4"
+            stroke="#9ca3af"
+            strokeWidth="8"
             strokeLinecap="round"
-            strokeOpacity="0.75"
+          />
+          <path
+            d="M543 162 C543 70 320 50 320 175"
+            fill="none"
+            stroke="#38bdf8"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray="10 8"
           />
 
-          {/* المجسم المطبوع ثلاثي الأبعاد (طبقات تتصاعد بواقعية) */}
-          <g filter="url(#modelGlow)">
+          {/* المجسم الثلاثي الأبعاد الذي تتم طباعته بدقة على سرير الطباعة */}
+          <g>
             {layers.map((layer) => (
               <motion.path
                 key={layer.id}
-                d={`M${380 - layer.width / 2} ${layer.y} Q380 ${layer.y - 6} ${
+                d={`M${380 - layer.width / 2} ${layer.y} Q380 ${layer.y - 5} ${
                   380 + layer.width / 2
-                } ${layer.y} L${380 + layer.width / 2 - 3} ${layer.y + 4} Q380 ${
+                } ${layer.y} L${380 + layer.width / 2 - 2} ${layer.y + 4} Q380 ${
                   layer.y - 2
-                } ${380 - layer.width / 2 + 3} ${layer.y + 4} Z`}
-                fill="url(#realModel)"
+                } ${380 - layer.width / 2 + 2} ${layer.y + 4} Z`}
+                fill="url(#printModel)"
                 initial={{ opacity: 0, scaleX: 0.1 }}
                 animate={{
                   opacity: [0, 0, 1, 1, 0],
                   scaleX: [0.1, 0.1, 1, 1, 0.1],
                 }}
                 transition={{
-                  duration: 10,
+                  duration: 8,
                   delay: layer.delay,
                   repeat: Infinity,
                   repeatDelay: 1,
-                  times: [0, 0.1, 0.78, 0.92, 1],
+                  times: [0, 0.1, 0.8, 0.9, 1],
                   ease: 'easeInOut',
                 }}
                 style={{ transformOrigin: '380px center' }}
@@ -187,36 +142,34 @@ export default function PrinterAnimation() {
             ))}
           </g>
 
-          {/* رأس الطباعة الاحترافي (Extruder / Direct Drive Print Head) يتحرك بذكاء فوق المجسم */}
+          {/* رأس الطباعة الحقيقي لطابعة A1 (Extruder Assembly مع الشعار والمروحة) */}
           <motion.g
             animate={{
-              x: [-110, 110, -110],
-              y: [0, 38, 0],
+              x: [-120, 120, -120],
             }}
             transition={{
-              x: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
-              y: { duration: 10, repeat: Infinity, ease: 'linear' },
+              x: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
             }}
           >
-            {/* جسم الإكسترودر المعدني والأسود */}
-            <rect x="338" y="132" width="84" height="64" rx="10" fill="url(#extrudBody)" stroke="#4b5563" strokeWidth="2" />
+            {/* جسم رأس الطباعة */}
+            <rect x="345" y="162" width="70" height="55" rx="10" fill="#1f2937" stroke="#4b5563" strokeWidth="2" />
             
-            {/* مروحة تبريد الجزء المطبوع (Part Cooling Fan grill) */}
-            <circle cx="380" cy="164" r="16" fill="#1f2937" stroke="#374151" strokeWidth="2" />
-            <circle cx="380" cy="164" r="6" fill="#22d3ee" opacity="0.8" />
+            {/* الشعار الأمامي أو نافذة المروحة الدائرية في رأس A1 */}
+            <circle cx="380" cy="188" r="16" fill="#374151" stroke="#38bdf8" strokeWidth="1.5" />
+            <circle cx="380" cy="188" r="6" fill="#38bdf8" />
 
-            {/* كتلة التسخين (Heater Block) والنوزل (Nozzle Tip) */}
-            <rect x="362" y="196" width="36" height="18" rx="4" fill="#d97706" />
-            <path d="M374 214 L386 214 L383 226 L377 226 Z" fill="#9ca3af" />
-            
-            {/* شعاع أو قطرة البلاستيك المنصهر الخارجة من النوزل أثناء الطباعة */}
+            {/* النوزل وقطعة التسخين السفلية */}
+            <rect x="368" y="217" width="24" height="12" rx="3" fill="#d97706" />
+            <path d="M376 229 L384 229 L382 238 L378 238 Z" fill="#9ca3af" />
+
+            {/* خط إخراج خيط الفلمنت المنصهر أثناء الطباعة */}
             <motion.path
-              d="M380 226 L380 242"
-              stroke="#22d3ee"
-              strokeWidth="3.5"
+              d="M380 238 L380 252"
+              stroke="#38bdf8"
+              strokeWidth="3"
               strokeLinecap="round"
               animate={{ opacity: [0.3, 1, 0.3] }}
-              transition={{ duration: 0.35, repeat: Infinity }}
+              transition={{ duration: 0.3, repeat: Infinity }}
             />
           </motion.g>
         </svg>
