@@ -61,7 +61,7 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
             className="text-2xl font-bold tracking-wider cursor-pointer"
           >
             <span className="bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-              LUXURY
+              3D TECH
             </span>
           </motion.button>
 
