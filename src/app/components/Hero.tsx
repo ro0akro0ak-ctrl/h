@@ -14,14 +14,12 @@ export default function Hero({ onNavigate }: HeroProps) {
     language === 'ar'
       ? {
           badge: 'أحدث تقنيات الطباعة ثلاثية الأبعاد',
-          titleFirst: 'نطبع أفكارك',
-          titleSecond: 'بإبداع',
+          title: 'نطبع أفكارك بإبداع',
           shopButton: 'تسوّق الآن',
         }
       : {
           badge: 'Latest 3D Printing Technology',
-          titleFirst: 'We Print Your Ideas',
-          titleSecond: 'Creatively',
+          title: 'We Print Your Ideas Creatively',
           shopButton: 'Shop Now',
         };
 
@@ -81,7 +79,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             </span>
           </motion.div>
 
-          {/* العنوان بخط عربي فخم، انسيابي، وبوزن متناسق */}
+          {/* العنوان في سطر واحد وبخط فخم وعصري */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -89,15 +87,11 @@ export default function Hero({ onNavigate }: HeroProps) {
               duration: 0.85,
               delay: 0.18,
             }}
-            className="relative font-sans text-5xl font-black leading-[1.25] tracking-tight sm:text-6xl md:text-7xl lg:text-[76px]"
+            className="relative font-sans text-4xl font-extrabold tracking-tight whitespace-nowrap sm:text-5xl md:text-6xl lg:text-[64px]"
             style={{ fontFamily: 'var(--font-heading, system-ui), sans-serif' }}
           >
-            <span className="block text-white drop-shadow-[0_10px_20px_rgba(4,44,48,0.25)]">
-              {content.titleFirst}
-            </span>
-
-            <span className="relative mt-3 inline-block bg-gradient-to-l from-white via-[#F0FFFF] to-[#C8FBFD] bg-clip-text text-transparent drop-shadow-[0_10px_20px_rgba(4,44,48,0.2)]">
-              {content.titleSecond}
+            <span className="relative inline-block bg-gradient-to-l from-white via-[#F0FFFF] to-[#C8FBFD] bg-clip-text text-transparent drop-shadow-[0_10px_20px_rgba(4,44,48,0.25)]">
+              {content.title}
 
               {/* خط مزخرف أنيق وناعم تحت الكلمة */}
               <motion.span
@@ -107,7 +101,7 @@ export default function Hero({ onNavigate }: HeroProps) {
                   duration: 0.8,
                   delay: 0.7,
                 }}
-                className="absolute -bottom-3.5 left-1/2 h-1 w-[80%] -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-white/80 to-transparent shadow-[0_0_12px_rgba(255,255,255,0.6)]"
+                className="absolute -bottom-3.5 left-1/2 h-1 w-[85%] -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-white/80 to-transparent shadow-[0_0_12px_rgba(255,255,255,0.6)]"
               />
             </span>
           </motion.h1>
