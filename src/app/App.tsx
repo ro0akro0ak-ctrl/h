@@ -14,10 +14,8 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import Wholesale from './pages/Wholesale';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
-import WholesaleDashboard from './pages/WholesaleDashboard';
 import CustomerDashboard from './pages/CustomerDashboard';
 
 type Page =
@@ -26,10 +24,8 @@ type Page =
   | 'cart'
   | 'about'
   | 'contact'
-  | 'wholesale'
   | 'login'
   | 'admin'
-  | 'wholesale-dashboard'
   | 'customer-dashboard'
   | 'shop';
 
@@ -39,10 +35,8 @@ const allowedPages: Page[] = [
   'cart',
   'about',
   'contact',
-  'wholesale',
   'login',
   'admin',
-  'wholesale-dashboard',
   'customer-dashboard',
   'shop',
 ];
@@ -101,8 +95,6 @@ export default function App() {
   const handleLoginSuccess = (role: string) => {
     if (role === 'admin') {
       handleNavigate('admin');
-    } else if (role === 'wholesale') {
-      handleNavigate('wholesale-dashboard');
     } else {
       handleNavigate('customer-dashboard');
     }
@@ -145,17 +137,11 @@ export default function App() {
       case 'contact':
         return <Contact />;
 
-      case 'wholesale':
-        return <Wholesale />;
-
       case 'login':
         return <Login onSuccess={handleLoginSuccess} />;
 
       case 'admin':
         return <AdminDashboard />;
-
-      case 'wholesale-dashboard':
-        return <WholesaleDashboard onProductClick={handleProductClick} />;
 
       case 'customer-dashboard':
         return <CustomerDashboard onNavigate={handleNavigate} />;
@@ -177,7 +163,6 @@ export default function App() {
 
   const showFooter =
     currentPage !== 'admin' &&
-    currentPage !== 'wholesale-dashboard' &&
     currentPage !== 'customer-dashboard';
 
   return (
