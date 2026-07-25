@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ThemeProvider } from 'next-themes';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { CartProvider } from './contexts/CartContext';
@@ -21,7 +22,6 @@ import CustomerDashboard from './pages/CustomerDashboard';
 type Page =
   | 'home'
   | 'product-detail'
-  | 'cart'
   | 'about'
   | 'contact'
   | 'login'
@@ -32,7 +32,6 @@ type Page =
 const allowedPages: Page[] = [
   'home',
   'product-detail',
-  'cart',
   'about',
   'contact',
   'login',
@@ -43,24 +42,16 @@ const allowedPages: Page[] = [
 
 function getPageFromHash(): Page {
   const hash = window.location.hash.replace('#', '').trim();
-
-  if (allowedPages.includes(hash as Page)) {
-    return hash as Page;
-  }
-
-  return 'home';
+  return allowedPages.includes(hash as Page) ? (hash as Page) : 'home';
 }
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
-    if (typeof window === 'undefined') {
-      return 'home';
-    }
-
+    if (typeof window === 'undefined') return 'home';
     return getPageFromHash();
   });
-
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -69,17 +60,35 @@ export default function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  useEffect(() => {
+    const openCart = () => setIsCartOpen(true);
+    window.addEventListener('open-cart', openCart);
+    return () => window.removeEventListener('open-cart', openCart);
+  }, []);
+
+  useEffect(() => {
+    if (!isCartOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isCartOpen]);
+
   const handleNavigate = (page: string) => {
+    if (page === 'cart') {
+      setIsCartOpen(true);
+      return;
+    }
+
     const targetPage = allowedPages.includes(page as Page)
       ? (page as Page)
       : 'home';
 
+    setIsCartOpen(false);
     window.location.hash = targetPage;
     setCurrentPage(targetPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -93,11 +102,7 @@ export default function App() {
   };
 
   const handleLoginSuccess = (role: string) => {
-    if (role === 'admin') {
-      handleNavigate('admin');
-    } else {
-      handleNavigate('customer-dashboard');
-    }
+    handleNavigate(role === 'admin' ? 'admin' : 'customer-dashboard');
   };
 
   const renderPage = () => {
@@ -114,10 +119,8 @@ export default function App() {
             <Features />
           </>
         );
-
       case 'shop':
         return <Shop onProductClick={handleProductClick} />;
-
       case 'product-detail':
         return selectedProduct ? (
           <ProductDetail
@@ -127,69 +130,74 @@ export default function App() {
         ) : (
           <Shop onProductClick={handleProductClick} />
         );
-
-      case 'cart':
-        return <Cart onNavigate={handleNavigate} />;
-
       case 'about':
         return <About />;
-
       case 'contact':
         return <Contact />;
-
       case 'login':
         return <Login onSuccess={handleLoginSuccess} />;
-
       case 'admin':
         return <AdminDashboard />;
-
       case 'customer-dashboard':
         return <CustomerDashboard onNavigate={handleNavigate} />;
-
       default:
-        return (
-          <>
-            <Hero onNavigate={handleNavigate} />
-            <Products
-              onProductClick={handleProductClick}
-              onViewAll={() => handleNavigate('shop')}
-              limit={5}
-            />
-            <Features />
-          </>
-        );
+        return null;
     }
   };
 
   const showFooter =
-    currentPage !== 'admin' &&
-    currentPage !== 'customer-dashboard';
+    currentPage !== 'admin' && currentPage !== 'customer-dashboard';
 
   return (
     <AuthProvider>
       <ProductsProvider>
         <CartProvider>
           <LanguageProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-            >
-              <div
-                className="min-h-screen bg-[#16B8BE] transition-colors duration-500"
-                dir="rtl"
-                lang="ar"
-              >
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+              <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500" dir="rtl" lang="ar">
                 {currentPage !== 'admin' && (
                   <Header
                     onNavigate={handleNavigate}
-                    onCartClick={() => handleNavigate('cart')}
+                    onCartClick={() => setIsCartOpen(true)}
                   />
                 )}
 
                 <main>{renderPage()}</main>
-
                 {showFooter && <Footer />}
+
+                <AnimatePresence>
+                  {isCartOpen && (
+                    <motion.div
+                      className="fixed inset-0 z-[99999]"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <motion.button
+                        type="button"
+                        aria-label="إغلاق السلة"
+                        className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-[2px]"
+                        onClick={() => setIsCartOpen(false)}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      />
+
+                      <motion.aside
+                        className="absolute right-0 top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#F7F7F5] shadow-2xl"
+                        initial={{ x: '100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '100%' }}
+                        transition={{ type: 'spring', stiffness: 330, damping: 34 }}
+                      >
+                        <Cart
+                          onNavigate={handleNavigate}
+                          onClose={() => setIsCartOpen(false)}
+                        />
+                      </motion.aside>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </ThemeProvider>
           </LanguageProvider>
