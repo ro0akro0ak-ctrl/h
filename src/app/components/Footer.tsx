@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer
       dir="rtl"
-      className="relative overflow-hidden bg-gradient-to-br from-[#ffffff] via-[#f5fcff] to-[#edfaff] px-6 py-16 text-[#10292D]"
+      className="relative overflow-hidden bg-gradient-to-br from-[#ffffff] via-[#f5fcff] to-[#edfaff] px-6 py-10 text-[#10292D]"
     >
       {/* الخلفية المتحركة */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -33,7 +33,7 @@ export default function Footer() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1400px]">
-        <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           {/* بيانات المتجر */}
           <div className="text-center md:text-right">
             <h2 className="text-2xl font-bold tracking-wider text-[#10292D]">
@@ -44,7 +44,7 @@ export default function Footer() {
               Beyond Dimensions
             </p>
 
-            <div className="mt-6 flex items-center justify-center gap-3 md:justify-start">
+            <div className="mt-4 flex items-center justify-center gap-3 md:justify-start">
               {/* واتساب */}
               <a
                 href="https://wa.me/96894353535"
@@ -75,7 +75,7 @@ export default function Footer() {
               اتصل بنا
             </h3>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-3 space-y-4">
               {/* الرقم */}
               <a
                 href="https://wa.me/96894353535"
@@ -103,7 +103,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-[#16B8BE]/20 pt-8 text-center text-sm text-[#10292D]/60">
+        <div className="mt-8 border-t border-[#16B8BE]/20 pt-5 text-center text-sm text-[#10292D]/60">
           © 2026 3D TECH. جميع الحقوق محفوظة
         </div>
       </div>
