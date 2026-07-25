@@ -1,200 +1,269 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Award, Users, Globe, Heart } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import {
+  Search,
+  PackageCheck,
+  Package,
+  Truck,
+  CheckCircle2,
+  Phone,
+} from 'lucide-react';
+
+type OrderStatus =
+  | 'confirmed'
+  | 'preparing'
+  | 'shipping'
+  | 'delivered';
+
+interface OrderData {
+  orderNumber: string;
+  customerName: string;
+  phone: string;
+  productName: string;
+  status: OrderStatus;
+}
 
 export default function About() {
-  const { language } = useLanguage();
+  const [phone, setPhone] = useState('');
+  const [searched, setSearched] = useState(false);
+  const [order, setOrder] = useState<OrderData | null>(null);
+  const [error, setError] = useState('');
 
-  const stats = [
-    {
-      icon: Award,
-      value: '10+',
-      label: language === 'ar' ? 'سنوات من الخبرة' : 'Years of Excellence',
-    },
-    {
-      icon: Users,
-      value: '50K+',
-      label: language === 'ar' ? 'عميل سعيد' : 'Happy Customers',
-    },
-    {
-      icon: Globe,
-      value: '30+',
-      label: language === 'ar' ? 'دولة حول العالم' : 'Countries Worldwide',
-    },
-    {
-      icon: Heart,
-      value: '100%',
-      label: language === 'ar' ? 'رضا العملاء' : 'Customer Satisfaction',
-    },
-  ];
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  const values = [
+    const cleanPhone = phone.replace(/\s/g, '');
+
+    if (!cleanPhone) {
+      setError('أدخل رقم الهاتف أولًا');
+      setOrder(null);
+      setSearched(false);
+      return;
+    }
+
+    setError('');
+    setSearched(true);
+
+    // بيانات تجريبية مؤقتة
+    if (
+      cleanPhone === '94355353' ||
+      cleanPhone === '96894355353' ||
+      cleanPhone === '+96894355353'
+    ) {
+      setOrder({
+        orderNumber: '#3DT-1024',
+        customerName: 'حمد',
+        phone: '+968 9435 5353',
+        productName: 'Bambu Lab A1 Mini',
+        status: 'shipping',
+      });
+    } else {
+      setOrder(null);
+    }
+  };
+
+  const steps = [
     {
-      title: language === 'ar' ? 'الجودة الفاخرة' : 'Premium Quality',
-      desc: language === 'ar'
-        ? 'نختار أجود الخامات لنقدم لك أفضل تجربة'
-        : 'We select the finest materials to provide you the best experience',
+      id: 'confirmed',
+      title: 'تم تأكيد الطلب',
+      description: 'تم استلام طلبك بنجاح',
+      icon: PackageCheck,
     },
     {
-      title: language === 'ar' ? 'التصميم العصري' : 'Modern Design',
-      desc: language === 'ar'
-        ? 'تصاميم مبتكرة تواكب أحدث صيحات الموضة'
-        : 'Innovative designs that keep up with the latest fashion trends',
+      id: 'preparing',
+      title: 'جاري التحضير',
+      description: 'يتم تجهيز الطلب الآن',
+      icon: Package,
     },
     {
-      title: language === 'ar' ? 'الاستدامة' : 'Sustainability',
-      desc: language === 'ar'
-        ? 'نلتزم بممارسات صديقة للبيئة في كل مراحل الإنتاج'
-        : 'We commit to eco-friendly practices at every production stage',
+      id: 'shipping',
+      title: 'قيد التوصيل',
+      description: 'طلبك في الطريق إليك',
+      icon: Truck,
     },
     {
-      title: language === 'ar' ? 'الابتكار' : 'Innovation',
-      desc: language === 'ar'
-        ? 'نسعى دائماً لتطوير منتجاتنا وخدماتنا'
-        : 'We constantly strive to improve our products and services',
+      id: 'delivered',
+      title: 'تم الاستلام',
+      description: 'تم تسليم الطلب بنجاح',
+      icon: CheckCircle2,
     },
-  ];
+  ] as const;
+
+  const statusIndex: Record<OrderStatus, number> = {
+    confirmed: 0,
+    preparing: 1,
+    shipping: 2,
+    delivered: 3,
+  };
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      {/* Hero Section */}
-      <section className="px-6 mb-24">
-        <div className="max-w-[1400px] mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              {language === 'ar' ? 'من نحن' : 'About Us'}
-            </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-black dark:via-white to-transparent mx-auto mb-8" />
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-4xl mx-auto leading-relaxed">
-              {language === 'ar'
-                ? 'نحن نؤمن بأن الأناقة ليست مجرد ملابس، بل هي أسلوب حياة. منذ أكثر من عشر سنوات، نقدم لعملائنا أرقى العبايات التي تجمع بين التراث والعصرية.'
-                : 'We believe that elegance is not just clothing, but a lifestyle. For over a decade, we have been providing our customers with the finest abayas that combine heritage and modernity.'}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+    <section
+      dir="rtl"
+      className="min-h-screen bg-[#16B8BE] px-6 pb-24 pt-32 text-white"
+    >
+      <div className="mx-auto max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12 text-center"
+        >
+          <h1 className="mb-4 text-4xl font-bold md:text-6xl">
+            تتبع طلبك
+          </h1>
 
-      {/* Stats Section */}
-      <section className="px-6 mb-24">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  whileHover={{ y: -10 }}
-                  className="p-8 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10 text-center"
-                >
-                  <motion.div
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.6 }}
-                    className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-black/10 to-black/5 dark:from-white/10 dark:to-white/5 flex items-center justify-center"
-                  >
-                    <Icon className="w-8 h-8" />
-                  </motion.div>
-                  <div className="text-4xl font-bold mb-2">{stat.value}</div>
-                  <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+          <p className="mx-auto max-w-2xl text-lg text-white/80">
+            أدخل رقم الهاتف المستخدم في الطلب لمعرفة حالة طلبك
+          </p>
+        </motion.div>
 
-      {/* Story Section */}
-      <section className="px-6 mb-24">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-4xl font-bold mb-6">
-                {language === 'ar' ? 'قصتنا' : 'Our Story'}
-              </h2>
-              <div className="space-y-4 text-gray-600 dark:text-gray-400 leading-relaxed">
-                <p>
-                  {language === 'ar'
-                    ? 'بدأت رحلتنا من حلم بسيط: تقديم عبايات فاخرة بأسعار عادلة. اليوم، نفخر بكوننا واحدة من أبرز العلامات التجارية في مجال الأزياء النسائية المحتشمة.'
-                    : 'Our journey began with a simple dream: to provide luxury abayas at fair prices. Today, we are proud to be one of the leading brands in modest womens fashion.'}
-                </p>
-                <p>
-                  {language === 'ar'
-                    ? 'نعمل مع أمهر المصممين والحرفيين لنضمن أن كل قطعة تحمل توقيعنا تعكس التزامنا بالجودة والأناقة. نستخدم فقط أفضل الأقمشة ونهتم بكل تفصيل صغير.'
-                    : 'We work with the most skilled designers and artisans to ensure that every piece bearing our signature reflects our commitment to quality and elegance. We use only the finest fabrics and pay attention to every small detail.'}
-                </p>
-                <p>
-                  {language === 'ar'
-                    ? 'رؤيتنا هي أن نكون الخيار الأول لكل امرأة تبحث عن الأناقة والراحة في آن واحد، محلياً وعالمياً.'
-                    : 'Our vision is to be the first choice for every woman seeking elegance and comfort simultaneously, locally and globally.'}
-                </p>
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="mx-auto max-w-3xl rounded-3xl border border-white/25 bg-[#075E66]/75 p-6 shadow-2xl backdrop-blur-xl md:p-10"
+        >
+          <form onSubmit={handleSearch}>
+            <label className="mb-3 block text-lg font-semibold">
+              رقم الهاتف
+            </label>
+
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="relative flex-1">
+                <Phone className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
+
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                  placeholder="+968 9435 5353"
+                  className="w-full rounded-2xl border border-white/25 bg-white/10 py-4 pl-4 pr-12 text-white outline-none placeholder:text-white/50 focus:border-white"
+                />
               </div>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative aspect-[4/5] rounded-3xl overflow-hidden"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80"
-                alt="About Us"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            </motion.div>
-          </div>
-        </div>
-      </section>
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 font-bold text-black shadow-lg"
+              >
+                <Search className="h-5 w-5" />
+                تتبع الطلب
+              </motion.button>
+            </div>
 
-      {/* Values Section */}
-      <section className="px-6">
-        <div className="max-w-[1400px] mx-auto">
+            {error && (
+              <p className="mt-4 text-sm text-red-200">
+                {error}
+              </p>
+            )}
+          </form>
+        </motion.div>
+
+        {searched && order && (
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-10"
+          >
+            <div className="mb-8 grid gap-4 rounded-3xl border border-white/25 bg-[#075E66]/75 p-6 shadow-xl backdrop-blur-xl md:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <p className="text-sm text-white/60">رقم الطلب</p>
+                <p className="mt-1 font-bold">{order.orderNumber}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-white/60">اسم العميل</p>
+                <p className="mt-1 font-bold">{order.customerName}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-white/60">رقم الهاتف</p>
+                <p className="mt-1 font-bold">{order.phone}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-white/60">المنتج</p>
+                <p className="mt-1 font-bold">{order.productName}</p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/25 bg-[#075E66]/75 p-6 shadow-2xl backdrop-blur-xl md:p-10">
+              <h2 className="mb-10 text-center text-2xl font-bold">
+                حالة الطلب
+              </h2>
+
+              <div className="grid gap-6 md:grid-cols-4">
+                {steps.map((step, index) => {
+                  const Icon = step.icon;
+                  const active = index <= statusIndex[order.status];
+
+                  return (
+                    <div
+                      key={step.id}
+                      className="relative text-center"
+                    >
+                      <div
+                        className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border ${
+                          active
+                            ? 'border-white bg-white text-[#075E66]'
+                            : 'border-white/20 bg-white/10 text-white/40'
+                        }`}
+                      >
+                        <Icon className="h-8 w-8" />
+                      </div>
+
+                      <h3
+                        className={`font-bold ${
+                          active ? 'text-white' : 'text-white/40'
+                        }`}
+                      >
+                        {step.title}
+                      </h3>
+
+                      <p
+                        className={`mt-2 text-sm ${
+                          active ? 'text-white/75' : 'text-white/30'
+                        }`}
+                      >
+                        {step.description}
+                      </p>
+
+                      {index < steps.length - 1 && (
+                        <div
+                          className={`absolute left-[-50%] top-8 hidden h-0.5 w-full md:block ${
+                            index < statusIndex[order.status]
+                              ? 'bg-white'
+                              : 'bg-white/20'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {searched && !order && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto mt-10 max-w-3xl rounded-3xl border border-white/25 bg-[#075E66]/75 p-10 text-center shadow-xl"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              {language === 'ar' ? 'قيمنا' : 'Our Values'}
-            </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-black dark:via-white to-transparent mx-auto" />
-          </motion.div>
+            <Package className="mx-auto mb-4 h-14 w-14 text-white/70" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {values.map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="p-8 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
-              >
-                <h3 className="text-2xl font-bold mb-3">{value.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {value.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+            <h2 className="text-2xl font-bold">
+              لم يتم العثور على طلب
+            </h2>
+
+            <p className="mt-3 text-white/70">
+              تأكد من كتابة رقم الهاتف نفسه المستخدم عند إنشاء الطلب
+            </p>
+          </motion.div>
+        )}
+      </div>
+    </section>
   );
 }
