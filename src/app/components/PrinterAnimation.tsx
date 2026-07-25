@@ -13,54 +13,14 @@ const printLayers = Array.from({ length: 26 }, (_, index) => {
 
 export default function PrinterAnimation() {
   return (
-    <section
-      dir="rtl"
-      className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-[#16B8BE] px-4 py-14 sm:px-8 md:min-h-[760px] md:py-20"
-    >
-      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-8rem)] max-w-[1400px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
-        {/* الكلام على اليمين في الكمبيوتر وفوق في الجوال */}
-        <motion.div
-          initial={{ opacity: 0, x: 35 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="order-1 text-center lg:order-2 lg:text-right"
-        >
-          <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-md mb-4">
-            متجر تقنيات الطباعة ثلاثية الأبعاد
-          </span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            ابتكر وصمم <span className="text-cyan-200">بعالم ثلاثي الأبعاد</span>
-          </h1>
-          <p className="mt-6 text-lg text-cyan-50 sm:text-xl leading-relaxed">
-            احصل على أفضل الطابعات ثلاثية الأبعاد وأحدث الإكسسوارات والخامات بجودة عالية وأسعار تنافسية. ابدأ مشروعك الآن وحول أفكارك إلى واقع ملموس.
-          </p>
-
-          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
-            <a
-              href="#products"
-              className="w-full sm:w-auto rounded-xl bg-white px-8 py-4 text-center font-bold text-[#16B8BE] shadow-lg hover:bg-cyan-50 transition-all duration-300"
-            >
-              تصفح المنتجات
-            </a>
-            <a
-              href="#contact"
-              className="w-full sm:w-auto rounded-xl border-2 border-white/80 px-8 py-4 text-center font-bold text-white hover:bg-white/10 transition-all duration-300"
-            >
-              تواصل معنا
-            </a>
-          </div>
-        </motion.div>
-
-        {/* الطابعة على اليسار في الكمبيوتر وتحت في الجوال */}
         <motion.div
           initial={{ opacity: 0, x: -35 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="order-2 flex items-center justify-center lg:order-1"
+          className="flex w-full items-center justify-center"
         >
-          <div className="relative w-full max-w-[820px]">
+          <div className="relative w-full max-w-[720px]">
             <svg
               viewBox="0 0 820 650"
               className="h-auto w-full overflow-visible drop-shadow-[0_35px_60px_rgba(4,44,48,0.28)]"
@@ -450,7 +410,5 @@ export default function PrinterAnimation() {
             </svg>
           </div>
         </motion.div>
-      </div>
-    </section>
   );
 }
