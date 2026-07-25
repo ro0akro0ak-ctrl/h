@@ -99,9 +99,34 @@ export default function About() {
   return (
     <section
       dir="rtl"
-      className="min-h-screen bg-[#16B8BE] px-6 pb-24 pt-32 text-white"
+      className="relative min-h-screen overflow-hidden bg-[#16B8BE] px-6 pb-24 pt-32 text-white"
     >
-      <div className="mx-auto max-w-6xl">
+      {/* النقاط المتحركة */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(45)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.2, 0.55, 0.2],
+              y: [0, -100, 0],
+              x: [0, Math.random() * 100 - 50, 0],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+            }}
+            className="absolute w-1.5 h-1.5 bg-white rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
