@@ -7,7 +7,26 @@ interface HeroProps {
 }
 
 export default function Hero({ onNavigate }: HeroProps) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
+
+  const content =
+    language === 'ar'
+      ? {
+          badge: 'أحدث منتجات الطباعة ثلاثية الأبعاد',
+          title: 'كل ما تحتاجه للطباعة ثلاثية الأبعاد',
+          subtitle:
+            'طابعات ثلاثية الأبعاد، فيلامنت، قطع غيار وإكسسوارات بجودة عالية',
+          shopButton: 'تسوق الآن',
+          loginButton: 'سجّل دخولك',
+        }
+      : {
+          badge: 'Latest 3D Printing Products',
+          title: 'Everything You Need for 3D Printing',
+          subtitle:
+            '3D printers, filament, spare parts, and accessories with high quality',
+          shopButton: 'Shop Now',
+          loginButton: 'Sign In',
+        };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -59,7 +78,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10 mb-8"
           >
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm tracking-wider">{t('products.newCollection')}</span>
+            <span className="text-sm tracking-wider">{content.badge}</span>
           </motion.div>
 
           {/* Main Title */}
@@ -67,10 +86,10 @@ export default function Hero({ onNavigate }: HeroProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl md:text-8xl font-bold tracking-tight mb-6"
+            className="text-5xl md:text-7xl font-bold tracking-tight mb-6"
           >
             <span className="block bg-gradient-to-b from-black to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-              {t('hero.title')}
+              {content.title}
             </span>
           </motion.h1>
 
@@ -81,7 +100,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto"
           >
-            {t('hero.subtitle')}
+            {content.subtitle}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -103,8 +122,9 @@ export default function Hero({ onNavigate }: HeroProps) {
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.3 }}
               />
+
               <span className="relative flex items-center gap-2">
-                {t('hero.cta')}
+                {content.shopButton}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </motion.button>
@@ -116,7 +136,7 @@ export default function Hero({ onNavigate }: HeroProps) {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-4 rounded-full border-2 border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white transition-colors backdrop-blur-sm inline-block"
             >
-              {language === 'ar' ? 'سجّل دخولك' : 'Sign In'}
+              {content.loginButton}
             </motion.button>
           </motion.div>
 
