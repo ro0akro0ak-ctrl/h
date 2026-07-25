@@ -18,10 +18,11 @@ export default function Footer() {
               x: [0, index % 2 === 0 ? 25 : -25, 0],
             }}
             transition={{
-              duration: 3 + (index % 4),
+              duration: 12 + (index % 4),
               repeat: Infinity,
+              repeatType: 'mirror',
               delay: (index % 8) * 0.12,
-              ease: 'linear',
+              ease: 'easeInOut',
             }}
             className="absolute h-1.5 w-1.5 rounded-full bg-[#16B8BE]"
             style={{
