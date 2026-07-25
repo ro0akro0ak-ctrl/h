@@ -37,7 +37,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-white/80 mb-6 leading-relaxed">
-              {t('footer.description')}
+              Beyond Dimensions
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => {
