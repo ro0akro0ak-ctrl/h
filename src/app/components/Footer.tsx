@@ -1,4 +1,5 @@
 import { Instagram, MapPin, MessageCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export default function Footer() {
   return (
@@ -7,16 +8,25 @@ export default function Footer() {
       className="relative overflow-hidden bg-gradient-to-br from-[#ffffff] via-[#f5fcff] to-[#edfaff] px-6 py-16 text-[#10292D]"
     >
       {/* الخلفية المتحركة */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(40)].map((_, i) => (
-          <span
-            key={i}
-            className="absolute h-2 w-2 rounded-full bg-[#16B8BE]/35 animate-pulse"
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(40)].map((_, index) => (
+          <motion.span
+            key={index}
+            animate={{
+              opacity: [0.15, 0.6, 0.15],
+              y: [0, -110, 0],
+              x: [0, index % 2 === 0 ? 25 : -25, 0],
+            }}
+            transition={{
+              duration: 3 + (index % 4),
+              repeat: Infinity,
+              delay: (index % 8) * 0.12,
+              ease: 'linear',
+            }}
+            className="absolute h-1.5 w-1.5 rounded-full bg-[#16B8BE]"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDuration: `${3 + Math.random() * 5}s`,
-              animationDelay: `${Math.random() * 4}s`,
+              left: `${(index * 19) % 100}%`,
+              top: `${(index * 27) % 100}%`,
             }}
           />
         ))}
