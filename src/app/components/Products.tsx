@@ -29,7 +29,7 @@ export default function Products({
   return (
     <section
       id="shop"
-      className="relative py-24 px-6 overflow-hidden bg-gradient-to-br from-[#0796A8] via-[#08A8B0] to-[#0BB8B0] text-white"
+      className="relative py-24 px-6 overflow-hidden bg-[#16B8BE] text-white"
     >
       {/* Background Decoration */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -131,7 +131,7 @@ export default function Products({
 
                   {/* New Badge */}
                   {index === 0 && (
-                    <div className="absolute top-4 right-4 px-4 py-2 rounded-full bg-white text-[#0796A8] text-xs font-bold shadow-lg">
+                    <div className="absolute top-4 right-4 px-4 py-2 rounded-full bg-white text-[#16B8BE] text-xs font-bold shadow-lg">
                       {language === 'ar' ? 'جديد' : 'NEW'}
                     </div>
                   )}
