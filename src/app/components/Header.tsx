@@ -142,49 +142,46 @@ export default function Header({
               3D TECH
             </motion.button>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden items-center gap-8 md:flex">
-              {navItems.map((item, index) => {
-                const active =
-                  currentPage === item.page;
+            {/* Desktop Navigation داخل مستطيل غامق بحواف دائرية */}
+            <nav className="hidden items-center rounded-[22px] border border-[#16B8BE]/20 bg-[#0A2529] p-1.5 shadow-lg md:flex">
+              {navItems.map((item) => {
+                const isActive = currentPage === item.page;
 
                 return (
                   <motion.button
                     key={item.key}
                     type="button"
-                    onClick={() =>
-                      handleNavigate(item.page)
-                    }
-                    initial={{
-                      opacity: 0,
-                      y: -20,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    transition={{
-                      delay: index * 0.08,
-                    }}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.97 }}
-                    className={`relative py-2 text-sm font-semibold tracking-wide transition-colors ${
-                      active
-                        ? 'text-white'
-                        : 'text-white/70 hover:text-white'
+                    onClick={() => handleNavigate(item.page)}
+                    whileTap={{ scale: 0.96 }}
+                    className={`relative min-w-[105px] rounded-[17px] px-6 py-3 text-sm font-bold transition-colors duration-300 ${
+                      isActive
+                        ? 'text-[#10292D]'
+                        : 'text-white/75 hover:text-white'
                     }`}
                   >
-                    {ar
-                      ? item.labelAr
-                      : item.labelEn}
+                    {isActive && (
+                      <motion.span
+                        layoutId="active-navigation"
+                        transition={{
+                          type: 'spring',
+                          stiffness: 420,
+                          damping: 34,
+                        }}
+                        className="absolute inset-0 rounded-[17px] bg-[#E9FBFC] shadow-md"
+                      />
+                    )}
 
-                    <span
-                      className={`absolute -bottom-0.5 left-0 h-0.5 bg-[#16B8BE] transition-all duration-300 ${
-                        active
-                          ? 'w-full'
-                          : 'w-0'
-                      }`}
-                    />
+                    <span className="relative z-10">
+                      {ar ? item.labelAr : item.labelEn}
+                    </span>
+
+                    {isActive && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute -bottom-1 left-1/2 z-20 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-[#16B8BE]"
+                      />
+                    )}
                   </motion.button>
                 );
               })}
