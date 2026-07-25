@@ -280,7 +280,7 @@ export default function Header({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-sm"
+              className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm"
             />
 
             <motion.aside
@@ -289,7 +289,7 @@ export default function Header({
               animate={{ x: 0 }}
               exit={{ x: ar ? '100%' : '-100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className={`absolute top-0 h-full w-[88%] max-w-[390px] overflow-y-auto border-[#16B8BE]/20 bg-gradient-to-b from-white via-[#F7FFFF] to-[#E8FBFC] text-[#10292D] shadow-2xl ${
+              className={`absolute top-0 h-full w-[88%] max-w-[390px] overflow-y-auto border-white/10 bg-[#10292D] text-white shadow-2xl ${
                 ar ? 'right-0 border-l' : 'left-0 border-r'
               }`}
             >
@@ -318,13 +318,13 @@ export default function Header({
               </div>
 
               <div className="relative z-10 min-h-full">
-                <div className="border-b border-[#10292D]/10 px-6 pb-7 pt-8">
+                <div className="border-b border-white/10 px-6 pb-7 pt-8">
                   <div className="flex items-center justify-between">
                     <motion.button
                       type="button"
                       onClick={() => handleNavigate('home')}
                       whileTap={{ scale: 0.97 }}
-                      className="text-2xl font-black tracking-[0.12em] text-[#10292D]"
+                      className="text-2xl font-black tracking-[0.12em] text-white"
                     >
                       3D TECH
                     </motion.button>
@@ -333,20 +333,20 @@ export default function Header({
                       type="button"
                       whileTap={{ scale: 0.9 }}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-[#10292D]/15 bg-white/75 text-[#10292D] shadow-sm backdrop-blur transition hover:bg-white"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white shadow-sm backdrop-blur transition hover:bg-white/20"
                       aria-label={ar ? 'إغلاق القائمة' : 'Close menu'}
                     >
                       <X className="h-6 w-6" />
                     </motion.button>
                   </div>
 
-                  <p className="mt-5 text-sm font-semibold text-[#10292D]/55">
+                  <p className="mt-5 text-sm font-semibold text-white/50">
                     Beyond Dimensions
                   </p>
                 </div>
 
                 <div className="px-6 pb-3 pt-8">
-                  <p className="text-sm font-bold text-[#10292D]/45">
+                  <p className="text-sm font-bold text-white/50">
                     {ar ? 'التنقل' : 'Navigation'}
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export default function Header({
                         className={`flex w-full items-center justify-between rounded-2xl border px-5 py-5 text-start backdrop-blur-xl transition-all ${
                           active
                             ? 'border-[#16B8BE] bg-[#16B8BE] text-white shadow-xl'
-                            : 'border-[#10292D]/10 bg-white/65 text-[#10292D] hover:border-[#16B8BE]/50 hover:bg-white/90'
+                            : 'border-white/10 bg-white/5 text-white hover:border-[#16B8BE]/50 hover:bg-white/10'
                         }`}
                       >
                         <div className="flex items-center gap-4">
@@ -377,7 +377,7 @@ export default function Header({
                             className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
                               active
                                 ? 'bg-white/20 text-white'
-                                : 'bg-[#16B8BE]/10 text-[#138F98]'
+                                : 'bg-white/10 text-white/70'
                             }`}
                           >
                             <Icon className="h-6 w-6" />
@@ -390,7 +390,7 @@ export default function Header({
 
                         <ArrowIcon
                           className={`h-5 w-5 ${
-                            active ? 'text-white' : 'text-[#10292D]/30'
+                            active ? 'text-white' : 'text-white/40'
                           }`}
                         />
                       </motion.button>
@@ -399,12 +399,12 @@ export default function Header({
                 </nav>
 
                 <div className="mt-10 px-6 pb-10">
-                  <div className="rounded-3xl border border-[#16B8BE]/25 bg-white/65 p-5 shadow-lg backdrop-blur-xl">
-                    <p className="text-sm font-bold text-[#10292D]">
+                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-xl text-white">
+                    <p className="text-sm font-bold text-white">
                       {ar ? 'تحتاج مساعدة؟' : 'Need help?'}
                     </p>
 
-                    <p className="mt-2 text-sm leading-6 text-[#10292D]/60">
+                    <p className="mt-2 text-sm leading-6 text-white/70">
                       {ar
                         ? 'تواصل معنا عبر واتساب وسنرد عليك في أقرب وقت.'
                         : 'Contact us on WhatsApp and we will reply soon.'}
@@ -413,13 +413,13 @@ export default function Header({
                     <button
                       type="button"
                       onClick={() => handleNavigate('contact')}
-                      className="mt-4 w-full rounded-full bg-[#16B8BE] py-3.5 font-black text-white shadow-lg transition hover:bg-[#12A9AF]"
+                      className="mt-4 w-full rounded-full bg-[#16B8BE] py-4 font-bold text-white shadow-lg transition hover:bg-[#13A7AD]"
                     >
                       {ar ? 'اتصل بنا' : 'Contact Us'}
                     </button>
                   </div>
 
-                  <p className="mt-8 text-center text-xs font-bold tracking-[0.18em] text-[#10292D]/30">
+                  <p className="mt-8 text-center text-xs font-bold tracking-[0.18em] text-white/30">
                     3DTECH.STORE
                   </p>
                 </div>
