@@ -137,9 +137,13 @@ export default function Header({
               onClick={() => handleNavigate('home')}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className="cursor-pointer text-xl font-black tracking-[0.12em] text-white sm:text-2xl"
+              className="cursor-pointer"
             >
-              3D TECH
+              <img
+                src="/logo.png"
+                alt="3D TECH"
+                className="h-10 w-auto object-contain"
+              />
             </motion.button>
 
             {/* Desktop Navigation داخل مستطيل غامق بحواف دائرية */}
@@ -321,9 +325,12 @@ export default function Header({
                       type="button"
                       onClick={() => handleNavigate('home')}
                       whileTap={{ scale: 0.97 }}
-                      className="text-2xl font-black tracking-[0.12em] text-white"
                     >
-                      3D TECH
+                      <img
+                        src="/logo.png"
+                        alt="3D TECH"
+                        className="h-9 w-auto object-contain"
+                      />
                     </motion.button>
 
                     <motion.button
