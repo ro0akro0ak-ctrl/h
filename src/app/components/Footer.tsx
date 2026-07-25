@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer
       dir="rtl"
-      className="relative overflow-hidden bg-gradient-to-br from-[#ffffff] via-[#f5fcff] to-[#edfaff] px-6 py-10 text-[#10292D]"
+      className="relative overflow-hidden bg-[#10292D] px-6 py-10 text-white"
     >
       {/* الخلفية المتحركة */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -37,11 +37,11 @@ export default function Footer() {
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           {/* بيانات المتجر */}
           <div className="text-center md:text-right">
-            <h2 className="text-2xl font-bold tracking-wider text-[#10292D]">
+            <h2 className="text-2xl font-bold tracking-wider text-white">
               3D TECH
             </h2>
 
-            <p className="mt-4 text-[#10292D]/70">
+            <p className="mt-4 text-white/70">
               Beyond Dimensions
             </p>
 
@@ -52,9 +52,9 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#16B8BE]/15 transition hover:bg-[#16B8BE]/30"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
               >
-                <MessageCircle className="h-6 w-6 text-[#10292D]" />
+                <MessageCircle className="h-6 w-6 text-white" />
               </a>
 
               {/* إنستغرام */}
@@ -63,16 +63,16 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#16B8BE]/15 transition hover:bg-[#16B8BE]/30"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
               >
-                <Instagram className="h-6 w-6 text-[#10292D]" />
+                <Instagram className="h-6 w-6 text-white" />
               </a>
             </div>
           </div>
 
           {/* اتصل بنا */}
           <div className="text-center md:mr-auto md:text-left">
-            <h3 className="text-lg font-bold text-[#10292D]">
+            <h3 className="text-lg font-bold text-white">
               اتصل بنا
             </h3>
 
@@ -83,7 +83,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 dir="ltr"
-                className="flex items-center justify-center gap-3 text-[#10292D]/80 transition hover:text-[#10292D] md:justify-start"
+                className="flex items-center justify-center gap-3 text-white/80 transition hover:text-white md:justify-start"
               >
                 <MessageCircle className="h-5 w-5" />
 
@@ -93,7 +93,7 @@ export default function Footer() {
               </a>
 
               {/* الموقع */}
-              <div className="flex items-center justify-center gap-3 text-[#10292D]/80 md:justify-start">
+              <div className="flex items-center justify-center gap-3 text-white/80 md:justify-start">
                 <MapPin className="h-5 w-5" />
 
                 <span>
@@ -104,7 +104,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-[#16B8BE]/20 pt-5 text-center text-sm text-[#10292D]/60">
+        <div className="mt-8 border-t border-white/10 pt-5 text-center text-sm text-white/60">
           © 2026 3D TECH. جميع الحقوق محفوظة
         </div>
       </div>
