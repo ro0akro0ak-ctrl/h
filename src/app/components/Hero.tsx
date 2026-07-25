@@ -13,9 +13,8 @@ export default function Hero({ onNavigate }: HeroProps) {
     language === 'ar'
       ? {
           badge: 'أحدث منتجات الطباعة ثلاثية الأبعاد',
-          title: 'كل ما تحتاجه للطباعة ثلاثية الأبعاد',
-          subtitle:
-            'طابعات ثلاثية الأبعاد، فيلامنت، قطع غيار وإكسسوارات بجودة عالية',
+          title: 'نطبع أفكارك بإبداع',
+          subtitle: '',
           shopButton: 'تسوق الآن',
         }
       : {
@@ -74,22 +73,12 @@ export default function Hero({ onNavigate }: HeroProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="max-w-6xl mx-auto text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-6"
+            className="max-w-6xl mx-auto text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-12"
           >
             <span className="block text-white drop-shadow-lg">
               {content.title}
             </span>
           </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-lg sm:text-xl md:text-2xl text-white/85 mb-12 max-w-4xl mx-auto leading-relaxed"
-          >
-            {content.subtitle}
-          </motion.p>
 
           {/* CTA Buttons */}
           <motion.div
