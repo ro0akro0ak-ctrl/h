@@ -79,7 +79,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             </span>
           </motion.div>
 
-          {/* العنوان في سطر واحد وبخط فخم وعصري */}
+          {/* العنوان في سطر واحد وبخط واضح، ممتلئ، وبارز جداً للقراءة السريعة */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,13 +87,13 @@ export default function Hero({ onNavigate }: HeroProps) {
               duration: 0.85,
               delay: 0.18,
             }}
-            className="relative font-sans text-4xl font-extrabold tracking-tight whitespace-nowrap sm:text-5xl md:text-6xl lg:text-[64px]"
-            style={{ fontFamily: 'var(--font-heading, system-ui), sans-serif' }}
+            className="relative font-sans text-4xl font-black tracking-normal whitespace-nowrap sm:text-5xl md:text-6xl lg:text-[68px]"
+            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           >
-            <span className="relative inline-block bg-gradient-to-l from-white via-[#F0FFFF] to-[#C8FBFD] bg-clip-text text-transparent drop-shadow-[0_10px_20px_rgba(4,44,48,0.25)]">
+            <span className="relative inline-block text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
               {content.title}
 
-              {/* خط مزخرف أنيق وناعم تحت الكلمة */}
+              {/* خط تحتي سفلي بتصميم هندسي صريح ونظيف */}
               <motion.span
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
@@ -101,7 +101,7 @@ export default function Hero({ onNavigate }: HeroProps) {
                   duration: 0.8,
                   delay: 0.7,
                 }}
-                className="absolute -bottom-3.5 left-1/2 h-1 w-[85%] -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-white/80 to-transparent shadow-[0_0_12px_rgba(255,255,255,0.6)]"
+                className="absolute -bottom-3 left-0 h-1.5 w-full rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
               />
             </span>
           </motion.h1>
