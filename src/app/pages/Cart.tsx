@@ -58,7 +58,7 @@ ${orderDetails}
   return (
     <section
       dir={ar ? 'rtl' : 'ltr'}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-white via-[#F5FCFF] to-[#EAF9FC] px-4 pb-20 pt-32 text-[#10292D] sm:px-6"
+      className="relative min-h-screen overflow-hidden bg-[#10292D] px-4 pb-20 pt-32 text-white sm:px-6"
     >
       {/* خلفية زخرفية */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -90,11 +90,11 @@ ${orderDetails}
           animate={{ opacity: 1, y: 0 }}
           className="mb-10 text-center"
         >
-          <h1 className="text-4xl font-black md:text-6xl text-[#10292D]">
+          <h1 className="text-4xl font-black md:text-6xl text-white">
             {ar ? 'سلة التسوق' : 'Shopping Cart'}
           </h1>
 
-          <p className="mt-4 text-[#10292D]/65">
+          <p className="mt-4 text-white/60">
             {ar
               ? `${totalItems} منتج في السلة`
               : `${totalItems} items in your cart`}
@@ -106,19 +106,19 @@ ${orderDetails}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mx-auto flex min-h-[430px] max-w-3xl flex-col items-center justify-center rounded-3xl border border-[#16B8BE]/20 bg-white/70 p-8 text-center shadow-2xl backdrop-blur-xl"
+            className="mx-auto flex min-h-[430px] max-w-3xl flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur-xl"
           >
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-[#16B8BE]/10">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-[#16B8BE]/20">
               <ShoppingBag className="h-12 w-12 text-[#16B8BE]" />
             </div>
 
-            <h2 className="mb-3 text-3xl font-black text-[#10292D]">
+            <h2 className="mb-3 text-3xl font-black text-white">
               {ar
                 ? 'سلة التسوق فارغة'
                 : 'Your cart is empty'}
             </h2>
 
-            <p className="mb-8 max-w-md leading-7 text-[#10292D]/65">
+            <p className="mb-8 max-w-md leading-7 text-white/65">
               {ar
                 ? 'أضف المنتجات التي تريدها من المتجر، وستظهر هنا مباشرة.'
                 : 'Add products from the shop and they will appear here.'}
@@ -126,10 +126,10 @@ ${orderDetails}
 
             <motion.button
               type="button"
-              whileHover={{ scale: 1.04 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => onNavigate('shop')}
-              className="rounded-full bg-[#16B8BE] px-9 py-4 font-bold text-white shadow-xl transition hover:bg-[#139da2]"
+              className="rounded-full bg-[#16B8BE] px-8 py-3.5 font-bold text-white shadow-lg transition hover:bg-[#13A7AD]"
             >
               {ar ? 'تصفح المتجر' : 'Browse Shop'}
             </motion.button>
@@ -152,11 +152,11 @@ ${orderDetails}
                   transition={{
                     delay: index * 0.05,
                   }}
-                  className="rounded-3xl border border-[#16B8BE]/20 bg-white/80 p-4 shadow-xl backdrop-blur-xl sm:p-5"
+                  className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-xl sm:p-5"
                 >
                   <div className="flex gap-4">
                     {/* الصورة */}
-                    <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-gray-100">
+                    <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-white/10">
                       <img
                         src={item.image}
                         alt={
@@ -172,7 +172,7 @@ ${orderDetails}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="truncate text-lg font-black text-[#10292D]">
+                          <h3 className="truncate text-lg font-black text-white">
                             {ar
                               ? item.nameAr
                               : item.name}
@@ -180,7 +180,7 @@ ${orderDetails}
 
                           <p
                             dir="ltr"
-                            className="mt-2 text-xl font-black text-[#10292D]"
+                            className="mt-2 text-xl font-black text-white"
                           >
                             {item.price.toFixed(3)} ر.ع
                           </p>
@@ -194,7 +194,7 @@ ${orderDetails}
                               item.type,
                             )
                           }
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-red-400 transition hover:bg-red-50 hover:text-red-600"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-red-400 transition hover:bg-white/10 hover:text-red-300"
                           aria-label={
                             ar
                               ? 'حذف المنتج'
@@ -207,7 +207,7 @@ ${orderDetails}
 
                       <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
                         {/* الكمية */}
-                        <div className="flex items-center rounded-full bg-[#16B8BE]/10 text-[#10292D] border border-[#16B8BE]/20">
+                        <div className="flex items-center rounded-full bg-white/10 text-white border border-white/10">
                           <button
                             type="button"
                             onClick={() =>
@@ -220,7 +220,7 @@ ${orderDetails}
                                 ),
                               )
                             }
-                            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-[#16B8BE]/20"
+                            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
@@ -238,7 +238,7 @@ ${orderDetails}
                                 item.quantity + 1,
                               )
                             }
-                            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-[#16B8BE]/20"
+                            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
@@ -246,7 +246,7 @@ ${orderDetails}
 
                         <p
                           dir="ltr"
-                          className="text-lg font-black text-[#10292D]"
+                          className="text-lg font-black text-white"
                         >
                           {(
                             item.price * item.quantity
@@ -264,26 +264,26 @@ ${orderDetails}
             <motion.aside
               initial={{ opacity: 0, x: ar ? -25 : 25 }}
               animate={{ opacity: 1, x: 0 }}
-              className="h-fit rounded-3xl border border-[#16B8BE]/20 bg-white/85 p-6 shadow-2xl backdrop-blur-xl lg:sticky lg:top-28"
+              className="h-fit rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl lg:sticky lg:top-28"
             >
-              <h2 className="mb-6 text-2xl font-black text-[#10292D]">
+              <h2 className="mb-6 text-2xl font-black text-white">
                 {ar ? 'ملخص الطلب' : 'Order Summary'}
               </h2>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between text-[#10292D]/70">
+                <div className="flex items-center justify-between text-white/70">
                   <span>
                     {ar
                       ? 'عدد المنتجات'
                       : 'Items'}
                   </span>
 
-                  <span className="font-bold text-[#10292D]">
+                  <span className="font-bold text-white">
                     {totalItems}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[#10292D]/70">
+                <div className="flex items-center justify-between text-white/70">
                   <span>
                     {ar
                       ? 'المجموع الفرعي'
@@ -292,18 +292,18 @@ ${orderDetails}
 
                   <span
                     dir="ltr"
-                    className="font-bold text-[#10292D]"
+                    className="font-bold text-white"
                   >
                     {totalPrice.toFixed(3)} ر.ع
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[#10292D]/70">
+                <div className="flex items-center justify-between text-white/70">
                   <span>
                     {ar ? 'التوصيل' : 'Delivery'}
                   </span>
 
-                  <span className="font-bold text-[#10292D]">
+                  <span className="font-bold text-white">
                     {ar
                       ? 'يحدد لاحقًا'
                       : 'Calculated later'}
@@ -311,16 +311,16 @@ ${orderDetails}
                 </div>
               </div>
 
-              <div className="my-6 border-t border-[#16B8BE]/20" />
+              <div className="my-6 border-t border-white/10" />
 
               <div className="mb-6 flex items-center justify-between">
-                <span className="text-lg font-black text-[#10292D]">
+                <span className="text-lg font-black text-white">
                   {ar ? 'الإجمالي' : 'Total'}
                 </span>
 
                 <span
                   dir="ltr"
-                  className="text-2xl font-black text-[#10292D]"
+                  className="text-2xl font-black text-white"
                 >
                   {totalPrice.toFixed(3)} ر.ع
                 </span>
@@ -331,7 +331,7 @@ ${orderDetails}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleCheckout}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#16B8BE] py-4 font-black text-white shadow-xl transition hover:bg-[#139da2]"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#16B8BE] py-4 font-black text-white shadow-xl transition hover:bg-[#13A7AD]"
               >
                 {ar
                   ? 'إتمام الطلب عبر واتساب'
@@ -347,7 +347,7 @@ ${orderDetails}
               <button
                 type="button"
                 onClick={() => onNavigate('shop')}
-                className="mt-4 w-full rounded-full border border-[#16B8BE]/30 py-3.5 font-bold text-[#10292D] transition hover:bg-[#16B8BE]/10"
+                className="mt-4 w-full rounded-full border border-white/20 py-3.5 font-bold text-white transition hover:bg-white/10"
               >
                 {ar
                   ? 'متابعة التسوق'
