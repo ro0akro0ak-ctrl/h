@@ -6,7 +6,6 @@ import { CartProvider } from './contexts/CartContext';
 import { ProductsProvider } from './contexts/ProductsContext';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import Products from './components/Products';
 import Features from './components/Features';
 import Footer from './components/Footer';
 import ProductDetail from './pages/ProductDetail';
@@ -97,11 +96,6 @@ export default function App() {
         return (
           <>
             <Hero onNavigate={handleNavigate} />
-            <Products
-              onProductClick={handleProductClick}
-              onViewAll={() => handleNavigate('shop')}
-              limit={5}
-            />
             <Features />
           </>
         );
