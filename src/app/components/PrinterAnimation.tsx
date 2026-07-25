@@ -1,751 +1,274 @@
 import { motion } from 'motion/react';
-import {
-  Box,
-  Layers3,
-  Sparkles,
-  Zap,
-} from 'lucide-react';
 
-const particles = Array.from({ length: 34 }, (_, index) => ({
+const layers = Array.from({ length: 22 }, (_, index) => ({
   id: index,
-  left: (index * 29) % 100,
-  top: (index * 37) % 100,
-  size: index % 4 === 0 ? 7 : 4,
-  duration: 7 + (index % 6),
-  delay: (index % 9) * 0.35,
-}));
-
-const printLayers = Array.from({ length: 17 }, (_, index) => ({
-  id: index,
-  width: 98 - index * 2.6,
-  y: 422 - index * 5.8,
-  delay: index * 0.38,
+  width: 92 - index * 2.4,
+  y: 388 - index * 5.1,
+  delay: index * 0.28,
 }));
 
 export default function PrinterAnimation() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden bg-gradient-to-br from-white via-[#F4FCFD] to-[#E5F8FA] px-5 py-20 text-[#10292D] sm:px-8 md:py-28"
+      className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-[#16B8BE] px-4 py-16 sm:px-8 md:min-h-[760px] md:py-24"
     >
-      {/* النقاط المتحركة */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {particles.map((particle) => (
-          <motion.span
-            key={particle.id}
-            className="absolute rounded-full bg-[#16B8BE]"
-            style={{
-              left: `${particle.left}%`,
-              top: `${particle.top}%`,
-              width: particle.size,
-              height: particle.size,
-            }}
-            animate={{
-              opacity: [0.12, 0.5, 0.12],
-              y: [0, -45, 0],
-              x: [
-                0,
-                particle.id % 2 === 0 ? 16 : -16,
-                0,
-              ],
-              scale: [1, 1.25, 1],
-            }}
-            transition={{
-              duration: particle.duration,
-              delay: particle.delay,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* توهجات خلفية */}
       <motion.div
-        className="pointer-events-none absolute -right-36 top-20 h-96 w-96 rounded-full bg-[#16B8BE]/15 blur-[100px]"
-        animate={{
-          scale: [1, 1.18, 1],
-          opacity: [0.25, 0.5, 0.25],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <motion.div
-        className="pointer-events-none absolute -bottom-40 -left-20 h-[420px] w-[420px] rounded-full bg-[#16B8BE]/10 blur-[110px]"
-        animate={{
-          scale: [1.15, 0.95, 1.15],
-          opacity: [0.4, 0.18, 0.4],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <div className="relative z-10 mx-auto grid max-w-[1400px] items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
-        {/* النص */}
-        <motion.div
-          initial={{ opacity: 0, x: 35 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.8 }}
-          className="text-center lg:text-right"
+        initial={{ opacity: 0, scale: 0.96, y: 24 }}
+        whileInView={{ opacity: 1, scale: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.25 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="relative w-full max-w-[760px]"
+      >
+        <svg
+          viewBox="0 0 760 620"
+          className="h-auto w-full overflow-visible drop-shadow-[0_35px_55px_rgba(5,45,49,0.28)]"
+          role="img"
+          aria-label="طابعة ثلاثية الأبعاد تطبع مجسمًا"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#16B8BE]/25 bg-white/70 px-5 py-3 text-sm font-bold text-[#117C84] shadow-sm backdrop-blur-xl"
-          >
-            <Sparkles className="h-4 w-4" />
-            الطباعة تبدأ من فكرة
-          </motion.div>
+          <defs>
+            <linearGradient id="frame" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#18373B" />
+              <stop offset="55%" stopColor="#10292D" />
+              <stop offset="100%" stopColor="#081B1E" />
+            </linearGradient>
 
-          <h2 className="text-4xl font-black leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
-            نصنع فكرتك
-            <span className="mt-2 block bg-gradient-to-l from-[#087781] to-[#16B8BE] bg-clip-text text-transparent">
-              طبقة بعد طبقة
-            </span>
-          </h2>
+            <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#A8B8BC" />
+              <stop offset="45%" stopColor="#E5EEF0" />
+              <stop offset="100%" stopColor="#85989D" />
+            </linearGradient>
 
-          <p className="mx-auto mt-7 max-w-xl text-lg leading-8 text-[#10292D]/65 lg:mx-0">
-            شاهد كيف تتحول الفكرة الرقمية إلى مجسم حقيقي
-            بدقة، وثبات، وتفاصيل احترافية.
-          </p>
+            <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#D9FFFF" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="#0E555C" stopOpacity="0.22" />
+            </linearGradient>
 
-          <div className="mt-9 grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="rounded-3xl border border-[#16B8BE]/15 bg-white/65 p-4 shadow-sm backdrop-blur-xl sm:p-5">
-              <Layers3 className="mx-auto h-6 w-6 text-[#16B8BE] lg:mx-0" />
-              <p className="mt-3 text-lg font-black">
-                طبقات دقيقة
-              </p>
-              <p className="mt-1 text-xs text-[#10292D]/50">
-                تفاصيل متناسقة
-              </p>
-            </div>
+            <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#7AF3EF" />
+              <stop offset="45%" stopColor="#21D1D3" />
+              <stop offset="100%" stopColor="#078D98" />
+            </linearGradient>
 
-            <div className="rounded-3xl border border-[#16B8BE]/15 bg-white/65 p-4 shadow-sm backdrop-blur-xl sm:p-5">
-              <Zap className="mx-auto h-6 w-6 text-[#16B8BE] lg:mx-0" />
-              <p className="mt-3 text-lg font-black">
-                تنفيذ سريع
-              </p>
-              <p className="mt-1 text-xs text-[#10292D]/50">
-                أداء موثوق
-              </p>
-            </div>
+            <linearGradient id="model" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#A6FFFB" />
+              <stop offset="50%" stopColor="#34D9D8" />
+              <stop offset="100%" stopColor="#0A8D97" />
+            </linearGradient>
 
-            <div className="rounded-3xl border border-[#16B8BE]/15 bg-white/65 p-4 shadow-sm backdrop-blur-xl sm:p-5">
-              <Box className="mx-auto h-6 w-6 text-[#16B8BE] lg:mx-0" />
-              <p className="mt-3 text-lg font-black">
-                نتيجة حقيقية
-              </p>
-              <p className="mt-1 text-xs text-[#10292D]/50">
-                من فكرة إلى مجسم
-              </p>
-            </div>
-          </div>
+            <radialGradient id="innerLight" cx="50%" cy="38%" r="65%">
+              <stop offset="0%" stopColor="#44DFDE" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#44DFDE" stopOpacity="0" />
+            </radialGradient>
 
-          <motion.button
-            type="button"
-            whileHover={{
-              scale: 1.04,
-              boxShadow:
-                '0 20px 45px rgba(22,184,190,0.25)',
-            }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => {
-              window.location.hash = 'shop';
-            }}
-            className="mt-9 inline-flex items-center justify-center gap-3 rounded-full bg-[#10292D] px-9 py-4 text-base font-black text-white shadow-xl"
-          >
-            <Box className="h-5 w-5" />
-            استكشف منتجاتنا
-          </motion.button>
-        </motion.div>
+            <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+              <feDropShadow
+                dx="0"
+                dy="18"
+                stdDeviation="16"
+                floodColor="#05272B"
+                floodOpacity="0.4"
+              />
+            </filter>
 
-        {/* مشهد الطابعة */}
-        <motion.div
-          initial={{ opacity: 0, x: -40, scale: 0.95 }}
-          whileInView={{ opacity: 1, x: 0, scale: 1 }}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{
-            duration: 0.9,
-            delay: 0.15,
-          }}
-          className="relative"
-        >
-          <motion.div
-            animate={{
-              y: [0, -8, 0],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="relative mx-auto max-w-[720px] rounded-[42px] border border-white/80 bg-white/60 p-3 shadow-[0_35px_100px_rgba(16,41,45,0.16)] backdrop-blur-2xl sm:p-6"
-          >
-            <div className="absolute inset-0 rounded-[42px] bg-gradient-to-br from-white/75 via-transparent to-[#16B8BE]/10" />
+            <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-            {/* شريط علوي */}
-            <div className="relative z-10 mb-4 flex items-center justify-between rounded-3xl border border-[#10292D]/5 bg-white/75 px-5 py-4">
-              <div>
-                <p className="text-sm font-black">
-                  3D TECH PRINTER
-                </p>
-                <p className="mt-1 text-xs text-[#10292D]/45">
-                  Printing in progress
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <motion.span
-                  animate={{
-                    opacity: [0.35, 1, 0.35],
-                    scale: [0.9, 1.15, 0.9],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                  }}
-                  className="h-3 w-3 rounded-full bg-[#16B8BE]"
-                />
-
-                <span className="text-xs font-bold text-[#117C84]">
-                  جارٍ الطباعة
-                </span>
-              </div>
-            </div>
-
-            <div className="relative z-10 overflow-hidden rounded-[32px] border border-[#10292D]/10 bg-[#10292D] p-2 shadow-inner sm:p-4">
-              <svg
-                viewBox="0 0 660 530"
-                className="h-auto w-full"
-                role="img"
-                aria-label="طابعة ثلاثية الأبعاد تطبع مجسمًا"
-              >
-                <defs>
-                  <linearGradient
-                    id="printerFrame"
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor="#24454A" />
-                    <stop offset="100%" stopColor="#0A2024" />
-                  </linearGradient>
-
-                  <linearGradient
-                    id="printerAccent"
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor="#28D1D4" />
-                    <stop offset="100%" stopColor="#078D98" />
-                  </linearGradient>
-
-                  <linearGradient
-                    id="printedObject"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor="#79F2EE" />
-                    <stop offset="55%" stopColor="#16B8BE" />
-                    <stop offset="100%" stopColor="#087781" />
-                  </linearGradient>
-
-                  <filter
-                    id="cyanGlow"
-                    x="-50%"
-                    y="-50%"
-                    width="200%"
-                    height="200%"
-                  >
-                    <feGaussianBlur
-                      stdDeviation="8"
-                      result="blur"
-                    />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-
-                  <filter
-                    id="softShadow"
-                    x="-40%"
-                    y="-40%"
-                    width="180%"
-                    height="180%"
-                  >
-                    <feDropShadow
-                      dx="0"
-                      dy="12"
-                      stdDeviation="12"
-                      floodColor="#000000"
-                      floodOpacity="0.35"
-                    />
-                  </filter>
-                </defs>
-
-                {/* خلفية داخلية */}
-                <rect
-                  x="0"
-                  y="0"
-                  width="660"
-                  height="530"
-                  rx="25"
-                  fill="#07191D"
-                />
-
-                <circle
-                  cx="330"
-                  cy="265"
-                  r="210"
-                  fill="#16B8BE"
-                  opacity="0.035"
-                />
-
-                <circle
-                  cx="330"
-                  cy="265"
-                  r="155"
-                  fill="#16B8BE"
-                  opacity="0.035"
-                />
-
-                {/* نقاط داخل الطابعة */}
-                {Array.from({ length: 22 }).map(
-                  (_, index) => (
-                    <motion.circle
-                      key={index}
-                      cx={30 + ((index * 83) % 600)}
-                      cy={35 + ((index * 67) % 430)}
-                      r={index % 3 === 0 ? 2.4 : 1.4}
-                      fill="#4DE4E1"
-                      animate={{
-                        opacity: [0.08, 0.45, 0.08],
-                      }}
-                      transition={{
-                        duration: 3 + (index % 4),
-                        repeat: Infinity,
-                        delay: index * 0.11,
-                      }}
-                    />
-                  ),
-                )}
-
-                {/* قاعدة الطابعة */}
-                <rect
-                  x="74"
-                  y="455"
-                  width="512"
-                  height="42"
-                  rx="14"
-                  fill="url(#printerFrame)"
-                  stroke="#33585D"
-                  strokeWidth="2"
-                  filter="url(#softShadow)"
-                />
-
-                <rect
-                  x="96"
-                  y="466"
-                  width="468"
-                  height="9"
-                  rx="4.5"
-                  fill="#16B8BE"
-                  opacity="0.28"
-                />
-
-                {/* الأعمدة */}
-                <rect
-                  x="86"
-                  y="75"
-                  width="38"
-                  height="390"
-                  rx="12"
-                  fill="url(#printerFrame)"
-                  stroke="#365E63"
-                  strokeWidth="2"
-                />
-
-                <rect
-                  x="536"
-                  y="75"
-                  width="38"
-                  height="390"
-                  rx="12"
-                  fill="url(#printerFrame)"
-                  stroke="#365E63"
-                  strokeWidth="2"
-                />
-
-                {/* الجزء العلوي */}
-                <rect
-                  x="72"
-                  y="56"
-                  width="516"
-                  height="55"
-                  rx="18"
-                  fill="url(#printerFrame)"
-                  stroke="#365E63"
-                  strokeWidth="2"
-                  filter="url(#softShadow)"
-                />
-
-                <rect
-                  x="115"
-                  y="76"
-                  width="430"
-                  height="8"
-                  rx="4"
-                  fill="#16B8BE"
-                  opacity="0.35"
-                />
-
-                {/* سير الرأس */}
-                <rect
-                  x="122"
-                  y="139"
-                  width="414"
-                  height="17"
-                  rx="8"
-                  fill="#182F33"
-                  stroke="#3B6065"
-                  strokeWidth="2"
-                />
-
-                <rect
-                  x="137"
-                  y="144"
-                  width="384"
-                  height="5"
-                  rx="2.5"
-                  fill="#16B8BE"
-                  opacity="0.28"
-                />
-
-                {/* بكرة الفيلامنت */}
-                <motion.g
-                  style={{
-                    transformOrigin: '516px 92px',
-                  }}
-                  animate={{
-                    rotate: 360,
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
-                >
-                  <circle
-                    cx="516"
-                    cy="92"
-                    r="48"
-                    fill="#10292D"
-                    stroke="#4A7479"
-                    strokeWidth="7"
-                  />
-
-                  <circle
-                    cx="516"
-                    cy="92"
-                    r="32"
-                    fill="none"
-                    stroke="#16B8BE"
-                    strokeWidth="9"
-                    strokeDasharray="15 8"
-                  />
-
-                  <circle
-                    cx="516"
-                    cy="92"
-                    r="12"
-                    fill="#79F2EE"
-                  />
-                </motion.g>
-
-                {/* مسار الفيلامنت */}
-                <motion.path
-                  d="M516 138 C516 165 430 155 390 195"
-                  fill="none"
-                  stroke="#65EAE7"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeDasharray="10 8"
-                  animate={{
-                    strokeDashoffset: [0, -36],
-                  }}
-                  transition={{
-                    duration: 1.4,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
-                />
-
-                {/* سرير الطباعة */}
-                <motion.g
-                  animate={{
-                    y: [0, 2, 0],
-                  }}
-                  transition={{
-                    duration: 0.45,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  <path
-                    d="M155 415 L505 415 L550 450 L110 450 Z"
-                    fill="#172F33"
-                    stroke="#4A7075"
-                    strokeWidth="3"
-                    filter="url(#softShadow)"
-                  />
-
-                  <path
-                    d="M177 421 L484 421 L512 442 L148 442 Z"
-                    fill="#27484C"
-                  />
-
-                  <path
-                    d="M192 425 L470 425"
-                    stroke="#16B8BE"
-                    strokeWidth="3"
-                    opacity="0.45"
-                  />
-                </motion.g>
-
-                {/* المجسم الذي تتم طباعته */}
-                <g filter="url(#cyanGlow)">
-                  {printLayers.map((layer, index) => (
-                    <motion.rect
-                      key={layer.id}
-                      x={330 - layer.width / 2}
-                      y={layer.y}
-                      width={layer.width}
-                      height="6"
-                      rx="3"
-                      fill="url(#printedObject)"
-                      initial={{
-                        opacity: 0,
-                        scaleX: 0.2,
-                      }}
-                      animate={{
-                        opacity: [0, 0, 1, 1, 0],
-                        scaleX: [
-                          0.2,
-                          0.2,
-                          1,
-                          1,
-                          0.2,
-                        ],
-                      }}
-                      transition={{
-                        duration: 12,
-                        delay: layer.delay,
-                        repeat: Infinity,
-                        repeatDelay: 1.5,
-                        times: [
-                          0,
-                          Math.min(
-                            0.75,
-                            0.08 + index * 0.025,
-                          ),
-                          Math.min(
-                            0.82,
-                            0.13 + index * 0.025,
-                          ),
-                          0.92,
-                          1,
-                        ],
-                        ease: 'easeInOut',
-                      }}
-                      style={{
-                        transformOrigin: '330px center',
-                      }}
-                    />
-                  ))}
-                </g>
-
-                {/* رأس الطابعة المتحرك */}
-                <motion.g
-                  animate={{
-                    x: [-105, 105, -105],
-                    y: [0, 50, 0],
-                  }}
-                  transition={{
-                    x: {
-                      duration: 2.4,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    },
-                    y: {
-                      duration: 12,
-                      repeat: Infinity,
-                      ease: 'linear',
-                    },
-                  }}
-                >
-                  <rect
-                    x="286"
-                    y="126"
-                    width="88"
-                    height="70"
-                    rx="18"
-                    fill="url(#printerAccent)"
-                    stroke="#82F4EF"
-                    strokeWidth="2"
-                    filter="url(#softShadow)"
-                  />
-
-                  <rect
-                    x="302"
-                    y="142"
-                    width="56"
-                    height="32"
-                    rx="10"
-                    fill="#0C3F45"
-                  />
-
-                  <motion.circle
-                    cx="330"
-                    cy="158"
-                    r="7"
-                    fill="#A5FFFA"
-                    animate={{
-                      opacity: [0.35, 1, 0.35],
-                    }}
-                    transition={{
-                      duration: 0.8,
-                      repeat: Infinity,
-                    }}
-                  />
-
-                  <path
-                    d="M313 196 L347 196 L339 217 L321 217 Z"
-                    fill="#D8FFFF"
-                  />
-
-                  <path
-                    d="M326 217 L334 217 L338 236 L322 236 Z"
-                    fill="#16B8BE"
-                  />
-
-                  <motion.path
-                    d="M330 236 L330 253"
-                    stroke="#8EFFF9"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    animate={{
-                      opacity: [0.2, 1, 0.2],
-                    }}
-                    transition={{
-                      duration: 0.45,
-                      repeat: Infinity,
-                    }}
-                  />
-                </motion.g>
-
-                {/* شاشة صغيرة */}
-                <rect
-                  x="130"
-                  y="467"
-                  width="92"
-                  height="42"
-                  rx="10"
-                  fill="#06171A"
-                  stroke="#3E686D"
-                  strokeWidth="2"
-                />
-
-                <motion.rect
-                  x="142"
-                  y="478"
-                  width="52"
-                  height="5"
-                  rx="2.5"
-                  fill="#16B8BE"
-                  animate={{
-                    width: [15, 52, 15],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-
-                <rect
-                  x="142"
-                  y="490"
-                  width="67"
-                  height="4"
-                  rx="2"
-                  fill="#FFFFFF"
-                  opacity="0.25"
-                />
-              </svg>
-            </div>
-
-            {/* معلومات الطباعة أسفل الكرت */}
-            <div className="relative z-10 mt-4 grid grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-[#10292D]/5 bg-white/70 px-3 py-4 text-center">
-                <p className="text-xs text-[#10292D]/45">
-                  المادة
-                </p>
-                <p className="mt-1 font-black">
-                  PLA+
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-[#10292D]/5 bg-white/70 px-3 py-4 text-center">
-                <p className="text-xs text-[#10292D]/45">
-                  الدقة
-                </p>
-                <p className="mt-1 font-black">
-                  0.2 mm
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-[#10292D]/5 bg-white/70 px-3 py-4 text-center">
-                <p className="text-xs text-[#10292D]/45">
-                  الحالة
-                </p>
-                <p className="mt-1 font-black text-[#118B93]">
-                  Printing
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* ظل أسفل الطابعة */}
-          <motion.div
-            animate={{
-              scaleX: [1, 0.86, 1],
-              opacity: [0.18, 0.1, 0.18],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="mx-auto mt-8 h-7 w-[75%] rounded-full bg-[#10292D]/25 blur-xl"
+          {/* ظل الطابعة */}
+          <motion.ellipse
+            cx="380"
+            cy="578"
+            rx="245"
+            ry="24"
+            fill="#062A2E"
+            animate={{ rx: [245, 220, 245], opacity: [0.24, 0.14, 0.24] }}
+            transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
           />
-        </motion.div>
-      </div>
+
+          {/* جسم الطابعة */}
+          <g filter="url(#softShadow)">
+            <rect x="110" y="38" width="540" height="510" rx="30" fill="url(#frame)" />
+            <rect
+              x="126"
+              y="54"
+              width="508"
+              height="478"
+              rx="22"
+              fill="#0A1F22"
+              stroke="#35565B"
+              strokeWidth="2"
+            />
+
+            {/* الباب الزجاجي */}
+            <rect
+              x="150"
+              y="92"
+              width="460"
+              height="376"
+              rx="16"
+              fill="url(#glass)"
+              stroke="#5D777B"
+              strokeWidth="2"
+            />
+            <rect x="164" y="106" width="432" height="348" rx="12" fill="url(#innerLight)" />
+
+            {/* لمعان الزجاج */}
+            <path
+              d="M180 116 L300 116 L215 446 L164 446 Z"
+              fill="#FFFFFF"
+              opacity="0.035"
+            />
+
+            {/* الشريط العلوي */}
+            <rect x="144" y="70" width="472" height="34" rx="12" fill="#142F33" />
+            <rect x="164" y="82" width="318" height="7" rx="3.5" fill="#2B4B50" />
+            <motion.circle
+              cx="586"
+              cy="87"
+              r="6"
+              fill="#65EEE9"
+              animate={{ opacity: [0.35, 1, 0.35] }}
+              transition={{ duration: 1.3, repeat: Infinity }}
+            />
+
+            {/* الأعمدة */}
+            <rect x="158" y="112" width="24" height="356" rx="8" fill="#1B3A3F" />
+            <rect x="578" y="112" width="24" height="356" rx="8" fill="#1B3A3F" />
+
+            {/* محور الحركة */}
+            <rect x="182" y="170" width="396" height="16" rx="8" fill="#213F44" />
+            <rect x="195" y="175" width="370" height="5" rx="2.5" fill="url(#metal)" opacity="0.75" />
+
+            {/* سرير الطباعة */}
+            <motion.g
+              animate={{ y: [0, 3, 0] }}
+              transition={{ duration: 0.55, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <path
+                d="M215 430 L545 430 L580 460 L180 460 Z"
+                fill="#1A383D"
+                stroke="#5E7A7F"
+                strokeWidth="2"
+              />
+              <path d="M237 438 L523 438 L548 455 L212 455 Z" fill="#31545A" />
+              <path d="M250 442 L510 442" stroke="#54E2DF" strokeWidth="3" opacity="0.42" />
+            </motion.g>
+
+            {/* قاعدة الطابعة */}
+            <rect x="140" y="500" width="480" height="42" rx="14" fill="#122E32" />
+            <rect x="166" y="512" width="300" height="8" rx="4" fill="#27484D" />
+
+            {/* شاشة صغيرة */}
+            <rect x="490" y="507" width="102" height="28" rx="8" fill="#071719" stroke="#426268" />
+            <motion.rect
+              x="503"
+              y="516"
+              width="42"
+              height="4"
+              rx="2"
+              fill="#41E1DF"
+              animate={{ width: [16, 66, 16] }}
+              transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </g>
+
+          {/* بكرة الفيلامنت */}
+          <motion.g
+            style={{ transformOrigin: '550px 92px' }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'linear' }}
+          >
+            <circle cx="550" cy="92" r="48" fill="#10262A" stroke="#48666B" strokeWidth="8" />
+            <circle
+              cx="550"
+              cy="92"
+              r="31"
+              fill="none"
+              stroke="#2DD7D7"
+              strokeWidth="9"
+              strokeDasharray="16 9"
+            />
+            <circle cx="550" cy="92" r="12" fill="#89F6F2" />
+          </motion.g>
+
+          {/* مسار الفيلامنت */}
+          <motion.path
+            d="M550 139 C550 162 470 164 420 200"
+            fill="none"
+            stroke="#79F1ED"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="11 9"
+            animate={{ strokeDashoffset: [0, -40] }}
+            transition={{ duration: 1.25, repeat: Infinity, ease: 'linear' }}
+          />
+
+          {/* المجسم المطبوع */}
+          <g filter="url(#glow)">
+            {layers.map((layer, index) => (
+              <motion.path
+                key={layer.id}
+                d={`M${380 - layer.width / 2} ${layer.y} Q380 ${layer.y - 8} ${
+                  380 + layer.width / 2
+                } ${layer.y} L${380 + layer.width / 2 - 5} ${layer.y + 5} Q380 ${
+                  layer.y - 2
+                } ${380 - layer.width / 2 + 5} ${layer.y + 5} Z`}
+                fill="url(#model)"
+                initial={{ opacity: 0, scaleX: 0.12 }}
+                animate={{
+                  opacity: [0, 0, 1, 1, 0],
+                  scaleX: [0.12, 0.12, 1, 1, 0.12],
+                }}
+                transition={{
+                  duration: 11,
+                  delay: layer.delay,
+                  repeat: Infinity,
+                  repeatDelay: 1.2,
+                  times: [0, 0.1, 0.72, 0.92, 1],
+                  ease: 'easeInOut',
+                }}
+                style={{ transformOrigin: '380px center' }}
+              />
+            ))}
+          </g>
+
+          {/* رأس الطباعة */}
+          <motion.g
+            animate={{ x: [-112, 112, -112], y: [0, 44, 0] }}
+            transition={{
+              x: { duration: 2.25, repeat: Infinity, ease: 'easeInOut' },
+              y: { duration: 11, repeat: Infinity, ease: 'linear' },
+            }}
+          >
+            <rect x="337" y="148" width="86" height="70" rx="18" fill="url(#accent)" stroke="#B8FFFC" strokeWidth="2" />
+            <rect x="353" y="165" width="54" height="30" rx="9" fill="#10353A" />
+            <motion.circle
+              cx="380"
+              cy="180"
+              r="6"
+              fill="#9CFFFA"
+              animate={{ opacity: [0.35, 1, 0.35] }}
+              transition={{ duration: 0.75, repeat: Infinity }}
+            />
+            <path d="M362 218 L398 218 L390 239 L370 239 Z" fill="#DFFFFD" />
+            <path d="M374 239 L386 239 L390 258 L370 258 Z" fill="#28D5D4" />
+            <motion.path
+              d="M380 258 L380 278"
+              stroke="#9BFFFB"
+              strokeWidth="4"
+              strokeLinecap="round"
+              animate={{ opacity: [0.2, 1, 0.2] }}
+              transition={{ duration: 0.38, repeat: Infinity }}
+            />
+          </motion.g>
+        </svg>
+      </motion.div>
     </section>
   );
 }
