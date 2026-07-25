@@ -6,6 +6,7 @@ import { CartProvider } from './contexts/CartContext';
 import { ProductsProvider } from './contexts/ProductsContext';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import PrinterAnimation from './components/PrinterAnimation';
 import Features from './components/Features';
 import Footer from './components/Footer';
 import ProductDetail from './pages/ProductDetail';
@@ -96,6 +97,7 @@ export default function App() {
         return (
           <>
             <Hero onNavigate={handleNavigate} />
+            <PrinterAnimation />
             <Features />
           </>
         );
