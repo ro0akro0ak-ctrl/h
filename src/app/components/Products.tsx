@@ -31,12 +31,6 @@ export default function Products({
       id="shop"
       className="relative py-24 px-6 overflow-hidden bg-[#16B8BE] text-white"
     >
-      {/* Background Decoration */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-black/10 blur-3xl" />
-      </div>
-
       <div className="relative z-10 max-w-[1400px] mx-auto">
         {/* Section Header */}
         <motion.div
