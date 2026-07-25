@@ -186,19 +186,7 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
                       </button>
                     )}
 
-                    {user.role === 'wholesale' && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onNavigate('wholesale-dashboard');
-                          setShowUserMenu(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm hover:bg-white/10 rounded-xl flex items-center gap-2"
-                      >
-                        <Settings className="w-4 h-4" />
-                        {language === 'ar' ? 'لوحة الجملة' : 'Wholesale Dashboard'}
-                      </button>
-                    )}
+                   
 
                     {user.role === 'user' && (
                       <button
