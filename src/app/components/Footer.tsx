@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { Instagram, MessageCircle, Phone, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Footer() {
@@ -13,9 +13,8 @@ export default function Footer() {
   ];
 
   const socialLinks = [
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
+    { icon: Instagram, href: 'https://instagram.com/3dtech.om', label: 'Instagram' },
+    { icon: MessageCircle, href: 'https://wa.me/96894355353', label: 'WhatsApp' },
   ];
 
   return (
@@ -24,7 +23,7 @@ export default function Footer() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
       <div className="relative max-w-[1400px] mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
           {/* Brand Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -46,6 +45,8 @@ export default function Footer() {
                   <motion.a
                     key={social.label}
                     href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     whileHover={{ scale: 1.1, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
@@ -80,58 +81,29 @@ export default function Footer() {
             </ul>
           </motion.div>
 
-          {/* Customer Service */}
+          {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <h3 className="text-lg font-bold mb-4 text-white">{t('footer.customerService')}</h3>
-            <ul className="space-y-3">
-              <li>
-                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
-                  {t('nav.contact')}
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
-                  FAQ
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
-                  Returns
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/80 hover:text-white transition-colors inline-block">
-                  Shipping
-                </a>
-              </li>
-            </ul>
-          </motion.div>
-
-          {/* Contact Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
             <h3 className="text-lg font-bold mb-4 text-white">{t('nav.contact')}</h3>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-white/80">
-                <Mail className="w-5 h-5 mt-0.5 shrink-0" />
-                <span>support@3dtech.com</span>
-              </li>
-              <li className="flex items-start gap-3 text-white/80">
-                <Phone className="w-5 h-5 mt-0.5 shrink-0" />
-                <span>+967 777 123 4567</span>
+              <li>
+                <a
+                  href="https://wa.me/96894355353"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-white/80 hover:text-white transition"
+                >
+                  <Phone className="w-5 h-5 shrink-0" />
+                  <span>+968 9435 5353</span>
+                </a>
               </li>
               <li className="flex items-start gap-3 text-white/80">
                 <MapPin className="w-5 h-5 mt-0.5 shrink-0" />
-                <span>Sana'a, Yemen</span>
+                <span>مسقط، المعبيلة</span>
               </li>
             </ul>
           </motion.div>
