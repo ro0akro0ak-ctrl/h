@@ -269,190 +269,175 @@ export default function Header({
         </div>
       </motion.header>
 
-      {/* Mobile Drawer */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <div className="fixed inset-0 z-[100] md:hidden">
-            {/* Overlay */}
+     {/* Mobile Drawer */}
+<AnimatePresence>
+  {isMenuOpen && (
+    <div className="fixed inset-0 z-[100] md:hidden">
+      {/* خلفية التعتيم */}
+      <motion.button
+        type="button"
+        aria-label={ar ? 'إغلاق القائمة' : 'Close menu'}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setIsMenuOpen(false)}
+        className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm"
+      />
+
+      {/* القائمة الجانبية */}
+      <motion.aside
+        dir={ar ? 'rtl' : 'ltr'}
+        initial={{
+          x: ar ? '100%' : '-100%',
+        }}
+        animate={{ x: 0 }}
+        exit={{
+          x: ar ? '100%' : '-100%',
+        }}
+        transition={{
+          type: 'spring',
+          damping: 28,
+          stiffness: 260,
+        }}
+        className={`absolute top-0 h-full w-[88%] max-w-[390px] overflow-y-auto border-white/10 bg-[#0B1114] text-white shadow-2xl ${
+          ar
+            ? 'right-0 border-l'
+            : 'left-0 border-r'
+        }`}
+      >
+        {/* رأس القائمة */}
+        <div className="border-b border-white/10 px-6 pb-7 pt-8">
+          <div className="flex items-center justify-between">
             <motion.button
               type="button"
-              aria-label={
-                ar ? 'إغلاق القائمة' : 'Close menu'
-              }
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() =>
-                setIsMenuOpen(false)
-              }
-              className="absolute inset-0 h-full w-full bg-black/65 backdrop-blur-sm"
-            />
-
-            {/* Side Menu */}
-            <motion.aside
-              dir={ar ? 'rtl' : 'ltr'}
-              initial={{
-                x: ar ? '100%' : '-100%',
-              }}
-              animate={{ x: 0 }}
-              exit={{
-                x: ar ? '100%' : '-100%',
-              }}
-              transition={{
-                type: 'spring',
-                damping: 28,
-                stiffness: 260,
-              }}
-              className={`absolute top-0 h-full w-[88%] max-w-[390px] overflow-y-auto bg-[#F8F7F2] text-[#10292D] shadow-2xl ${
-                ar ? 'right-0' : 'left-0'
-              }`}
+              onClick={() => handleNavigate('home')}
+              whileTap={{ scale: 0.97 }}
+              className="text-2xl font-black tracking-[0.12em] text-white"
             >
-              {/* Drawer Header */}
-              <div className="border-b border-[#10292D]/10 px-6 pb-7 pt-8">
-                <div className="flex items-center justify-between">
-                  <motion.button
-                    type="button"
-                    onClick={() =>
-                      handleNavigate('home')
-                    }
-                    whileTap={{ scale: 0.97 }}
-                    className="text-2xl font-black tracking-[0.12em]"
-                  >
-                    3D TECH
-                  </motion.button>
+              3D TECH
+            </motion.button>
 
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() =>
-                      setIsMenuOpen(false)
-                    }
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#10292D]/15 bg-white text-[#10292D] shadow-sm"
-                    aria-label={
-                      ar
-                        ? 'إغلاق القائمة'
-                        : 'Close menu'
-                    }
-                  >
-                    <X className="h-6 w-6" />
-                  </motion.button>
-                </div>
-
-                <p className="mt-6 text-sm font-medium text-[#10292D]/55">
-                  {ar
-                    ? 'كل ما تحتاجه للطباعة ثلاثية الأبعاد'
-                    : 'Everything you need for 3D printing'}
-                </p>
-              </div>
-
-              {/* Navigation Title */}
-              <div className="px-6 pb-3 pt-8">
-                <p className="text-sm font-black text-[#10292D]/45">
-                  {ar ? 'التنقل' : 'Navigation'}
-                </p>
-              </div>
-
-              {/* Navigation Items */}
-              <nav className="space-y-3 px-5">
-                {navItems.map((item, index) => {
-                  const Icon = item.icon;
-                  const active =
-                    currentPage === item.page;
-                  const ArrowIcon = ar
-                    ? ChevronLeft
-                    : ChevronRight;
-
-                  return (
-                    <motion.button
-                      key={item.key}
-                      type="button"
-                      initial={{
-                        opacity: 0,
-                        x: ar ? 30 : -30,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        x: 0,
-                      }}
-                      transition={{
-                        delay: index * 0.07,
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() =>
-                        handleNavigate(item.page)
-                      }
-                      className={`flex w-full items-center justify-between rounded-[24px] px-5 py-5 text-start transition-all ${
-                        active
-                          ? 'bg-[#10292D] text-white shadow-xl'
-                          : 'text-[#10292D] hover:bg-[#10292D]/5'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-                            active
-                              ? 'bg-white/10 text-[#D7C89A]'
-                              : 'bg-[#10292D]/5 text-[#10292D]/60'
-                          }`}
-                        >
-                          <Icon className="h-6 w-6" />
-                        </span>
-
-                        <span className="text-xl font-black">
-                          {ar
-                            ? item.labelAr
-                            : item.labelEn}
-                        </span>
-                      </div>
-
-                      <ArrowIcon
-                        className={`h-5 w-5 ${
-                          active
-                            ? 'text-[#D7C89A]'
-                            : 'text-[#10292D]/30'
-                        }`}
-                      />
-                    </motion.button>
-                  );
-                })}
-              </nav>
-
-              {/* Bottom Section */}
-              <div className="mt-10 px-6 pb-10">
-                <div className="rounded-3xl bg-[#16B8BE]/10 p-5">
-                  <p className="text-sm font-bold text-[#10292D]">
-                    {ar
-                      ? 'تحتاج مساعدة؟'
-                      : 'Need help?'}
-                  </p>
-
-                  <p className="mt-2 text-sm leading-6 text-[#10292D]/60">
-                    {ar
-                      ? 'تواصل معنا وسنرد عليك في أقرب وقت.'
-                      : 'Contact us and we will reply as soon as possible.'}
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleNavigate('contact')
-                    }
-                    className="mt-4 w-full rounded-full bg-[#16B8BE] py-3.5 font-black text-white shadow-lg"
-                  >
-                    {ar
-                      ? 'اتصل بنا'
-                      : 'Contact Us'}
-                  </button>
-                </div>
-
-                <p className="mt-8 text-center text-xs font-bold tracking-[0.18em] text-[#10292D]/35">
-                  3DTECH.STORE
-                </p>
-              </div>
-            </motion.aside>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition hover:bg-white/10"
+              aria-label={ar ? 'إغلاق القائمة' : 'Close menu'}
+            >
+              <X className="h-6 w-6" />
+            </motion.button>
           </div>
-        )}
-      </AnimatePresence>
+
+          <p className="mt-5 text-sm font-medium text-white/50">
+            {ar
+              ? 'Beyond Dimensions'
+              : 'Beyond Dimensions'}
+          </p>
+        </div>
+
+        {/* عنوان التنقل */}
+        <div className="px-6 pb-3 pt-8">
+          <p className="text-sm font-bold text-white/35">
+            {ar ? 'التنقل' : 'Navigation'}
+          </p>
+        </div>
+
+        {/* الروابط */}
+        <nav className="space-y-3 px-5">
+          {navItems.map((item, index) => {
+            const Icon = item.icon;
+            const active = currentPage === item.page;
+            const ArrowIcon = ar
+              ? ChevronLeft
+              : ChevronRight;
+
+            return (
+              <motion.button
+                key={item.key}
+                type="button"
+                initial={{
+                  opacity: 0,
+                  x: ar ? 30 : -30,
+                }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                transition={{
+                  delay: index * 0.07,
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleNavigate(item.page)}
+                className={`flex w-full items-center justify-between rounded-2xl border px-5 py-5 text-start transition-all ${
+                  active
+                    ? 'border-[#16B8BE]/60 bg-[#16B8BE]/15 text-white shadow-lg'
+                    : 'border-white/10 bg-white/[0.03] text-white/75 hover:border-white/20 hover:bg-white/[0.06] hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                      active
+                        ? 'bg-[#16B8BE] text-white'
+                        : 'bg-white/[0.06] text-white/55'
+                    }`}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </span>
+
+                  <span className="text-xl font-black">
+                    {ar
+                      ? item.labelAr
+                      : item.labelEn}
+                  </span>
+                </div>
+
+                <ArrowIcon
+                  className={`h-5 w-5 ${
+                    active
+                      ? 'text-[#16B8BE]'
+                      : 'text-white/25'
+                  }`}
+                />
+              </motion.button>
+            );
+          })}
+        </nav>
+
+        {/* الجزء السفلي */}
+        <div className="mt-10 px-6 pb-10">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <p className="text-sm font-bold text-white">
+              {ar
+                ? 'تحتاج مساعدة؟'
+                : 'Need help?'}
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-white/50">
+              {ar
+                ? 'تواصل معنا عبر واتساب وسنرد عليك في أقرب وقت.'
+                : 'Contact us on WhatsApp and we will reply soon.'}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => handleNavigate('contact')}
+              className="mt-4 w-full rounded-full bg-[#16B8BE] py-3.5 font-black text-white shadow-lg transition hover:bg-[#12A9AF]"
+            >
+              {ar
+                ? 'اتصل بنا'
+                : 'Contact Us'}
+            </button>
+          </div>
+
+          <p className="mt-8 text-center text-xs font-bold tracking-[0.18em] text-white/25">
+            3DTECH.STORE
+          </p>
+        </div>
+      </motion.aside>
+    </div>
+  )}
+</AnimatePresence>
     </>
   );
 }
