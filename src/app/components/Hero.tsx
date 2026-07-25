@@ -17,7 +17,6 @@ export default function Hero({ onNavigate }: HeroProps) {
           subtitle:
             'طابعات ثلاثية الأبعاد، فيلامنت، قطع غيار وإكسسوارات بجودة عالية',
           shopButton: 'تسوق الآن',
-          loginButton: 'سجّل دخولك',
         }
       : {
           badge: 'Latest 3D Printing Products',
@@ -25,7 +24,6 @@ export default function Hero({ onNavigate }: HeroProps) {
           subtitle:
             '3D printers, filament, spare parts, and accessories with high quality',
           shopButton: 'Shop Now',
-          loginButton: 'Sign In',
         };
 
   return (
@@ -124,16 +122,6 @@ export default function Hero({ onNavigate }: HeroProps) {
                   }`}
                 />
               </span>
-            </motion.button>
-
-            <motion.button
-              type="button"
-              onClick={() => onNavigate('login')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 rounded-full border-2 border-white/50 text-white hover:bg-white/10 hover:border-white transition-colors backdrop-blur-sm inline-block font-medium"
-            >
-              {content.loginButton}
             </motion.button>
           </motion.div>
 
