@@ -1,187 +1,282 @@
+import { useState, type FormEvent } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
+import {
+  Phone,
+  MapPin,
+  Clock,
+  Send,
+  User,
+  MessageSquare,
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Contact() {
   const { language } = useLanguage();
 
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+
   const contactInfo = [
     {
-      icon: Mail,
-      title: language === 'ar' ? 'البريد الإلكتروني' : 'Email',
-      value: 'info@luxuryabaya.com',
-      link: 'mailto:info@luxuryabaya.com',
-    },
-    {
       icon: Phone,
-      title: language === 'ar' ? 'الهاتف' : 'Phone',
-      value: '+966 50 123 4567',
-      link: 'tel:+966501234567',
+      title: language === 'ar' ? 'رقم الهاتف' : 'Phone',
+      value: '+968 9435 5353',
+      link: 'https://wa.me/96894353535',
+      ltr: true,
     },
     {
       icon: MapPin,
       title: language === 'ar' ? 'العنوان' : 'Address',
-      value: language === 'ar' ? 'الرياض، المملكة العربية السعودية' : 'Riyadh, Saudi Arabia',
+      value:
+        language === 'ar'
+          ? 'مسقط، المعبيلة الثامنة'
+          : 'Muscat, Al Maabilah 8',
       link: null,
+      ltr: false,
     },
     {
       icon: Clock,
       title: language === 'ar' ? 'ساعات العمل' : 'Working Hours',
-      value: language === 'ar' ? 'السبت - الخميس: 9 ص - 9 م' : 'Sat - Thu: 9 AM - 9 PM',
+      value:
+        language === 'ar'
+          ? 'طوال الأسبوع، 24 ساعة'
+          : 'Open 24 hours, 7 days a week',
       link: null,
+      ltr: false,
     },
   ];
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const whatsappMessage =
+      language === 'ar'
+        ? `مرحبًا 3D TECH،%0Aالاسم: ${encodeURIComponent(
+            name,
+          )}%0Aرقم الهاتف: ${encodeURIComponent(
+            phone,
+          )}%0Aالرسالة: ${encodeURIComponent(message)}`
+        : `Hello 3D TECH,%0AName: ${encodeURIComponent(
+            name,
+          )}%0APhone: ${encodeURIComponent(
+            phone,
+          )}%0AMessage: ${encodeURIComponent(message)}`;
+
+    window.open(
+      `https://wa.me/96894353535?text=${whatsappMessage}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
+  };
+
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-[1400px] mx-auto">
-        {/* Header */}
+    <section
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
+      className="relative min-h-screen overflow-hidden bg-[#16B8BE] px-6 pb-20 pt-32 text-white"
+    >
+      {/* خلفية بسيطة */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-32 top-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -left-32 bottom-10 h-80 w-80 rounded-full bg-[#075E66]/20 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-[1400px]">
+        {/* العنوان */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.6 }}
+          className="mb-14 text-center"
         >
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
-          </h1>
-          <div className="w-24 h-1 bg-gradient-to-r from-transparent via-black dark:via-white to-transparent mx-auto mb-8" />
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+          <div className="mb-5 flex items-center justify-center gap-4">
+            <span className="hidden h-px w-16 bg-white/50 sm:block" />
+
+            <h1 className="text-5xl font-bold tracking-tight drop-shadow-lg md:text-7xl">
+              {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
+            </h1>
+
+            <span className="hidden h-px w-16 bg-white/50 sm:block" />
+          </div>
+
+          <div className="mx-auto mb-7 h-1 w-24 rounded-full bg-white/80 shadow-lg" />
+
+          <p className="mx-auto max-w-3xl text-lg font-medium leading-relaxed text-white md:text-xl">
             {language === 'ar'
-              ? 'نحن هنا للإجابة على جميع استفساراتك. تواصل معنا وسنرد عليك في أقرب وقت ممكن.'
-              : 'We are here to answer all your inquiries. Contact us and we will respond to you as soon as possible.'}
+              ? 'نحن هنا للإجابة على جميع استفساراتك والتواصل معنا، وسنرد عليك في أقرب وقت.'
+              : 'We are here to answer all your questions. Contact us and we will reply as soon as possible.'}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          {/* نموذج الرسالة */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="p-8 md:p-12 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
+            className="rounded-3xl border border-white/25 bg-[#075E66]/80 p-7 shadow-2xl backdrop-blur-xl md:p-10"
           >
-            <h2 className="text-3xl font-bold mb-8">
+            <h2 className="mb-8 text-3xl font-bold">
               {language === 'ar' ? 'أرسل لنا رسالة' : 'Send us a message'}
             </h2>
 
-            <form className="space-y-6">
-              {/* Name */}
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* الاسم */}
               <div>
-                <label className="block text-sm font-semibold mb-2">
+                <label
+                  htmlFor="contact-name"
+                  className="mb-2 block text-sm font-semibold"
+                >
                   {language === 'ar' ? 'الاسم' : 'Name'}
                 </label>
-                <input
-                  type="text"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors"
-                  placeholder={language === 'ar' ? 'أدخل اسمك' : 'Enter your name'}
-                />
+
+                <div className="relative">
+                  <User className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+
+                  <input
+                    id="contact-name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    className="w-full rounded-2xl border border-white/20 bg-[#10292D]/65 py-4 pl-5 pr-12 text-white outline-none placeholder:text-white/45 focus:border-white"
+                    placeholder={
+                      language === 'ar'
+                        ? 'أدخل اسمك'
+                        : 'Enter your name'
+                    }
+                  />
+                </div>
               </div>
 
-              {/* Email */}
+              {/* رقم الهاتف */}
               <div>
-                <label className="block text-sm font-semibold mb-2">
-                  {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
-                </label>
-                <input
-                  type="email"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors"
-                  placeholder={language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email'}
-                />
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-sm font-semibold mb-2">
+                <label
+                  htmlFor="contact-phone"
+                  className="mb-2 block text-sm font-semibold"
+                >
                   {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
                 </label>
-                <input
-                  type="tel"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors"
-                  placeholder={language === 'ar' ? 'أدخل رقم هاتفك' : 'Enter your phone'}
-                />
+
+                <div className="relative">
+                  <Phone className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+
+                  <input
+                    id="contact-phone"
+                    type="tel"
+                    inputMode="tel"
+                    required
+                    dir="ltr"
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    className="w-full rounded-2xl border border-white/20 bg-[#10292D]/65 py-4 pl-5 pr-12 text-left text-white outline-none placeholder:text-white/45 focus:border-white"
+                    placeholder="+968 9435 5353"
+                  />
+                </div>
               </div>
 
-              {/* Message */}
+              {/* الرسالة */}
               <div>
-                <label className="block text-sm font-semibold mb-2">
+                <label
+                  htmlFor="contact-message"
+                  className="mb-2 block text-sm font-semibold"
+                >
                   {language === 'ar' ? 'الرسالة' : 'Message'}
                 </label>
-                <textarea
-                  rows={6}
-                  className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors resize-none"
-                  placeholder={language === 'ar' ? 'اكتب رسالتك هنا...' : 'Write your message here...'}
-                />
+
+                <div className="relative">
+                  <MessageSquare className="absolute right-4 top-5 h-5 w-5 text-white/50" />
+
+                  <textarea
+                    id="contact-message"
+                    rows={6}
+                    required
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    className="w-full resize-none rounded-2xl border border-white/20 bg-[#10292D]/65 px-5 py-4 pr-12 text-white outline-none placeholder:text-white/45 focus:border-white"
+                    placeholder={
+                      language === 'ar'
+                        ? 'اكتب رسالتك هنا...'
+                        : 'Write your message here...'
+                    }
+                  />
+                </div>
               </div>
 
-              {/* Submit Button */}
+              {/* زر الإرسال */}
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center gap-2 text-lg font-semibold"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-4 text-lg font-bold text-[#10292D] shadow-xl"
               >
-                <Send className="w-5 h-5" />
-                {language === 'ar' ? 'إرسال الرسالة' : 'Send Message'}
+                <Send className="h-5 w-5" />
+
+                {language === 'ar'
+                  ? 'إرسال الرسالة'
+                  : 'Send Message'}
               </motion.button>
             </form>
           </motion.div>
 
-          {/* Contact Info */}
+          {/* معلومات التواصل */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-6"
+            className="rounded-3xl border border-white/25 bg-[#075E66]/80 p-7 shadow-2xl backdrop-blur-xl md:p-10"
           >
-            {contactInfo.map((info, index) => {
-              const Icon = info.icon;
-              const content = (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="p-8 rounded-3xl bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
-                >
-                  <div className="flex items-start gap-4">
-                    <motion.div
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-black/10 to-black/5 dark:from-white/10 dark:to-white/5 flex items-center justify-center flex-shrink-0"
-                    >
-                      <Icon className="w-7 h-7" />
-                    </motion.div>
-                    <div>
-                      <h3 className="text-lg font-bold mb-2">{info.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-400">{info.value}</p>
+            <div className="space-y-1">
+              {contactInfo.map((info, index) => {
+                const Icon = info.icon;
+
+                const card = (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.12 }}
+                    whileHover={{ x: language === 'ar' ? -5 : 5 }}
+                    className="flex items-center gap-5 border-b border-white/15 py-8 last:border-b-0"
+                  >
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                      <Icon className="h-8 w-8" />
                     </div>
-                  </div>
-                </motion.div>
-              );
 
-              return info.link ? (
-                <a key={index} href={info.link}>
-                  {content}
-                </a>
-              ) : (
-                <div key={index}>{content}</div>
-              );
-            })}
+                    <div>
+                      <h3 className="mb-2 text-xl font-bold">
+                        {info.title}
+                      </h3>
 
-            {/* Map Placeholder */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="h-64 rounded-3xl overflow-hidden bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
-            >
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-black/5 to-black/10 dark:from-white/5 dark:to-white/10">
-                <MapPin className="w-12 h-12 text-gray-400" />
-              </div>
-            </motion.div>
+                      <p
+                        dir={info.ltr ? 'ltr' : undefined}
+                        className={`text-white/80 ${
+                          info.ltr ? 'text-left' : ''
+                        }`}
+                      >
+                        {info.value}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+
+                return info.link ? (
+                  <a
+                    key={info.title}
+                    href={info.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    {card}
+                  </a>
+                ) : (
+                  <div key={info.title}>{card}</div>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
