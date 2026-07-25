@@ -13,15 +13,35 @@ interface HeaderProps {
 export default function Header({ onNavigate, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const { totalItems } = useCart();
   const { user, logout, isAdmin } = useAuth();
 
   const navItems = [
-    { key: 'nav.home', page: 'home' },
-    { key: 'nav.shop', page: 'shop' },
-    { key: 'nav.about', page: 'Order tracking' }, // تظهر الآن باسم "تتبع الطلب" بعد تعديل ملف الترجمة
-    { key: 'nav.contact', page: 'contact' },
+    {
+      key: 'home',
+      page: 'home',
+      labelAr: 'الرئيسية',
+      labelEn: 'Home',
+    },
+    {
+      key: 'shop',
+      page: 'shop',
+      labelAr: 'المتجر',
+      labelEn: 'Shop',
+    },
+    {
+      key: 'tracking',
+      page: 'about',
+      labelAr: 'تتبع الطلب',
+      labelEn: 'Track Order',
+    },
+    {
+      key: 'contact',
+      page: 'contact',
+      labelAr: 'اتصل بنا',
+      labelEn: 'Contact Us',
+    },
   ];
 
   // Close user menu when clicking outside
@@ -74,7 +94,7 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
                 whileTap={{ scale: 0.98 }}
                 className="relative text-sm tracking-wide text-white/80 hover:text-white transition-colors group"
               >
-                {t(item.key)}
+                {language === 'ar' ? item.labelAr : item.labelEn}
                 <motion.span
                   className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white group-hover:w-full transition-all duration-300"
                 />
@@ -255,7 +275,7 @@ export default function Header({ onNavigate, onCartClick }: HeaderProps) {
                 whileTap={{ scale: 0.98 }}
                 className="block py-3 text-sm text-white/80 hover:text-white transition-colors w-full text-left"
               >
-                {t(item.key)}
+                {language === 'ar' ? item.labelAr : item.labelEn}
               </motion.button>
             ))}
           </motion.nav>
