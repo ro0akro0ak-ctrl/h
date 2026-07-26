@@ -12,14 +12,31 @@ export default function SplashScreen({
       {show && (
         <motion.div
           initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.45 }}
           className="fixed inset-0 z-[999999] flex items-center justify-center bg-[#18B7BE]"
         >
-          <img
-            src="/welcome-logo-transparent.png?v=1"
+          <motion.img
+            src="/Untitled design.png?v=1"
             alt="3D TECH"
-            className="w-40 object-contain md:w-52"
+            initial={{
+              opacity: 0,
+              scale: 0.95,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            exit={{
+              opacity: 0,
+              scale: 1.02,
+            }}
+            transition={{
+              duration: 0.55,
+              ease: 'easeOut',
+            }}
+            className="max-h-[72vh] w-auto object-contain"
           />
         </motion.div>
       )}
