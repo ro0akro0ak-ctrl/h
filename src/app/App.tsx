@@ -13,7 +13,7 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard'; // استيراد لوحة التحكم
 import SplashScreen from './components/SplashScreen'; // استيراد شاشة البداية
 
 type Page =
@@ -55,7 +55,7 @@ function MainApp() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 900); // تم تعديل المدة إلى 900 مللي ثانية لتصبح أسرع
+    }, 900); // مدة شاشة البداية السريعة
 
     return () => clearTimeout(timer);
   }, []);
