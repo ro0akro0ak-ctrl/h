@@ -55,7 +55,7 @@ function MainApp() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 1700);
+    }, 900); // تم تعديل المدة إلى 900 مللي ثانية لتصبح أسرع
 
     return () => clearTimeout(timer);
   }, []);
