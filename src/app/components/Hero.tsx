@@ -14,12 +14,12 @@ export default function Hero({ onNavigate }: HeroProps) {
     language === 'ar'
       ? {
           badge: 'أحدث تقنيات الطباعة ثلاثية الأبعاد',
-          title: 'نطبع أفكارك بإبداع',
+          title: 'كل فكرة تستحق أن تُطبع',
           shopButton: 'تسوّق الآن',
         }
       : {
           badge: 'Latest 3D Printing Technology',
-          title: 'We Print Your Ideas Creatively',
+          title: 'Every Idea Deserves to Be Printed',
           shopButton: 'Shop Now',
         };
 
@@ -90,10 +90,10 @@ export default function Hero({ onNavigate }: HeroProps) {
             className="relative font-sans text-4xl font-black tracking-normal whitespace-nowrap sm:text-5xl md:text-6xl lg:text-[68px]"
             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           >
-            <span className="relative inline-block text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+            <span className="relative inline-block text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.35)] pb-5">
               {content.title}
 
-              {/* خط تحتي سفلي بتصميم هندسي صريح ونظيف */}
+              {/* خط تحتي سفلي بتصميم هندسي صريح ونظيف (تم أبعاده قليلاً عن النص) */}
               <motion.span
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
@@ -101,7 +101,7 @@ export default function Hero({ onNavigate }: HeroProps) {
                   duration: 0.8,
                   delay: 0.7,
                 }}
-                className="absolute -bottom-3 left-0 h-1.5 w-full rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+                className="absolute bottom-0 left-0 h-1.5 w-full rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
               />
             </span>
           </motion.h1>
