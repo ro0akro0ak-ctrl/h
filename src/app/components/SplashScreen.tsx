@@ -66,7 +66,7 @@ export default function SplashScreen({
 
           {/* شعار شاشة الترحيب */}
           <motion.img
-            src="/welcome-logo.png?v=2"
+            src="/welcome-logo.png"
             alt="3D TECH"
             initial={{
               opacity: 0,
@@ -86,7 +86,7 @@ export default function SplashScreen({
               duration: 0.55,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="relative z-10 h-28 w-auto object-contain drop-shadow-[0_18px_35px_rgba(4,44,48,0.25)] sm:h-36"
+            className="relative w-40 md:w-52 object-contain z-10 drop-shadow-[0_18px_35px_rgba(4,44,48,0.25)]"
           />
 
           {/* دائرة بسيطة متحركة */}
