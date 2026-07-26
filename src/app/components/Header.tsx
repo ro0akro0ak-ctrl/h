@@ -140,7 +140,7 @@ export default function Header({
               className="cursor-pointer"
             >
               <img
-                src="/logo.png"
+                src="/logo.png?v=2"
                 alt="3D TECH"
                 className="h-12 w-auto object-contain"
               />
@@ -327,7 +327,7 @@ export default function Header({
                       whileTap={{ scale: 0.97 }}
                     >
                       <img
-                        src="/logo.png"
+                        src="/logo.png?v=2"
                         alt="3D TECH"
                         className="h-10 w-auto object-contain"
                       />
