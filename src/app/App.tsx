@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ThemeProvider } from 'next-themes';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { CartProvider } from './contexts/CartContext';
 import { ProductsProvider } from './contexts/ProductsContext';
 import Header from './components/Header';
@@ -13,6 +13,7 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import AdminDashboard from './pages/AdminDashboard';
 import SplashScreen from './components/SplashScreen'; // استيراد شاشة البداية
 
 type Page =
@@ -20,7 +21,8 @@ type Page =
   | 'product-detail'
   | 'about'
   | 'contact'
-  | 'shop';
+  | 'shop'
+  | 'admin';
 
 const allowedPages: Page[] = [
   'home',
@@ -28,6 +30,7 @@ const allowedPages: Page[] = [
   'about',
   'contact',
   'shop',
+  'admin',
 ];
 
 function getPageFromHash(): Page {
@@ -35,7 +38,10 @@ function getPageFromHash(): Page {
   return allowedPages.includes(hash as Page) ? (hash as Page) : 'home';
 }
 
-export default function App() {
+function MainApp() {
+  const { language } = useLanguage();
+  const ar = language === 'ar';
+
   const [currentPage, setCurrentPage] = useState<Page>(() => {
     if (typeof window === 'undefined') return 'home';
     return getPageFromHash();
@@ -126,62 +132,72 @@ export default function App() {
         return <About />;
       case 'contact':
         return <Contact />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return null;
     }
   };
 
   return (
+    <>
+      {/* وضع شاشة البداية في الأعلى */}
+      <SplashScreen show={showSplash} />
+
+      <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500" dir={ar ? 'rtl' : 'ltr'} lang={ar ? 'ar' : 'en'}>
+        <Header
+          onNavigate={handleNavigate}
+          onCartClick={() => setIsCartOpen(true)}
+        />
+
+        <main>{renderPage()}</main>
+        <Footer />
+
+        <AnimatePresence>
+          {isCartOpen && (
+            <motion.div
+              className="fixed inset-0 z-[99999]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.button
+                type="button"
+                aria-label={ar ? "إغلاق السلة" : "Close Cart"}
+                className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-[2px]"
+                onClick={() => setIsCartOpen(false)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+
+              <motion.aside
+                className={`absolute ${ar ? 'right-0' : 'left-0'} top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#F7F7F5] shadow-2xl`}
+                initial={{ x: ar ? '100%' : '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: ar ? '100%' : '-100%' }}
+                transition={{ type: 'spring', stiffness: 330, damping: 34 }}
+              >
+                <Cart
+                  onNavigate={handleNavigate}
+                  onClose={() => setIsCartOpen(false)}
+                />
+              </motion.aside>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
+  );
+}
+
+export default function App() {
+  return (
     <ProductsProvider>
       <CartProvider>
         <LanguageProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-            {/* وضع شاشة البداية في الأعلى */}
-            <SplashScreen show={showSplash} />
-
-            <div className="min-h-screen bg-[#16B8BE] transition-colors duration-500" dir="rtl" lang="ar">
-              <Header
-                onNavigate={handleNavigate}
-                onCartClick={() => setIsCartOpen(true)}
-              />
-
-              <main>{renderPage()}</main>
-              <Footer />
-
-              <AnimatePresence>
-                {isCartOpen && (
-                  <motion.div
-                    className="fixed inset-0 z-[99999]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <motion.button
-                      type="button"
-                      aria-label="إغلاق السلة"
-                      className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-[2px]"
-                      onClick={() => setIsCartOpen(false)}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    />
-
-                    <motion.aside
-                      className="absolute right-0 top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#F7F7F5] shadow-2xl"
-                      initial={{ x: '100%' }}
-                      animate={{ x: 0 }}
-                      exit={{ x: '100%' }}
-                      transition={{ type: 'spring', stiffness: 330, damping: 34 }}
-                    >
-                      <Cart
-                        onNavigate={handleNavigate}
-                        onClose={() => setIsCartOpen(false)}
-                      />
-                    </motion.aside>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <MainApp />
           </ThemeProvider>
         </LanguageProvider>
       </CartProvider>
