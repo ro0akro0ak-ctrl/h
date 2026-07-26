@@ -4,7 +4,7 @@ interface SplashScreenProps {
   show: boolean;
 }
 
-const particles = Array.from({ length: 34 }, (_, index) => ({
+const particles = Array.from({ length: 18 }, (_, index) => ({
   id: index,
   left: (index * 29) % 100,
   top: (index * 41) % 100,
@@ -27,7 +27,7 @@ export default function SplashScreen({
           transition={{ duration: 0.55 }}
           className="fixed inset-0 z-[999999] flex items-center justify-center overflow-hidden bg-[#18B7BE]"
         >
-          {/* النقاط الزرقاء المتحركة */}
+          {/* النقاط الزرقاء المتحركة (تم تقليل عددها لتحسين الأداء على الجوال) */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             {particles.map((particle) => (
               <motion.span
