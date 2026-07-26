@@ -21,8 +21,8 @@ export default function Contact() {
     {
       icon: Phone,
       title: language === 'ar' ? 'رقم الهاتف' : 'Phone',
-      value: '+968 9435 5353',
-      link: 'https://wa.me/96894353535',
+      value: '+968 7197 9631',
+      link: 'https://wa.me/96871979631',
       ltr: true,
     },
     {
@@ -30,8 +30,8 @@ export default function Contact() {
       title: language === 'ar' ? 'العنوان' : 'Address',
       value:
         language === 'ar'
-          ? 'مسقط، المعبيلة الثامنة'
-          : 'Muscat, Al Maabilah 8',
+          ? 'مسقط، المعبيلة'
+          : 'Muscat, Al Maabilah',
       link: null,
       ltr: false,
     },
@@ -64,7 +64,7 @@ export default function Contact() {
           )}%0AMessage: ${encodeURIComponent(message)}`;
 
     window.open(
-      `https://wa.me/96894353535?text=${whatsappMessage}`,
+      `https://wa.me/96871979631?text=${whatsappMessage}`,
       '_blank',
       'noopener,noreferrer',
     );
@@ -170,7 +170,7 @@ export default function Contact() {
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
                     className="w-full rounded-2xl border border-white/20 bg-[#10292D]/65 py-4 pl-5 pr-12 text-left text-white outline-none placeholder:text-white/45 focus:border-white"
-                    placeholder="+968 9435 5353"
+                    placeholder="+968 7197 9631"
                   />
                 </div>
               </div>
