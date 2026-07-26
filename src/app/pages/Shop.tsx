@@ -1,88 +1,34 @@
-import React, { useMemo, useState } from 'react';
-import { Grid, List, Search, SlidersHorizontal } from 'lucide-react';
-
-import { ProductCard } from '../components/ProductCard';
+import React, { useState } from 'react';
+import { Search } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
 export const Shop: React.FC = () => {
-  const {
-    products,
-    categories,
-    selectedCategory,
-    setSelectedCategory,
-  } = useStore();
-
+  const { products, categories, selectedCategory, setSelectedCategory } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([
-    0,
-    1000,
-  ]);
-  const [sortBy, setSortBy] = useState<
-    'featured' | 'price-asc' | 'price-desc' | 'newest'
-  >('featured');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(
-    'grid',
-  );
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] =
-    useState(false);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
 
-  const filteredProducts = useMemo(() => {
-    return products
-      .filter((product) => {
-        const matchesCategory =
-          selectedCategory === 'all' ||
-          product.category === selectedCategory;
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      selectedCategory === 'all' || product.category === selectedCategory;
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      normalizedQuery.length === 0 ||
+      product.name.toLowerCase().includes(normalizedQuery) ||
+      product.description.toLowerCase().includes(normalizedQuery);
+    const matchesPrice =
+      product.retailPrice >= priceRange[0] &&
+      product.retailPrice <= priceRange[1];
 
-        const normalizedQuery = searchQuery.trim().toLowerCase();
-
-        const matchesSearch =
-          normalizedQuery.length === 0 ||
-          product.name.toLowerCase().includes(normalizedQuery) ||
-          product.description.toLowerCase().includes(normalizedQuery);
-
-        const matchesPrice =
-          product.retailPrice >= priceRange[0] &&
-          product.retailPrice <= priceRange[1];
-
-        return matchesCategory && matchesSearch && matchesPrice;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'price-asc') {
-          return a.retailPrice - b.retailPrice;
-        }
-
-        if (sortBy === 'price-desc') {
-          return b.retailPrice - a.retailPrice;
-        }
-
-        if (sortBy === 'newest') {
-          return (
-            new Date(b.createdAt).getTime() -
-            new Date(a.createdAt).getTime()
-          );
-        }
-
-        return 0;
-      });
-  }, [
-    products,
-    selectedCategory,
-    searchQuery,
-    priceRange,
-    sortBy,
-  ]);
+    return matchesCategory && matchesSearch && matchesPrice;
+  });
 
   return (
-    <div
-      dir="rtl"
-      className="min-h-screen bg-gray-950 pb-16 pt-24 text-white"
-    >
+    <div dir="rtl" className="min-h-screen bg-gray-950 pb-16 pt-24 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
             المتجر الإلكتروني
           </h1>
-
           <p className="mt-2 text-gray-400">
             تصفح تشكيلتنا الواسعة من المنتجات المميزة بأفضل الأسعار
           </p>
@@ -91,7 +37,6 @@ export const Shop: React.FC = () => {
         <div className="mb-8 flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="relative w-full md:w-96">
             <Search className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-
             <input
               type="text"
               placeholder="ابحث عن منتج..."
@@ -100,79 +45,12 @@ export const Shop: React.FC = () => {
               className="w-full rounded-xl border border-gray-800 bg-gray-900 py-2.5 pl-4 pr-10 text-white placeholder-gray-500 transition-colors focus:border-indigo-500 focus:outline-none"
             />
           </div>
-
-          <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-end">
-            <select
-              value={sortBy}
-              onChange={(event) =>
-                setSortBy(
-                  event.target.value as
-                    | 'featured'
-                    | 'price-asc'
-                    | 'price-desc'
-                    | 'newest',
-                )
-              }
-              className="rounded-xl border border-gray-800 bg-gray-900 px-4 py-2.5 text-white transition-colors focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="featured">المميزة</option>
-              <option value="price-asc">السعر: من الأرخص للأعلى</option>
-              <option value="price-desc">السعر: من الأعلى للأرخص</option>
-              <option value="newest">الأحدث</option>
-            </select>
-
-            <div className="hidden items-center rounded-xl border border-gray-800 bg-gray-900 p-1 sm:flex">
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                aria-label="عرض شبكي"
-                className={`rounded-lg p-2 transition-colors ${
-                  viewMode === 'grid'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                <Grid className="h-5 w-5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                aria-label="عرض قائمة"
-                className={`rounded-lg p-2 transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                <List className="h-5 w-5" />
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setIsMobileFiltersOpen((current) => !current)
-              }
-              className="flex items-center gap-2 rounded-xl border border-gray-800 bg-gray-900 px-4 py-2.5 text-gray-300 hover:text-white md:hidden"
-            >
-              <SlidersHorizontal className="h-5 w-5" />
-              <span>الفلاتر</span>
-            </button>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <aside
-            className={`h-fit space-y-6 rounded-2xl border border-gray-800/80 bg-gray-900/50 p-6 ${
-              isMobileFiltersOpen ? 'block' : 'hidden'
-            } md:block`}
-          >
+          <aside className="h-fit space-y-6 rounded-2xl border border-gray-800/80 bg-gray-900/50 p-6 md:block">
             <div>
-              <h3 className="mb-4 text-lg font-semibold text-white">
-                الأقسام
-              </h3>
-
+              <h3 className="mb-4 text-lg font-semibold text-white">الأقسام</h3>
               <div className="space-y-2">
                 <button
                   type="button"
@@ -185,7 +63,6 @@ export const Shop: React.FC = () => {
                 >
                   جميع المنتجات
                 </button>
-
                 {categories.map((category) => (
                   <button
                     key={category.id}
@@ -206,10 +83,7 @@ export const Shop: React.FC = () => {
             <hr className="border-gray-800" />
 
             <div>
-              <h3 className="mb-4 text-lg font-semibold text-white">
-                نطاق السعر
-              </h3>
-
+              <h3 className="mb-4 text-lg font-semibold text-white">نطاق السعر</h3>
               <div className="space-y-4">
                 <input
                   type="range"
@@ -218,18 +92,11 @@ export const Shop: React.FC = () => {
                   step="10"
                   value={priceRange[1]}
                   onChange={(event) =>
-                    setPriceRange([
-                      priceRange[0],
-                      Number(event.target.value),
-                    ])
+                    setPriceRange([priceRange[0], Number(event.target.value)])
                   }
                   className="w-full cursor-pointer accent-indigo-600"
                 />
-
-                <div
-                  dir="ltr"
-                  className="flex items-center justify-between text-sm text-gray-400"
-                >
+                <div dir="ltr" className="flex items-center justify-between text-sm text-gray-400">
                   <span>{priceRange[0]} ر.ع.</span>
                   <span>{priceRange[1]} ر.ع.</span>
                 </div>
@@ -245,18 +112,15 @@ export const Shop: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div
-                className={
-                  viewMode === 'grid'
-                    ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
-                    : 'space-y-4'
-                }
-              >
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                  />
+                  <div key={product.id} className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+                    <h3 className="font-bold text-white">{product.name}</h3>
+                    <p className="text-sm text-gray-400">{product.description}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-indigo-400 font-semibold">{product.retailPrice} ر.ع.</span>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
