@@ -79,7 +79,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             </span>
           </motion.div>
 
-          {/* العنوان مع تصغير المقاس للغة الإنجليزية لتجنب القص */}
+          {/* العنوان مع تصغير المقاس أكثر للغة الإنجليزية */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             className={`relative font-sans font-black tracking-normal whitespace-nowrap ${
               language === 'ar'
                 ? 'text-4xl sm:text-5xl md:text-6xl lg:text-[68px]'
-                : 'text-3xl sm:text-4xl md:text-5xl lg:text-[54px]'
+                : 'text-2xl sm:text-3xl md:text-4xl lg:text-[44px]'
             }`}
             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           >
