@@ -79,7 +79,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             </span>
           </motion.div>
 
-          {/* العنوان في سطر واحد وبخط واضح، ممتلئ، وبارز جداً للقراءة السريعة */}
+          {/* العنوان مع تصغير المقاس للغة الإنجليزية لتجنب القص */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,13 +87,17 @@ export default function Hero({ onNavigate }: HeroProps) {
               duration: 0.85,
               delay: 0.18,
             }}
-            className="relative font-sans text-4xl font-black tracking-normal whitespace-nowrap sm:text-5xl md:text-6xl lg:text-[68px]"
+            className={`relative font-sans font-black tracking-normal whitespace-nowrap ${
+              language === 'ar'
+                ? 'text-4xl sm:text-5xl md:text-6xl lg:text-[68px]'
+                : 'text-3xl sm:text-4xl md:text-5xl lg:text-[54px]'
+            }`}
             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           >
             <span className="relative inline-block text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.35)] pb-5">
               {content.title}
 
-              {/* خط تحتي سفلي بتصميم هندسي صريح ونظيف (تم أبعاده قليلاً عن النص) */}
+              {/* خط تحتي سفلي بتصميم هندسي صريح ونظيف */}
               <motion.span
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
