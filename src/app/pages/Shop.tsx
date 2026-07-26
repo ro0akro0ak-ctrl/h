@@ -2,9 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 
 import { useProducts } from '../contexts/ProductsContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export const Shop: React.FC = () => {
   const { products } = useProducts();
+  const { language } = useLanguage();
+  const ar = language === 'ar';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] =
@@ -25,15 +28,15 @@ export const Shop: React.FC = () => {
       if (product.category) {
         categoryMap.set(product.category, {
           id: product.category,
-          name:
-            product.categoryAr ||
-            product.category,
+          name: ar
+            ? product.categoryAr || product.category
+            : product.category || product.categoryAr,
         });
       }
     });
 
     return Array.from(categoryMap.values());
-  }, [products]);
+  }, [products, ar]);
 
   // البحث والتصفية
   const filteredProducts = useMemo(() => {
@@ -82,35 +85,36 @@ export const Shop: React.FC = () => {
 
   return (
     <div
-      dir="rtl"
+      dir={ar ? 'rtl' : 'ltr'}
       className="min-h-screen bg-[#18B7BE] pb-16 pt-28 text-white"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* عنوان الصفحة */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            المتجر الإلكتروني
+            {ar ? 'المتجر الإلكتروني' : 'Online Store'}
           </h1>
 
           <p className="mt-2 text-white/70">
-            تصفح تشكيلتنا من المنتجات المميزة
-            بأفضل الأسعار
+            {ar
+              ? 'تصفح تشكيلتنا من المنتجات المميزة بأفضل الأسعار'
+              : 'Browse our selection of products at the best prices'}
           </p>
         </div>
 
         {/* البحث */}
         <div className="mb-8 rounded-3xl border border-white/10 bg-[#10292D]/90 p-5 shadow-xl">
           <div className="relative">
-            <Search className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+            <Search className={`absolute ${ar ? 'right-4' : 'left-4'} top-1/2 h-5 w-5 -translate-y-1/2 text-white/50`} />
 
             <input
               type="text"
-              placeholder="ابحث عن منتج..."
+              placeholder={ar ? 'ابحث عن منتج...' : 'Search for a product...'}
               value={searchQuery}
               onChange={(event) =>
                 setSearchQuery(event.target.value)
               }
-              className="w-full rounded-2xl border border-white/10 bg-[#0A2529] py-4 pl-4 pr-12 text-white placeholder-white/40 outline-none transition focus:border-[#16B8BE]"
+              className={`w-full rounded-2xl border border-white/10 bg-[#0A2529] py-4 ${ar ? 'pl-4 pr-12' : 'pr-4 pl-12'} text-white placeholder-white/40 outline-none transition focus:border-[#16B8BE]`}
             />
           </div>
         </div>
@@ -121,7 +125,7 @@ export const Shop: React.FC = () => {
             {/* التصنيفات */}
             <div>
               <h3 className="mb-4 text-lg font-bold">
-                التصنيفات
+                {ar ? 'التصنيفات' : 'Categories'}
               </h3>
 
               <div className="space-y-2">
@@ -130,13 +134,13 @@ export const Shop: React.FC = () => {
                   onClick={() =>
                     setSelectedCategory('all')
                   }
-                  className={`w-full rounded-xl px-4 py-3 text-right font-semibold transition ${
+                  className={`w-full rounded-xl px-4 py-3 ${ar ? 'text-right' : 'text-left'} font-semibold transition ${
                     selectedCategory === 'all'
                       ? 'bg-[#16B8BE] text-white'
                       : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  جميع المنتجات
+                  {ar ? 'جميع المنتجات' : 'All Products'}
                 </button>
 
                 {categories.map((category) => (
@@ -148,7 +152,7 @@ export const Shop: React.FC = () => {
                         category.id,
                       )
                     }
-                    className={`w-full rounded-xl px-4 py-3 text-right font-semibold transition ${
+                    className={`w-full rounded-xl px-4 py-3 ${ar ? 'text-right' : 'text-left'} font-semibold transition ${
                       selectedCategory ===
                       category.id
                         ? 'bg-[#16B8BE] text-white'
@@ -166,7 +170,7 @@ export const Shop: React.FC = () => {
             {/* نطاق السعر */}
             <div>
               <h3 className="mb-4 text-lg font-bold">
-                نطاق السعر
+                {ar ? 'نطاق السعر' : 'Price Range'}
               </h3>
 
               <input
@@ -189,11 +193,11 @@ export const Shop: React.FC = () => {
                 className="mt-4 flex items-center justify-between text-sm font-semibold text-white/70"
               >
                 <span>
-                  {priceRange[0].toFixed(3)} ر.ع.
+                  {priceRange[0].toFixed(3)} {ar ? 'ر.ع.' : 'OMR'}
                 </span>
 
                 <span>
-                  {priceRange[1].toFixed(3)} ر.ع.
+                  {priceRange[1].toFixed(3)} {ar ? 'ر.ع.' : 'OMR'}
                 </span>
               </div>
             </div>
@@ -204,12 +208,13 @@ export const Shop: React.FC = () => {
             {filteredProducts.length === 0 ? (
               <div className="rounded-3xl border border-white/10 bg-[#10292D]/90 px-6 py-20 text-center shadow-xl">
                 <p className="text-xl font-bold">
-                  لا توجد منتجات حاليًا
+                  {ar ? 'لا توجد منتجات حاليًا' : 'No products available'}
                 </p>
 
                 <p className="mt-2 text-white/60">
-                  جرّب تغيير البحث أو التصنيف أو
-                  نطاق السعر.
+                  {ar
+                    ? 'جرّب تغيير البحث أو التصنيف أو نطاق السعر.'
+                    : 'Try changing the search, category, or price range.'}
                 </p>
               </div>
             ) : (
@@ -225,8 +230,9 @@ export const Shop: React.FC = () => {
                         <img
                           src={product.image}
                           alt={
-                            product.nameAr ||
-                            product.name
+                            ar
+                              ? product.nameAr || product.name
+                              : product.name || product.nameAr
                           }
                           className="h-full w-full object-cover transition duration-500 hover:scale-105"
                         />
@@ -235,15 +241,18 @@ export const Shop: React.FC = () => {
                       {/* معلومات المنتج */}
                       <div className="p-5">
                         <h3 className="text-xl font-black">
-                          {product.nameAr ||
-                            product.name}
+                          {ar
+                            ? product.nameAr || product.name
+                            : product.name || product.nameAr}
                         </h3>
 
-                        {(product.descriptionAr ||
-                          product.description) && (
+                        {(ar
+                          ? product.descriptionAr || product.description
+                          : product.description || product.descriptionAr) && (
                           <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/60">
-                            {product.descriptionAr ||
-                              product.description}
+                            {ar
+                              ? product.descriptionAr || product.description
+                              : product.description || product.descriptionAr}
                           </p>
                         )}
 
@@ -255,13 +264,13 @@ export const Shop: React.FC = () => {
                             {Number(
                               product.retailPrice,
                             ).toFixed(3)}{' '}
-                            ر.ع.
+                            {ar ? 'ر.ع.' : 'OMR'}
                           </span>
 
                           {typeof product.stock ===
                             'number' && (
                             <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/60">
-                              المتوفر:{' '}
+                              {ar ? 'المتوفر:' : 'Stock:'}{' '}
                               {product.stock}
                             </span>
                           )}
