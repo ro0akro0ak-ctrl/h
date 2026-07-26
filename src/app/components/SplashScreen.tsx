@@ -18,7 +18,7 @@ export default function SplashScreen({
           className="fixed inset-0 z-[999999] flex items-center justify-center bg-[#18B7BE]"
         >
           <motion.img
-            src="/Untitled design.png?v=1"
+            src="/Untitled design.png?v=2"
             alt="3D TECH"
             initial={{
               opacity: 0,
@@ -36,7 +36,7 @@ export default function SplashScreen({
               duration: 0.55,
               ease: 'easeOut',
             }}
-            className="max-h-[72vh] w-auto object-contain"
+            className="max-h-[58vh] w-auto object-contain"
           />
         </motion.div>
       )}
