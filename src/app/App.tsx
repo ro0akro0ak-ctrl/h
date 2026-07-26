@@ -13,7 +13,8 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import AdminDashboard from './pages/AdminDashboard'; // استيراد لوحة التحكم
+import AdminDashboard from './pages/AdminDashboard';
+import Checkout from './pages/Checkout'; // استيراد صفحة إتمام الطلب
 import SplashScreen from './components/SplashScreen'; // استيراد شاشة البداية
 
 type Page =
@@ -22,7 +23,8 @@ type Page =
   | 'about'
   | 'contact'
   | 'shop'
-  | 'admin';
+  | 'admin'
+  | 'checkout';
 
 const allowedPages: Page[] = [
   'home',
@@ -31,6 +33,7 @@ const allowedPages: Page[] = [
   'contact',
   'shop',
   'admin',
+  'checkout',
 ];
 
 function getPageFromHash(): Page {
@@ -134,6 +137,15 @@ function MainApp() {
         return <Contact />;
       case 'admin':
         return <AdminDashboard />;
+      case 'checkout':
+        return (
+          <Checkout
+            onBack={() => window.history.back()}
+            onSuccess={() => {
+              window.location.hash = 'home';
+            }}
+          />
+        );
       default:
         return null;
     }
