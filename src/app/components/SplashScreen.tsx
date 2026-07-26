@@ -50,20 +50,6 @@ export default function SplashScreen({
             ))}
           </div>
 
-          {/* التوهج خلف الشعار */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{
-              opacity: [0, 0.4, 0.22],
-              scale: [0.7, 1.15, 1],
-            }}
-            transition={{
-              duration: 0.75,
-              ease: 'easeOut',
-            }}
-            className="pointer-events-none absolute h-72 w-72 rounded-full bg-white/25 blur-[85px]"
-          />
-
           {/* شعار شاشة الترحيب */}
           <motion.img
             src="/welcome-logo.png"
@@ -86,24 +72,7 @@ export default function SplashScreen({
               duration: 0.55,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="relative w-40 md:w-52 object-contain z-10 drop-shadow-[0_18px_35px_rgba(4,44,48,0.25)]"
-          />
-
-          {/* دائرة بسيطة متحركة */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.75,
-            }}
-            animate={{
-              opacity: [0, 0.3, 0],
-              scale: [0.75, 1.2, 1.45],
-            }}
-            transition={{
-              duration: 1.05,
-              ease: 'easeOut',
-            }}
-            className="pointer-events-none absolute h-52 w-52 rounded-full border border-white/30"
+            className="relative w-56 md:w-72 object-contain z-10"
           />
         </motion.div>
       )}
