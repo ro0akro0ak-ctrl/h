@@ -1,67 +1,119 @@
-import React, { useState, useMemo } from 'react';
-import { useStore } from '../store/useStore';
+import React, { useMemo, useState } from 'react';
+import { Grid, List, Search, SlidersHorizontal } from 'lucide-react';
+
 import { ProductCard } from '../components/ProductCard';
-import { Search, SlidersHorizontal, Grid, List } from 'lucide-react';
+import { useStore } from '../../store/useStore';
 
 export const Shop: React.FC = () => {
-  const { products, categories, selectedCategory, setSelectedCategory } = useStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
-  const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'newest'>('featured');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const {
+    products,
+    categories,
+    selectedCategory,
+    setSelectedCategory,
+  } = useStore();
 
-  // Filter and sort products
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    0,
+    1000,
+  ]);
+  const [sortBy, setSortBy] = useState<
+    'featured' | 'price-asc' | 'price-desc' | 'newest'
+  >('featured');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(
+    'grid',
+  );
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] =
+    useState(false);
+
   const filteredProducts = useMemo(() => {
     return products
       .filter((product) => {
-        const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            product.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesPrice = product.retailPrice >= priceRange[0] && product.retailPrice <= priceRange[1];
-        
+        const matchesCategory =
+          selectedCategory === 'all' ||
+          product.category === selectedCategory;
+
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+
+        const matchesSearch =
+          normalizedQuery.length === 0 ||
+          product.name.toLowerCase().includes(normalizedQuery) ||
+          product.description.toLowerCase().includes(normalizedQuery);
+
+        const matchesPrice =
+          product.retailPrice >= priceRange[0] &&
+          product.retailPrice <= priceRange[1];
+
         return matchesCategory && matchesSearch && matchesPrice;
       })
       .sort((a, b) => {
-        if (sortBy === 'price-asc') return a.retailPrice - b.retailPrice;
-        if (sortBy === 'price-desc') return b.retailPrice - a.retailPrice;
-        if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        return 0; // featured
+        if (sortBy === 'price-asc') {
+          return a.retailPrice - b.retailPrice;
+        }
+
+        if (sortBy === 'price-desc') {
+          return b.retailPrice - a.retailPrice;
+        }
+
+        if (sortBy === 'newest') {
+          return (
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+          );
+        }
+
+        return 0;
       });
-  }, [products, selectedCategory, searchQuery, priceRange, sortBy]);
+  }, [
+    products,
+    selectedCategory,
+    searchQuery,
+    priceRange,
+    sortBy,
+  ]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white pt-24 pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header Title */}
+    <div
+      dir="rtl"
+      className="min-h-screen bg-gray-950 pb-16 pt-24 text-white"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">المتجر الإلكتروني</h1>
-          <p className="mt-2 text-gray-400">تصفح تشكيلتنا الواسعة من المنتجات المميزة بأفضل الأسعار</p>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            المتجر الإلكتروني
+          </h1>
+
+          <p className="mt-2 text-gray-400">
+            تصفح تشكيلتنا الواسعة من المنتجات المميزة بأفضل الأسعار
+          </p>
         </div>
 
-        {/* Search and Controls Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
-          
-          {/* Search Input */}
+        <div className="mb-8 flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="relative w-full md:w-96">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+
             <input
               type="text"
               placeholder="ابحث عن منتج..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl pr-10 pl-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="w-full rounded-xl border border-gray-800 bg-gray-900 py-2.5 pl-4 pr-10 text-white placeholder-gray-500 transition-colors focus:border-indigo-500 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-            
-            {/* Sort Dropdown */}
+          <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-end">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+              onChange={(event) =>
+                setSortBy(
+                  event.target.value as
+                    | 'featured'
+                    | 'price-asc'
+                    | 'price-desc'
+                    | 'newest',
+                )
+              }
+              className="rounded-xl border border-gray-800 bg-gray-900 px-4 py-2.5 text-white transition-colors focus:border-indigo-500 focus:outline-none"
             >
               <option value="featured">المميزة</option>
               <option value="price-asc">السعر: من الأرخص للأعلى</option>
@@ -69,26 +121,40 @@ export const Shop: React.FC = () => {
               <option value="newest">الأحدث</option>
             </select>
 
-            {/* View Mode Toggle */}
-            <div className="hidden sm:flex items-center bg-gray-900 border border-gray-800 rounded-xl p-1">
+            <div className="hidden items-center rounded-xl border border-gray-800 bg-gray-900 p-1 sm:flex">
               <button
+                type="button"
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                aria-label="عرض شبكي"
+                className={`rounded-lg p-2 transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
               >
                 <Grid className="h-5 w-5" />
               </button>
+
               <button
+                type="button"
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                aria-label="عرض قائمة"
+                className={`rounded-lg p-2 transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
               >
                 <List className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Mobile Filter Button */}
             <button
-              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-              className="md:hidden flex items-center gap-2 bg-gray-900 border border-gray-800 px-4 py-2.5 rounded-xl text-gray-300 hover:text-white"
+              type="button"
+              onClick={() =>
+                setIsMobileFiltersOpen((current) => !current)
+              }
+              className="flex items-center gap-2 rounded-xl border border-gray-800 bg-gray-900 px-4 py-2.5 text-gray-300 hover:text-white md:hidden"
             >
               <SlidersHorizontal className="h-5 w-5" />
               <span>الفلاتر</span>
@@ -96,24 +162,40 @@ export const Shop: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
-          {/* Sidebar Filters */}
-          <div className={`md:block ${isMobileFiltersOpen ? 'block' : 'hidden'} space-y-6 bg-gray-900/50 p-6 rounded-2xl border border-gray-800/80 h-fit`}>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+          <aside
+            className={`h-fit space-y-6 rounded-2xl border border-gray-800/80 bg-gray-900/50 p-6 ${
+              isMobileFiltersOpen ? 'block' : 'hidden'
+            } md:block`}
+          >
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">الأقسام</h3>
+              <h3 className="mb-4 text-lg font-semibold text-white">
+                الأقسام
+              </h3>
+
               <div className="space-y-2">
                 <button
+                  type="button"
                   onClick={() => setSelectedCategory('all')}
-                  className={`w-full text-right px-3 py-2 rounded-lg transition-colors ${selectedCategory === 'all' ? 'bg-indigo-600 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+                  className={`w-full rounded-lg px-3 py-2 text-right transition-colors ${
+                    selectedCategory === 'all'
+                      ? 'bg-indigo-600 font-medium text-white'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
                 >
                   جميع المنتجات
                 </button>
+
                 {categories.map((category) => (
                   <button
                     key={category.id}
+                    type="button"
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`w-full text-right px-3 py-2 rounded-lg transition-colors ${selectedCategory === category.id ? 'bg-indigo-600 text-white font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+                    className={`w-full rounded-lg px-3 py-2 text-right transition-colors ${
+                      selectedCategory === category.id
+                        ? 'bg-indigo-600 font-medium text-white'
+                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    }`}
                   >
                     {category.name}
                   </button>
@@ -123,9 +205,11 @@ export const Shop: React.FC = () => {
 
             <hr className="border-gray-800" />
 
-            {/* Price Range Filter */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">نطاق السعر</h3>
+              <h3 className="mb-4 text-lg font-semibold text-white">
+                نطاق السعر
+              </h3>
+
               <div className="space-y-4">
                 <input
                   type="range"
@@ -133,42 +217,54 @@ export const Shop: React.FC = () => {
                   max="1000"
                   step="10"
                   value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  className="w-full accent-indigo-600 cursor-pointer"
+                  onChange={(event) =>
+                    setPriceRange([
+                      priceRange[0],
+                      Number(event.target.value),
+                    ])
+                  }
+                  className="w-full cursor-pointer accent-indigo-600"
                 />
-                <div className="flex items-center justify-between text-sm text-gray-400">
+
+                <div
+                  dir="ltr"
+                  className="flex items-center justify-between text-sm text-gray-400"
+                >
                   <span>{priceRange[0]} ر.ع.</span>
                   <span>{priceRange[1]} ر.ع.</span>
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
 
-          {/* Product Grid / List */}
-          <div className="md:col-span-3">
+          <section className="md:col-span-3">
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 bg-gray-900/30 rounded-2xl border border-gray-800">
-                <p className="text-gray-400 text-lg">لم العثور على منتجات تطابق بحثك.</p>
+              <div className="rounded-2xl border border-gray-800 bg-gray-900/30 py-16 text-center">
+                <p className="text-lg text-gray-400">
+                  لم يتم العثور على منتجات تطابق بحثك.
+                </p>
               </div>
             ) : (
-              <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+              <div
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                    : 'space-y-4'
+                }
+              >
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="relative">
-                    <ProductCard product={product} />
-                    {/* تعديل سعر المنتج المعروض في بطاقة المنتج إن وجد بشكل مباشر */}
-                    <div className="hidden">
-                      <p dir="ltr" className="text-2xl font-bold text-white">
-                        {product.retailPrice} ر.ع.
-                      </p>
-                    </div>
-                  </div>
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                  />
                 ))}
               </div>
             )}
-          </div>
-
+          </section>
         </div>
       </div>
     </div>
   );
 };
+
+export default Shop;
