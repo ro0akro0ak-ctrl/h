@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronRight, Upload, Building2, House, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { supabase } from '../../utils/supabase';
+import Price from '../components/Price';
 import {
   Select,
   SelectContent,
@@ -61,7 +62,7 @@ const FALLBACK_BANK = {
   bank_payment_instructions: '',
 };
 
-const formatPrice = (amount: number) => `${amount.toFixed(2)} ر.ع`;
+const formatPriceText = (amount: number) => `${amount.toFixed(3)} ريال عُماني`;
 
 export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
   const { items, getTotal, clearCart } = useCart();
@@ -231,7 +232,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
       if (coupon.min_order !== null && subtotal < coupon.min_order) {
         setIsCouponApplied(false);
         setAppliedDiscount(null);
-        setCouponStatus(`الحد الأدنى للطلب هو ${formatPrice(coupon.min_order)}`);
+        setCouponStatus(`الحد الأدنى للطلب هو ${formatPriceText(coupon.min_order)}`);
         setIsApplyingCoupon(false);
         return;
       }
@@ -244,7 +245,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
       const label =
         coupon.discount_type === 'percentage'
           ? `${coupon.code} (${coupon.discount_value}%)`
-          : `${coupon.code} (${formatPrice(coupon.discount_value)})`;
+          : `${coupon.code} (${formatPriceText(coupon.discount_value)})`;
 
       setAppliedDiscount({ amount: discountAmt, label, codeId: coupon.id });
       setIsCouponApplied(true);
@@ -293,7 +294,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
         .join('، ');
       
       const paymentMethodNote = paymentMethod === 'cash_on_delivery' 
-        ? 'العربون 5 ر.ع والباقي عند الاستلام' 
+        ? 'العربون 5 ريالات عُمانية والباقي عند الاستلام' 
         : 'تحويل بنكي كامل';
 
       const noteLines = [
@@ -598,7 +599,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
 
                       <div className="flex items-center justify-between gap-3 mb-2 text-[#073B3F]">
                         <span className="text-sm font-medium">رسوم الشحن</span>
-                        <span className="font-semibold">{formatPrice(option.price)}</span>
+                        <Price amount={option.price} className="font-semibold" />
                       </div>
 
                       {option.duration && (
@@ -661,7 +662,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
 
                 {paymentMethod === 'cash_on_delivery' && (
                   <p className="text-sm text-[#073B3F] font-medium mb-4 p-3 bg-[#E1F4F5] rounded-xl border border-[#C5E6E8]">
-                    يرجى تحويل عربون لا يقل عن 5 ر.ع لتأكيد الطلب، ويتم دفع باقي المبلغ عند الاستلام.
+                    يرجى تحويل عربون لا يقل عن 5 ريالات عُمانية لتأكيد الطلب، ويتم دفع باقي المبلغ عند الاستلام.
                   </p>
                 )}
 
@@ -684,7 +685,11 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
                   <div className="flex justify-between gap-4 text-lg border-t border-[#CFE8EA] pt-2 mt-2">
                     <span>{paymentMethod === 'bank_transfer' ? 'المبلغ المطلوب:' : 'العربون المطلوب:'}</span>
                     <b className="text-xl text-[#073B3F]">
-                      {paymentMethod === 'bank_transfer' ? formatPrice(total) : formatPrice(5)}
+                      {paymentMethod === 'bank_transfer' ? (
+                        <Price amount={total} className="font-black" />
+                      ) : (
+                        <Price amount={5} className="font-black" />
+                      )}
                     </b>
                   </div>
 
@@ -720,7 +725,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
                       ? `تم الرفع: ${receiptFileName}` 
                       : paymentMethod === 'bank_transfer' 
                         ? 'رفع صورة التحويل / إرفاق إثبات الدفع' 
-                        : 'إرفاق إيصال تحويل العربون (5 ر.ع)'}
+                        : 'إرفاق إيصال تحويل العربون (5 ريالات عُمانية)'}
                   </span>
                   <span className="text-sm text-[#678487] mt-2">PNG / JPG</span>
                 </label>
@@ -752,7 +757,10 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
                         <p className="text-sm text-[#527477]">الكمية: {item.quantity || 1}</p>
                       </div>
                     </div>
-                    <b className="whitespace-nowrap">{formatPrice(item.price * (item.quantity || 1))}</b>
+                    <Price
+                      amount={item.price * (item.quantity || 1)}
+                      className="font-black text-[#073B3F]"
+                    />
                   </div>
                 ))}
               </div>
@@ -796,23 +804,26 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
 
               <div className="flex justify-between mb-3 text-[#073B3F]">
                 <span>المنتجات:</span>
-                <span>{formatPrice(subtotal)}</span>
+                <Price amount={subtotal} className="font-bold" />
               </div>
 
               
                <div className="flex justify-between mb-3 text-[#073B3F]">
   <span>الخصم:</span>
-  <span>-{formatPrice(discountAmount)}</span>
+  <span className="inline-flex items-center gap-1">
+    <span>-</span>
+    <Price amount={discountAmount} className="font-bold" />
+  </span>
 </div>
 
               <div className="flex justify-between mb-6 text-[#073B3F]">
                 <span>رسوم التوصيل:</span>
-                <span>{formatPrice(shippingCost)}</span>
+                <Price amount={shippingCost} className="font-bold" />
               </div>
 
               <div className="flex justify-between text-xl font-bold mb-6 text-[#073B3F]">
                 <span>الإجمالي الكامل:</span>
-                <span>{formatPrice(total)}</span>
+                <Price amount={total} className="text-xl font-black" />
               </div>
 
               <button
