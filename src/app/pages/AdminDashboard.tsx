@@ -32,6 +32,8 @@ export interface Product {
   stock: number;
   image: string;
   additionalImages?: string[];
+  description?: string;
+  descriptionAr?: string;
 }
 
 export interface Order {
@@ -71,11 +73,14 @@ export default function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formNameAr, setFormNameAr] = useState('');
   const [formNameEn, setFormNameEn] = useState('');
+  const [formDescriptionAr, setFormDescriptionAr] = useState('');
+  const [formDescriptionEn, setFormDescriptionEn] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formRetailPrice, setFormRetailPrice] = useState('');
   const [formWholesalePrice, setFormWholesalePrice] = useState('');
   const [formStock, setFormStock] = useState('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [savingProduct, setSavingProduct] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -92,6 +97,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     void fetchSupabaseData();
   }, []);
+
+  useEffect(() => {
+    const previewUrls = imageFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviewUrls(previewUrls);
+
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imageFiles]);
 
   const fetchSupabaseData = async () => {
     try {
@@ -184,6 +198,8 @@ export default function AdminDashboard() {
       const productPayload = {
         name: formNameEn || formNameAr,
         nameAr: formNameAr,
+        description: formDescriptionEn,
+        descriptionAr: formDescriptionAr,
         category: formCategory,
         categoryAr: getCategoryArabicLabel(formCategory),
         retailPrice: Number(formRetailPrice) || 0,
@@ -225,6 +241,8 @@ export default function AdminDashboard() {
     setEditingProduct(product);
     setFormNameAr(product.nameAr || '');
     setFormNameEn(product.name || '');
+    setFormDescriptionAr(product.descriptionAr || '');
+    setFormDescriptionEn(product.description || '');
     setFormCategory(product.category || '');
     setFormRetailPrice(product.retailPrice?.toString() || '');
     setFormWholesalePrice(product.wholesalePrice?.toString() || '');
@@ -238,6 +256,8 @@ export default function AdminDashboard() {
     setEditingProduct(null);
     setFormNameAr('');
     setFormNameEn('');
+    setFormDescriptionAr('');
+    setFormDescriptionEn('');
     setFormCategory('');
     setFormRetailPrice('');
     setFormWholesalePrice('');
@@ -656,6 +676,22 @@ export default function AdminDashboard() {
                 className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
               />
               
+              <textarea
+                placeholder="وصف المنتج (عربي)"
+                value={formDescriptionAr}
+                onChange={(e) => setFormDescriptionAr(e.target.value)}
+                rows={4}
+                className="w-full resize-y px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+              />
+
+              <textarea
+                placeholder="وصف المنتج (إنجليزي)"
+                value={formDescriptionEn}
+                onChange={(e) => setFormDescriptionEn(e.target.value)}
+                rows={4}
+                className="w-full resize-y px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+              />
+
               {/* قائمة الفئات المحدثة */}
               <select
                 value={formCategory}
@@ -683,8 +719,49 @@ export default function AdminDashboard() {
                 <input type="number" placeholder="المخزون" value={formStock} onChange={(e) => setFormStock(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#082E33] mb-2">رفع صور المنتج</label>
+              <div className="space-y-3">
+                <label className="block text-sm font-bold text-[#082E33]">
+                  {editingProduct ? 'صورة المنتج الحالية أو اختر صورة جديدة' : 'رفع صورة المنتج'}
+                </label>
+
+                {(existingImages.length > 0 || imageFiles.length > 0) && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {existingImages.map((imageUrl, index) => (
+                      <div
+                        key={`existing-${imageUrl}-${index}`}
+                        className="relative aspect-square overflow-hidden rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB]"
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={`الصورة الحالية ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                        {index === 0 && (
+                          <span className="absolute bottom-1 right-1 rounded-lg bg-[#082E33]/80 px-2 py-1 text-[10px] font-bold text-white">
+                            الصورة الحالية
+                          </span>
+                        )}
+                      </div>
+                    ))}
+
+                    {imagePreviewUrls.map((previewUrl, index) => (
+                      <div
+                        key={`new-preview-${index}`}
+                        className="relative aspect-square overflow-hidden rounded-2xl border-2 border-[#17B8BE] bg-[#F2FBFB]"
+                      >
+                        <img
+                          src={previewUrl}
+                          alt={`الصورة الجديدة ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                        <span className="absolute bottom-1 right-1 rounded-lg bg-[#17B8BE]/90 px-2 py-1 text-[10px] font-bold text-white">
+                          صورة جديدة
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   type="file"
                   multiple
@@ -692,6 +769,10 @@ export default function AdminDashboard() {
                   onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
                   className="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-[#17B8BE] bg-[#F2FBFB]"
                 />
+
+                <p className="text-xs leading-5 text-[#6D8588]">
+                  إذا لم تختر صورة جديدة، ستبقى الصورة الحالية كما هي. عند اختيار صورة جديدة ستظهر معاينتها هنا قبل الحفظ.
+                </p>
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
