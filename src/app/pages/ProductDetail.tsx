@@ -127,14 +127,14 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               {language === 'ar' ? product.nameAr : product.name}
             </h1>
 
-            {/* سعر البيع فقط */}
+            {/* سعر البيع باللون الأبيض */}
             <div className="p-4 rounded-2xl border border-white/10 bg-[#123943]">
               <div className="text-sm text-white/60 mb-1">
                 {language === 'ar' ? 'السعر' : 'Price'}
               </div>
               <Price
                 amount={product.retailPrice}
-                className="text-3xl font-black text-[#18C2CF]"
+                className="text-3xl font-black text-white"
               />
             </div>
 
