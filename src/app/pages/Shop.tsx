@@ -10,33 +10,23 @@ export const Shop: React.FC = () => {
   const ar = language === 'ar';
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] =
-    useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const [priceRange, setPriceRange] = useState<
     [number, number]
   >([0, 1000]);
 
-  // إنشاء التصنيفات تلقائيًا من المنتجات
-  const categories = useMemo(() => {
-    const categoryMap = new Map<
-      string,
-      { id: string; name: string }
-    >();
+  // تعريف التصنيفات المحددة
+  const categories = ['all', 'printers', 'filament', 'parts'];
+  
+  const categoryLabel = (cat: string) => {
+    if (cat === 'all') return ar ? 'الكل' : 'All';
+    if (cat === 'printers') return ar ? 'الطابعات' : 'Printers';
+    if (cat === 'filament') return 'Filament';
+    if (cat === 'parts') return ar ? 'قطع الغيار' : 'Spare Parts';
 
-    products.forEach((product) => {
-      if (product.category) {
-        categoryMap.set(product.category, {
-          id: product.category,
-          name: ar
-            ? product.categoryAr || product.category
-            : product.category || product.categoryAr,
-        });
-      }
-    });
-
-    return Array.from(categoryMap.values());
-  }, [products, ar]);
+    return cat;
+  };
 
   // البحث والتصفية
   const filteredProducts = useMemo(() => {
@@ -119,55 +109,28 @@ export const Shop: React.FC = () => {
           </div>
         </div>
 
+        {/* أزرار الفئات */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-6 py-3 rounded-2xl text-sm font-bold transition-all ${
+                selectedCategory === cat
+                  ? 'bg-[#16B8BE] text-white shadow-lg shadow-[#16B8BE]/20'
+                  : 'bg-[#073B3F] text-white/75 hover:text-white hover:bg-[#0A4B50]'
+              }`}
+            >
+              {categoryLabel(cat)}
+            </button>
+          ))}
+        </div>
+
+        {/* Products Grid */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          {/* الفلاتر */}
+          {/* الفلاتر الجانبية (نطاق السعر) */}
           <aside className="h-fit space-y-7 rounded-3xl border border-white/10 bg-[#10292D]/90 p-6 shadow-xl">
-            {/* التصنيفات */}
-            <div>
-              <h3 className="mb-4 text-lg font-bold">
-                {ar ? 'التصنيفات' : 'Categories'}
-              </h3>
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedCategory('all')
-                  }
-                  className={`w-full rounded-xl px-4 py-3 ${ar ? 'text-right' : 'text-left'} font-semibold transition ${
-                    selectedCategory === 'all'
-                      ? 'bg-[#16B8BE] text-white'
-                      : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  {ar ? 'جميع المنتجات' : 'All Products'}
-                </button>
-
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() =>
-                      setSelectedCategory(
-                        category.id,
-                      )
-                    }
-                    className={`w-full rounded-xl px-4 py-3 ${ar ? 'text-right' : 'text-left'} font-semibold transition ${
-                      selectedCategory ===
-                      category.id
-                        ? 'bg-[#16B8BE] text-white'
-                        : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <hr className="border-white/10" />
-
-            {/* نطاق السعر */}
             <div>
               <h3 className="mb-4 text-lg font-bold">
                 {ar ? 'نطاق السعر' : 'Price Range'}
