@@ -94,26 +94,29 @@ export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
       dir={ar ? 'rtl' : 'ltr'}
       className="relative min-h-screen overflow-hidden bg-[#18B7BE] pb-16 pt-28 text-white"
     >
-      {/* نقاط خلفية متحركة */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 38 }, (_, index) => (
+      {/* نفس نقاط الخلفية المتحركة في الصفحة الرئيسية */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        {Array.from({ length: 64 }, (_, index) => (
           <motion.span
             key={index}
-            className="absolute rounded-full bg-white/20"
+            className="absolute rounded-full bg-white/35 shadow-[0_0_8px_rgba(255,255,255,0.18)]"
             style={{
-              width: `${3 + (index % 3) * 2}px`,
-              height: `${3 + (index % 3) * 2}px`,
-              right: `${(index * 29) % 100}%`,
-              top: `${(index * 37) % 100}%`,
+              width: `${3 + (index % 4)}px`,
+              height: `${3 + (index % 4)}px`,
+              right: `${(index * 31) % 100}%`,
+              top: `${(index * 43) % 100}%`,
             }}
             animate={{
-              opacity: [0.12, 0.45, 0.12],
-              y: [0, -22, 0],
+              opacity: [0.18, 0.7, 0.18],
+              y: [0, -28, 0],
+              x: [0, index % 2 === 0 ? 8 : -8, 0],
+              scale: [1, 1.25, 1],
             }}
             transition={{
-              duration: 5 + (index % 6),
+              duration: 5 + (index % 5),
               repeat: Infinity,
-              delay: (index % 8) * 0.25,
+              ease: 'easeInOut',
+              delay: (index % 9) * 0.18,
             }}
           />
         ))}
@@ -263,17 +266,7 @@ export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
                             : product.name || product.nameAr}
                         </h3>
 
-                        {(ar
-                          ? product.descriptionAr || product.description
-                          : product.description || product.descriptionAr) && (
-                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/60">
-                            {ar
-                              ? product.descriptionAr || product.description
-                              : product.description || product.descriptionAr}
-                          </p>
-                        )}
-
-                        <div className="mt-5 space-y-4">
+                        <div className="mt-4 space-y-4">
                           <div className="flex items-center justify-between">
                             <Price
                               amount={product.retailPrice}
