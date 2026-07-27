@@ -1,21 +1,27 @@
 import { motion } from 'motion/react';
 import {
-  Trash2,
-  Plus,
   Minus,
+  Plus,
   ShoppingBag,
-  ArrowRight,
+  Trash2,
+  X,
 } from 'lucide-react';
+
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
 
 interface CartProps {
   onNavigate: (page: string) => void;
+  onCheckout: () => void;
+  onClose: () => void;
 }
 
-export default function Cart({ onNavigate }: CartProps) {
+export default function Cart({
+  onNavigate,
+  onCheckout,
+  onClose,
+}: CartProps) {
   const { language } = useLanguage();
-
   const {
     items,
     removeFromCart,
@@ -27,336 +33,218 @@ export default function Cart({ onNavigate }: CartProps) {
   const ar = language === 'ar';
 
   const handleCheckout = () => {
-    const orderDetails = items
-      .map((item) => {
-        const productName = ar ? item.nameAr : item.name;
-        const itemTotal = item.price * item.quantity;
+    if (items.length === 0) {
+      return;
+    }
 
-        return `${productName}
-الكمية: ${item.quantity}
-السعر: ${itemTotal.toFixed(3)} ر.ع`;
-      })
-      .join('\n\n');
+    onClose();
+    onCheckout();
+  };
 
-    const message = `مرحبًا 3D TECH، أريد إتمام هذا الطلب:
-
-${orderDetails}
-
-المجموع: ${totalPrice.toFixed(3)} ر.ع`;
-
-    const whatsappUrl = `https://wa.me/96894353535?text=${encodeURIComponent(
-      message,
-    )}`;
-
-    window.open(
-      whatsappUrl,
-      '_blank',
-      'noopener,noreferrer',
-    );
+  const handleContinueShopping = () => {
+    onClose();
+    onNavigate('shop');
   };
 
   return (
     <section
       dir={ar ? 'rtl' : 'ltr'}
-      className="relative min-h-screen overflow-hidden bg-[#10292D] px-4 pb-20 pt-32 text-white sm:px-6"
+      className="relative flex h-full flex-col overflow-hidden bg-[#082E33] text-white"
     >
-      {/* خلفية زخرفية */}
+      {/* نقاط الخلفية */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 35 }, (_, index) => (
-          <motion.div
+        {Array.from({ length: 30 }, (_, index) => (
+          <motion.span
             key={index}
+            className="absolute h-1.5 w-1.5 rounded-full bg-[#16B8BE]/55"
+            style={{
+              right: `${(index * 29) % 100}%`,
+              top: `${(index * 37) % 100}%`,
+            }}
             animate={{
-              opacity: [0.15, 0.5, 0.15],
-              y: [0, -80, 0],
+              opacity: [0.15, 0.55, 0.15],
+              y: [0, -18, 0],
             }}
             transition={{
-              duration: 9 + (index % 8),
+              duration: 5 + (index % 5),
               repeat: Infinity,
-              delay: (index % 10) * 0.25,
-            }}
-            className="absolute h-1.5 w-1.5 rounded-full bg-[#16B8BE]"
-            style={{
-              left: `${(index * 17) % 100}%`,
-              top: `${(index * 23) % 100}%`,
+              delay: (index % 7) * 0.25,
             }}
           />
         ))}
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl">
-        {/* العنوان */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-10 text-center"
+      {/* رأس السلة */}
+      <header className="relative z-10 flex items-center justify-between border-b border-white/10 px-5 py-5">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-white/85 transition hover:bg-white/10 hover:text-white"
+          aria-label={ar ? 'إغلاق السلة' : 'Close cart'}
         >
-          <h1 className="text-4xl font-black md:text-6xl text-white">
-            {ar ? 'سلة التسوق' : 'Shopping Cart'}
-          </h1>
+          <X className="h-5 w-5" />
+        </button>
 
-          <p className="mt-4 text-white/60">
+        <div className="text-center">
+          <h2 className="text-xl font-black">
+            {ar ? 'سلة التسوق' : 'Shopping Cart'}
+          </h2>
+          <p className="mt-1 text-xs text-white/55">
             {ar
               ? `${totalItems} منتج في السلة`
-              : `${totalItems} items in your cart`}
+              : `${totalItems} items in cart`}
           </p>
-        </motion.div>
+        </div>
 
+        <div className="flex h-10 min-w-10 items-center justify-center rounded-full bg-[#16B8BE] px-3 text-sm font-black text-white shadow-lg shadow-[#16B8BE]/20">
+          {totalItems}
+        </div>
+      </header>
+
+      {/* محتوى السلة */}
+      <div className="relative z-10 flex-1 overflow-y-auto px-4 py-5">
         {items.length === 0 ? (
-          /* السلة فارغة */
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mx-auto flex min-h-[430px] max-w-3xl flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur-xl"
+            className="flex h-full min-h-[420px] flex-col items-center justify-center text-center"
           >
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-[#16B8BE]/20">
-              <ShoppingBag className="h-12 w-12 text-[#16B8BE]" />
+            <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-[#16B8BE]/15 ring-1 ring-[#16B8BE]/25">
+              <ShoppingBag className="h-11 w-11 text-[#16B8BE]" />
             </div>
 
-            <h2 className="mb-3 text-3xl font-black text-white">
-              {ar
-                ? 'سلة التسوق فارغة'
-                : 'Your cart is empty'}
-            </h2>
+            <h3 className="mb-2 text-2xl font-black">
+              {ar ? 'سلة التسوق فارغة' : 'Your cart is empty'}
+            </h3>
 
-            <p className="mb-8 max-w-md leading-7 text-white/65">
+            <p className="mb-7 max-w-xs text-sm leading-6 text-white/55">
               {ar
-                ? 'أضف المنتجات التي تريدها من المتجر، وستظهر هنا مباشرة.'
-                : 'Add products from the shop and they will appear here.'}
+                ? 'أضف المنتجات التي تريدها من المتجر وستظهر هنا مباشرة.'
+                : 'Add products from the store and they will appear here.'}
             </p>
 
-            <motion.button
+            <button
               type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => onNavigate('shop')}
-              className="rounded-full bg-[#16B8BE] px-8 py-3.5 font-bold text-white shadow-lg transition hover:bg-[#13A7AD]"
+              onClick={handleContinueShopping}
+              className="rounded-full bg-[#16B8BE] px-8 py-3.5 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#13A7AD]"
             >
-              {ar ? 'تصفح المتجر' : 'Browse Shop'}
-            </motion.button>
+              {ar ? 'تصفح المتجر' : 'Browse Store'}
+            </button>
           </motion.div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-            {/* المنتجات */}
-            <div className="space-y-4">
-              {items.map((item, index) => (
-                <motion.article
-                  key={`${item.id}-${item.type}`}
-                  initial={{
-                    opacity: 0,
-                    y: 25,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    delay: index * 0.05,
-                  }}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-xl sm:p-5"
-                >
-                  <div className="flex gap-4">
-                    {/* الصورة */}
-                    <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-white/10">
-                      <img
-                        src={item.image}
-                        alt={
-                          ar
-                            ? item.nameAr
-                            : item.name
-                        }
-                        className="h-full w-full object-cover"
-                      />
+          <div className="space-y-4">
+            {items.map((item, index) => (
+              <motion.article
+                key={`${item.id}-${item.type}`}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04 }}
+                className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-sm"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10">
+                    <img
+                      src={item.image}
+                      alt={ar ? item.nameAr : item.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-base font-black text-white">
+                          {ar ? item.nameAr || item.name : item.name || item.nameAr}
+                        </h3>
+
+                        <p
+                          dir="ltr"
+                          className="mt-2 text-lg font-black text-[#21CDD4]"
+                        >
+                          {Number(item.price).toFixed(3)} ر.ع
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.id, item.type)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
+                        aria-label={ar ? 'حذف المنتج' : 'Remove item'}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
 
-                    {/* البيانات */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="truncate text-lg font-black text-white">
-                            {ar
-                              ? item.nameAr
-                              : item.name}
-                          </h3>
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center rounded-full border border-white/10 bg-white/10">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateQuantity(
+                              item.id,
+                              item.type,
+                              Math.max(1, item.quantity - 1),
+                            )
+                          }
+                          className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-white/10"
+                          aria-label={ar ? 'تقليل الكمية' : 'Decrease quantity'}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
 
-                          <p
-                            dir="ltr"
-                            className="mt-2 text-xl font-black text-white"
-                          >
-                            {item.price.toFixed(3)} ر.ع
-                          </p>
-                        </div>
+                        <span className="min-w-9 text-center text-sm font-black">
+                          {item.quantity}
+                        </span>
 
                         <button
                           type="button"
                           onClick={() =>
-                            removeFromCart(
+                            updateQuantity(
                               item.id,
                               item.type,
+                              item.quantity + 1,
                             )
                           }
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-red-400 transition hover:bg-white/10 hover:text-red-300"
-                          aria-label={
-                            ar
-                              ? 'حذف المنتج'
-                              : 'Remove item'
-                          }
+                          className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-white/10"
+                          aria-label={ar ? 'زيادة الكمية' : 'Increase quantity'}
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Plus className="h-4 w-4" />
                         </button>
-                      </div>
-
-                      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-                        {/* الكمية */}
-                        <div className="flex items-center rounded-full bg-white/10 text-white border border-white/10">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateQuantity(
-                                item.id,
-                                item.type,
-                                Math.max(
-                                  1,
-                                  item.quantity - 1,
-                                ),
-                              )
-                            }
-                            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-
-                          <span className="min-w-10 text-center font-black">
-                            {item.quantity}
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateQuantity(
-                                item.id,
-                                item.type,
-                                item.quantity + 1,
-                              )
-                            }
-                            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                        </div>
-
-                        <p
-                          dir="ltr"
-                          className="text-lg font-black text-white"
-                        >
-                          {(
-                            item.price * item.quantity
-                          ).toFixed(3)}{' '}
-                          ر.ع
-                        </p>
                       </div>
                     </div>
                   </div>
-                </motion.article>
-              ))}
-            </div>
-
-            {/* ملخص الطلب */}
-            <motion.aside
-              initial={{ opacity: 0, x: ar ? -25 : 25 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="h-fit rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl lg:sticky lg:top-28"
-            >
-              <h2 className="mb-6 text-2xl font-black text-white">
-                {ar ? 'ملخص الطلب' : 'Order Summary'}
-              </h2>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-white/70">
-                  <span>
-                    {ar
-                      ? 'عدد المنتجات'
-                      : 'Items'}
-                  </span>
-
-                  <span className="font-bold text-white">
-                    {totalItems}
-                  </span>
                 </div>
-
-                <div className="flex items-center justify-between text-white/70">
-                  <span>
-                    {ar
-                      ? 'المجموع الفرعي'
-                      : 'Subtotal'}
-                  </span>
-
-                  <span
-                    dir="ltr"
-                    className="font-bold text-white"
-                  >
-                    {totalPrice.toFixed(3)} ر.ع
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-white/70">
-                  <span>
-                    {ar ? 'التوصيل' : 'Delivery'}
-                  </span>
-
-                  <span className="font-bold text-white">
-                    {ar
-                      ? 'يحدد لاحقًا'
-                      : 'Calculated later'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="my-6 border-t border-white/10" />
-
-              <div className="mb-6 flex items-center justify-between">
-                <span className="text-lg font-black text-white">
-                  {ar ? 'الإجمالي' : 'Total'}
-                </span>
-
-                <span
-                  dir="ltr"
-                  className="text-2xl font-black text-white"
-                >
-                  {totalPrice.toFixed(3)} ر.ع
-                </span>
-              </div>
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleCheckout}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#16B8BE] py-4 font-black text-white shadow-xl transition hover:bg-[#13A7AD]"
-              >
-                {ar
-                  ? 'إتمام الطلب عبر واتساب'
-                  : 'Checkout via WhatsApp'}
-
-                <ArrowRight
-                  className={`h-5 w-5 ${
-                    ar ? 'rotate-180' : ''
-                  }`}
-                />
-              </motion.button>
-
-              <button
-                type="button"
-                onClick={() => onNavigate('shop')}
-                className="mt-4 w-full rounded-full border border-white/20 py-3.5 font-bold text-white transition hover:bg-white/10"
-              >
-                {ar
-                  ? 'متابعة التسوق'
-                  : 'Continue Shopping'}
-              </button>
-            </motion.aside>
+              </motion.article>
+            ))}
           </div>
         )}
       </div>
+
+      {/* الإجمالي وزر الإتمام */}
+      {items.length > 0 && (
+        <footer className="relative z-10 border-t border-white/10 bg-[#082E33]/95 px-5 pb-5 pt-4 backdrop-blur-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-base font-black">
+              {ar ? 'الإجمالي' : 'Total'}
+            </span>
+
+            <span
+              dir="ltr"
+              className="text-2xl font-black text-[#21CDD4]"
+            >
+              {Number(totalPrice).toFixed(3)} ر.ع
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCheckout}
+            className="w-full rounded-full bg-[#16B8BE] py-4 text-base font-black text-white shadow-xl shadow-[#16B8BE]/20 transition hover:-translate-y-0.5 hover:bg-[#13A7AD]"
+          >
+            {ar ? 'إتمام الطلب' : 'Checkout'}
+          </button>
+        </footer>
+      )}
     </section>
   );
 }
