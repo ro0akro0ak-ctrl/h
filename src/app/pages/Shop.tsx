@@ -4,28 +4,36 @@ import { Search } from 'lucide-react';
 import { useProducts } from '../contexts/ProductsContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
+const categories = [
+  'all',
+  'printers',
+  'accessories',
+  'filament',
+] as const;
+
+type Category = (typeof categories)[number];
+
 export const Shop: React.FC = () => {
   const { products } = useProducts();
   const { language } = useLanguage();
   const ar = language === 'ar';
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] =
+    useState<Category>('all');
 
   const [priceRange, setPriceRange] = useState<
     [number, number]
   >([0, 1000]);
 
-  // تعريف التصنيفات المحددة
-  const categories = ['all', 'printers', 'filament', 'parts'];
-  
-  const categoryLabel = (cat: string) => {
+  const categoryLabel = (cat: Category) => {
     if (cat === 'all') return ar ? 'الكل' : 'All';
     if (cat === 'printers') return ar ? 'الطابعات' : 'Printers';
-    if (cat === 'filament') return 'Filament';
-    if (cat === 'parts') return ar ? 'قطع الغيار' : 'Spare Parts';
+    if (cat === 'accessories') {
+      return ar ? 'الأكسسوارات' : 'Accessories';
+    }
 
-    return cat;
+    return 'Filament';
   };
 
   // البحث والتصفية
@@ -110,21 +118,26 @@ export const Shop: React.FC = () => {
         </div>
 
         {/* أزرار الفئات */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-6 py-3 rounded-2xl text-sm font-bold transition-all ${
-                selectedCategory === cat
-                  ? 'bg-[#16B8BE] text-white shadow-lg shadow-[#16B8BE]/20'
-                  : 'bg-[#073B3F] text-white/75 hover:text-white hover:bg-[#0A4B50]'
-              }`}
-            >
-              {categoryLabel(cat)}
-            </button>
-          ))}
+        <div className="mb-8 flex flex-wrap justify-center gap-3">
+          {categories.map((cat) => {
+            const isActive = selectedCategory === cat;
+
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                aria-pressed={isActive}
+                className={`min-w-[110px] rounded-2xl border px-5 py-2.5 text-sm font-bold transition-all duration-200 ${
+                  isActive
+                    ? 'border-white bg-white text-[#073B3F] shadow-[0_10px_28px_rgba(7,59,63,0.28)] ring-2 ring-white/30 -translate-y-0.5'
+                    : 'border-white/15 bg-[#073B3F] text-white shadow-md hover:-translate-y-0.5 hover:border-white/35 hover:bg-[#0A4B50] hover:shadow-lg'
+                }`}
+              >
+                {categoryLabel(cat)}
+              </button>
+            );
+          })}
         </div>
 
         {/* Products Grid */}
