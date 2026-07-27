@@ -169,6 +169,17 @@ function MainApp() {
     });
   };
 
+  const handleCheckout = () => {
+    setIsCartOpen(false);
+    window.location.hash = 'checkout';
+    setCurrentPage('checkout');
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   const handleProductClick = (product: any) => {
     setSelectedProduct(product);
     setCurrentPage('product-detail');
@@ -221,9 +232,10 @@ function MainApp() {
       case 'checkout':
         return (
           <Checkout
-            onBack={() => window.history.back()}
+            onBack={() => handleNavigate('shop')}
             onSuccess={() => {
               window.location.hash = 'home';
+              setCurrentPage('home');
             }}
           />
         );
@@ -272,11 +284,7 @@ function MainApp() {
               >
                 <motion.button
                   type="button"
-                  aria-label={
-                    ar
-                      ? 'إغلاق السلة'
-                      : 'Close Cart'
-                  }
+                  aria-label={ar ? 'إغلاق السلة' : 'Close Cart'}
                   className="absolute inset-0 h-full w-full bg-black/45 backdrop-blur-[2px]"
                   onClick={() => setIsCartOpen(false)}
                   initial={{ opacity: 0 }}
@@ -287,7 +295,7 @@ function MainApp() {
                 <motion.aside
                   className={`absolute ${
                     ar ? 'right-0' : 'left-0'
-                  } top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#F7F7F5] shadow-2xl`}
+                  } top-0 h-full w-full max-w-[460px] overflow-hidden bg-[#082E33] shadow-2xl`}
                   initial={{
                     x: ar ? '100%' : '-100%',
                   }}
@@ -303,6 +311,7 @@ function MainApp() {
                 >
                   <Cart
                     onNavigate={handleNavigate}
+                    onCheckout={handleCheckout}
                     onClose={() => setIsCartOpen(false)}
                   />
                 </motion.aside>
