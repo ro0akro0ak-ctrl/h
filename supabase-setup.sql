@@ -1,6 +1,10 @@
 -- ============================================================
 -- 3D TECH E-Commerce Admin Dashboard - Supabase Schema
 -- ============================================================
+-- SECURITY NOTES:
+-- - RLS policies are strict: only authenticated admins can modify sensitive data
+-- - Public users can only read public data and create orders
+-- - All admin operations require verified Supabase Auth + admin_users entry
 
 -- ============================================================
 -- ORDERS TABLE
@@ -15,33 +19,38 @@ CREATE TABLE IF NOT EXISTS public.orders (
     city TEXT NOT NULL,
     address_details TEXT,
     
-    -- Items info
     product_names TEXT NOT NULL,
     total NUMERIC NOT NULL,
     
-    -- Payment info
     payment_method TEXT NOT NULL,
     payment_status TEXT DEFAULT 'pending',
     receipt_url TEXT,
     
-    -- Shipping info
     shipping_method TEXT NOT NULL,
     order_status TEXT DEFAULT 'new',
     
-    -- Notes
     notes TEXT,
     customer_notes TEXT,
     
-    -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read orders" ON public.orders;
-DROP POLICY IF EXISTS "Allow public insert orders" ON public.orders;
-DROP POLICY IF EXISTS "Allow public update orders" ON public.orders;
-CREATE POLICY "Allow public full access" ON public.orders FOR ALL USING (true) WITH CHECK (true);
+
+-- Only public users can INSERT (create orders)
+CREATE POLICY "orders_insert_public" ON public.orders
+    FOR INSERT WITH CHECK (true);
+
+-- Only admins can SELECT, UPDATE, DELETE
+CREATE POLICY "orders_admin_all" ON public.orders
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
 
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_customer_name ON public.orders(customer_name);
@@ -64,8 +73,20 @@ CREATE TABLE IF NOT EXISTS public.order_items (
 );
 
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to order items" ON public.order_items;
-CREATE POLICY "Allow public full access" ON public.order_items FOR ALL USING (true) WITH CHECK (true);
+
+-- Public users can INSERT (when creating orders)
+CREATE POLICY "order_items_insert_public" ON public.order_items
+    FOR INSERT WITH CHECK (true);
+
+-- Only admins can SELECT, UPDATE, DELETE
+CREATE POLICY "order_items_admin_all" ON public.order_items
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
 
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON public.order_items(order_id);
 
@@ -80,12 +101,10 @@ CREATE TABLE IF NOT EXISTS public.customers (
     governorate TEXT,
     city TEXT,
     
-    -- Stats
     total_orders INTEGER DEFAULT 0,
     total_spent NUMERIC DEFAULT 0,
     last_order_date TIMESTAMP WITH TIME ZONE,
     
-    -- Metadata
     notes TEXT,
     is_blocked BOOLEAN DEFAULT false,
     
@@ -94,8 +113,16 @@ CREATE TABLE IF NOT EXISTS public.customers (
 );
 
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to customers" ON public.customers;
-CREATE POLICY "Allow public full access" ON public.customers FOR ALL USING (true) WITH CHECK (true);
+
+-- Only admins can access customers
+CREATE POLICY "customers_admin_all" ON public.customers
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
 
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone);
 CREATE INDEX IF NOT EXISTS idx_customers_created_at ON public.customers(created_at DESC);
@@ -109,12 +136,10 @@ CREATE TABLE IF NOT EXISTS public.discount_codes (
     discount_type TEXT NOT NULL,
     discount_value NUMERIC NOT NULL,
     
-    -- Limits
     min_order NUMERIC,
     max_uses INTEGER,
     used_count INTEGER DEFAULT 0,
     
-    -- Date range
     starts_at TIMESTAMP WITH TIME ZONE,
     expires_at TIMESTAMP WITH TIME ZONE,
     is_active BOOLEAN DEFAULT true,
@@ -124,19 +149,52 @@ CREATE TABLE IF NOT EXISTS public.discount_codes (
 );
 
 ALTER TABLE public.discount_codes ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to discount codes" ON public.discount_codes;
-CREATE POLICY "Allow public full access" ON public.discount_codes FOR ALL USING (true) WITH CHECK (true);
+
+-- Public users can only verify/read active codes
+CREATE POLICY "discount_codes_read_public" ON public.discount_codes
+    FOR SELECT USING (is_active = true);
+
+-- Only admins can modify discount codes
+CREATE POLICY "discount_codes_admin_write" ON public.discount_codes
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
+
+CREATE POLICY "discount_codes_admin_insert" ON public.discount_codes
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
+
+CREATE POLICY "discount_codes_admin_delete" ON public.discount_codes
+    FOR DELETE USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
 
 CREATE INDEX IF NOT EXISTS idx_discount_codes_code ON public.discount_codes(code);
 CREATE INDEX IF NOT EXISTS idx_discount_codes_is_active ON public.discount_codes(is_active);
 
--- Function to increment coupon used count
-CREATE OR REPLACE FUNCTION increment_coupon_used_count(coupon_id BIGINT)
+-- Function to increment coupon used count (restricted)
+CREATE OR REPLACE FUNCTION public.increment_coupon_used_count(coupon_id BIGINT)
 RETURNS void
 LANGUAGE SQL
 SECURITY DEFINER
+SET search_path = public
 AS $$
-  UPDATE public.discount_codes SET used_count = used_count + 1 WHERE id = coupon_id;
+  UPDATE public.discount_codes 
+  SET used_count = used_count + 1 
+  WHERE id = coupon_id;
 $$;
 
 -- ============================================================
@@ -158,16 +216,28 @@ CREATE TABLE IF NOT EXISTS public.shipping_methods (
 );
 
 ALTER TABLE public.shipping_methods ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to shipping methods" ON public.shipping_methods;
-CREATE POLICY "Allow public full access" ON public.shipping_methods FOR ALL USING (true) WITH CHECK (true);
 
--- Insert default shipping methods
-DELETE FROM public.shipping_methods;
-INSERT INTO public.shipping_methods (key, label, label_ar, price, duration, is_active, sort_order) VALUES
+-- Public users can only read active shipping methods
+CREATE POLICY "shipping_methods_read_public" ON public.shipping_methods
+    FOR SELECT USING (is_active = true);
+
+-- Only admins can modify shipping methods
+CREATE POLICY "shipping_methods_admin_all" ON public.shipping_methods
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
+
+-- Insert initial shipping methods if they don't exist
+INSERT INTO public.shipping_methods (key, label, label_ar, price, duration, is_active, sort_order) 
+VALUES
     ('office', 'Office Delivery', 'توصيل للمكتب', 1.000, '2-4 أيام عمل', true, 1),
     ('home', 'Home Delivery', 'توصيل للمنزل', 2.000, '2-4 أيام عمل', true, 2),
     ('pickup', 'Store Pickup', 'استلام من المتجر', 0.000, 'فوري', true, 3)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (key) DO NOTHING;
 
 -- ============================================================
 -- PAYMENT SETTINGS TABLE
@@ -175,7 +245,6 @@ ON CONFLICT DO NOTHING;
 CREATE TABLE IF NOT EXISTS public.payment_settings (
     id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
     
-    -- Bank transfer settings
     bank_transfer_enabled BOOLEAN DEFAULT true,
     bank_account_name TEXT,
     bank_account_number TEXT,
@@ -184,7 +253,6 @@ CREATE TABLE IF NOT EXISTS public.payment_settings (
     bank_payment_instructions TEXT,
     bank_logo_url TEXT,
     
-    -- Cash on delivery settings
     cash_on_delivery_enabled BOOLEAN DEFAULT true,
     cod_deposit_amount NUMERIC DEFAULT 5.000,
     cod_deposit_instructions TEXT,
@@ -194,28 +262,25 @@ CREATE TABLE IF NOT EXISTS public.payment_settings (
 );
 
 ALTER TABLE public.payment_settings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to payment settings" ON public.payment_settings;
-CREATE POLICY "Allow public full access" ON public.payment_settings FOR ALL USING (true) WITH CHECK (true);
 
--- Insert default payment settings
-DELETE FROM public.payment_settings;
-INSERT INTO public.payment_settings (
-    bank_transfer_enabled,
-    bank_account_name,
-    bank_account_number,
-    bank_transfer_number,
-    bank_name,
-    cash_on_delivery_enabled,
-    cod_deposit_amount
-) VALUES (
-    true,
-    '3D TECH Store',
-    '00000000000000',
-    '000000000',
-    'Bank Name',
-    true,
-    5.000
-);
+-- Public users can read payment settings (non-sensitive)
+CREATE POLICY "payment_settings_read_public" ON public.payment_settings
+    FOR SELECT USING (true);
+
+-- Only admins can modify payment settings
+CREATE POLICY "payment_settings_admin_all" ON public.payment_settings
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
+
+-- Initialize payment settings if not exists
+INSERT INTO public.payment_settings (bank_transfer_enabled, cash_on_delivery_enabled)
+SELECT true, true
+WHERE NOT EXISTS (SELECT 1 FROM public.payment_settings);
 
 -- ============================================================
 -- SITE SETTINGS TABLE
@@ -231,24 +296,32 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
 );
 
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to site settings" ON public.site_settings;
-CREATE POLICY "Allow public full access" ON public.site_settings FOR ALL USING (true) WITH CHECK (true);
 
--- Insert default site settings
-DELETE FROM public.site_settings;
-INSERT INTO public.site_settings (key, value, value_type) VALUES
+-- Public users can read public site settings
+CREATE POLICY "site_settings_read_public" ON public.site_settings
+    FOR SELECT USING (true);
+
+-- Only admins can modify site settings
+CREATE POLICY "site_settings_admin_all" ON public.site_settings
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
+
+-- Initialize default site settings (non-destructive)
+INSERT INTO public.site_settings (key, value, value_type) 
+VALUES
     ('store_name_ar', '3D TECH', 'text'),
     ('store_name_en', '3D TECH', 'text'),
     ('store_logo_url', '/logo.png', 'url'),
     ('splash_screen_logo_url', '/logo.png', 'url'),
-    ('whatsapp_number', '96894353535', 'text'),
-    ('instagram_url', 'https://instagram.com', 'url'),
-    ('email', 'info@3dtech.store', 'text'),
-    ('address', 'Muscat, Oman', 'text'),
     ('primary_color', '#16B8BE', 'color'),
     ('header_color', '#10292D', 'color'),
     ('footer_color', '#10292D', 'color'),
-    ('hero_title_ar', 'نطبع أفكارك ب��بداع', 'text'),
+    ('hero_title_ar', 'نطبع أفكارك بإبداع', 'text'),
     ('hero_title_en', 'We Print Your Ideas', 'text'),
     ('hero_subtitle_ar', '', 'text'),
     ('hero_subtitle_en', '', 'text'),
@@ -259,13 +332,13 @@ INSERT INTO public.site_settings (key, value, value_type) VALUES
     ('animated_dots_enabled', 'true', 'boolean'),
     ('shipping_message', 'Fast and secure delivery to all regions', 'text'),
     ('payment_message', 'Secure payment options available', 'text')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (key) DO NOTHING;
 
 -- ============================================================
--- ADMIN USERS TABLE
+-- ADMIN USERS TABLE (linked to auth.users)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.admin_users (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT NOT NULL UNIQUE,
     full_name TEXT NOT NULL,
     role TEXT DEFAULT 'admin',
@@ -276,15 +349,34 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 );
 
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public access to admin users" ON public.admin_users;
-CREATE POLICY "Allow public full access" ON public.admin_users FOR ALL USING (true) WITH CHECK (true);
+
+-- Only the admin themselves or other admins can view admin users (never public)
+CREATE POLICY "admin_users_self_read" ON public.admin_users
+    FOR SELECT USING (
+        auth.uid() = id OR
+        EXISTS (
+            SELECT 1 FROM public.admin_users au2
+            WHERE au2.id = auth.uid()
+            AND au2.is_active = true
+        )
+    );
+
+-- Only admins can modify admin users
+CREATE POLICY "admin_users_admin_all" ON public.admin_users
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+            AND admin_users.is_active = true
+        )
+    );
 
 CREATE INDEX IF NOT EXISTS idx_admin_users_email ON public.admin_users(email);
 
 -- ============================================================
--- Triggers for updated_at
+-- TRIGGERS FOR UPDATED_AT
 -- ============================================================
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = TIMEZONE('utc'::text, NOW());
@@ -294,28 +386,45 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS orders_updated_at ON public.orders;
 CREATE TRIGGER orders_updated_at BEFORE UPDATE ON public.orders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS discount_codes_updated_at ON public.discount_codes;
 CREATE TRIGGER discount_codes_updated_at BEFORE UPDATE ON public.discount_codes
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS shipping_methods_updated_at ON public.shipping_methods;
 CREATE TRIGGER shipping_methods_updated_at BEFORE UPDATE ON public.shipping_methods
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS payment_settings_updated_at ON public.payment_settings;
 CREATE TRIGGER payment_settings_updated_at BEFORE UPDATE ON public.payment_settings
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS site_settings_updated_at ON public.site_settings;
 CREATE TRIGGER site_settings_updated_at BEFORE UPDATE ON public.site_settings
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS customers_updated_at ON public.customers;
 CREATE TRIGGER customers_updated_at BEFORE UPDATE ON public.customers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS admin_users_updated_at ON public.admin_users;
 CREATE TRIGGER admin_users_updated_at BEFORE UPDATE ON public.admin_users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- ============================================================
+-- STORAGE SETUP NOTES
+-- ============================================================
+-- Execute these in Supabase SQL Editor after running this script:
+--
+-- 1. Create receipts bucket (private):
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('receipts', 'receipts', false)
+-- ON CONFLICT DO NOTHING;
+--
+-- 2. Create products bucket (public):
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('products', 'products', true)
+-- ON CONFLICT DO NOTHING;
+--
+-- 3. Set RLS policies for storage buckets as needed
