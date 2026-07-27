@@ -19,6 +19,7 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../../utils/supabase';
+import Price from '../components/Price';
 
 export interface Product {
   id: number;
@@ -443,7 +444,16 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[
                   { icon: Package, label: 'المنتجات', value: products.length },
-                  { icon: DollarSign, label: 'إجمالي المبيعات', value: `$${totalSalesValue.toLocaleString()}` },
+                  {
+                    icon: DollarSign,
+                    label: 'إجمالي المبيعات',
+                    value: (
+                      <Price
+                        amount={totalSalesValue}
+                        className="text-2xl font-black text-[#082E33]"
+                      />
+                    ),
+                  },
                   { icon: ShoppingCart, label: 'الطلبات', value: orders.length },
                   { icon: AlertCircle, label: 'مخزون منخفض', value: lowStockCount },
                 ].map((stat, index) => {
@@ -509,7 +519,9 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4 font-bold text-[#082E33] text-sm">{product.nameAr || product.name}</td>
                           <td className="px-6 py-4 text-xs font-bold text-[#6D8588]">{getCategoryLabel(product.category)}</td>
-                          <td className="px-6 py-4 font-bold text-sm text-[#082E33]">${product.retailPrice}</td>
+                          <td className="px-6 py-4 font-bold text-sm text-[#082E33]">
+                            <Price amount={product.retailPrice} className="font-black" />
+                          </td>
                           <td className="px-6 py-4">
                             <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#17B8BE]/10 text-[#0B8F96]">{product.stock || 0}</span>
                           </td>
@@ -544,7 +556,10 @@ export default function AdminDashboard() {
                       <div>
                         <h3 className="font-bold text-[#082E33]">طلب #{order.id}</h3>
                         <p className="text-sm text-[#6D8588]">العميل: {order.customer_name || 'عميل مسجل'}</p>
-                        <p className="text-xs text-[#0B8F96] font-bold mt-1">الإجمالي: ${order.total}</p>
+                        <div className="mt-1 flex items-center gap-1 text-xs font-bold text-[#0B8F96]">
+                          <span>الإجمالي:</span>
+                          <Price amount={order.total} className="font-black" />
+                        </div>
                       </div>
                       <select
                         value={order.status || 'pending'}
@@ -593,7 +608,7 @@ export default function AdminDashboard() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <h1 className="text-3xl font-black text-[#082E33]">إعدادات الشحن والتوصيل</h1>
               <div className="p-8 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-xl space-y-4 max-w-xl">
-                <label className="block text-sm font-bold text-[#082E33]">تكلفة الشحن الثابتة ($)</label>
+                <label className="block text-sm font-bold text-[#082E33]">تكلفة الشحن الثابتة</label>
                 <input
                   type="number"
                   value={storeSettings.shippingFee}
