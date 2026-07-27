@@ -127,6 +127,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const totalSalesValue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+  const lowStockCount = products.filter((product) => product.stock <= 5).length;
+
+  const getCategoryLabel = (category: string) => {
+    if (category === 'printers') {
+      return language === 'ar' ? 'الطابعات' : 'Printers';
+    }
+
+    if (category === 'accessories') {
+      return language === 'ar'
+        ? 'الأكسسوارات'
+        : 'Accessories';
+    }
+
+    if (category === 'filament') {
+      return 'Filament';
+    }
+
+    return category;
+  };
+
+  const getCategoryArabicLabel = (category: string) => {
+    if (category === 'printers') return 'الطابعات';
+    if (category === 'accessories') return 'الأكسسوارات';
+    if (category === 'filament') return 'Filament';
+
+    return category;
+  };
+
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingProduct(true);
@@ -155,7 +184,7 @@ export default function AdminDashboard() {
         name: formNameEn || formNameAr,
         nameAr: formNameAr,
         category: formCategory,
-        categoryAr: formCategory,
+        categoryAr: getCategoryArabicLabel(formCategory),
         retailPrice: Number(formRetailPrice) || 0,
         wholesalePrice: Number(formWholesalePrice) || 0,
         stock: Number.parseInt(formStock, 10) || 0,
@@ -268,9 +297,6 @@ export default function AdminDashboard() {
       setSavingSettings(false);
     }
   };
-
-  const totalSalesValue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-  const lowStockCount = products.filter((product) => product.stock <= 5).length;
 
   const menuItems = [
     { id: 'dashboard' as const, labelAr: 'الرئيسية', labelEn: 'Dashboard', icon: LayoutDashboard },
@@ -482,7 +508,7 @@ export default function AdminDashboard() {
                             </div>
                           </td>
                           <td className="px-6 py-4 font-bold text-[#082E33] text-sm">{product.nameAr || product.name}</td>
-                          <td className="px-6 py-4 text-xs text-[#6D8588]">{product.category}</td>
+                          <td className="px-6 py-4 text-xs font-bold text-[#6D8588]">{getCategoryLabel(product.category)}</td>
                           <td className="px-6 py-4 font-bold text-sm text-[#082E33]">${product.retailPrice}</td>
                           <td className="px-6 py-4">
                             <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#17B8BE]/10 text-[#0B8F96]">{product.stock || 0}</span>
@@ -620,13 +646,20 @@ export default function AdminDashboard() {
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-2xl border border-[#BDE5E7] bg-[#F3FCFC] text-[#073B3F] outline-none focus:border-[#16B8BE]"
+                className="w-full rounded-2xl border border-[#BDE5E7] bg-[#F3FCFC] px-4 py-3 text-[#073B3F] outline-none transition-all focus:border-[#16B8BE] focus:ring-2 focus:ring-[#16B8BE]/20"
               >
-                <option value="">اختر فئة المنتج</option>
-                <option value="printers">الطابعات</option>
-                <option value="filaments">خيوط الطباعة</option>
-                <option value="accessories">الملحقات</option>
-                <option value="spare_parts">قطع الغيار</option>
+                <option value="" disabled>
+                  اختر فئة المنتج
+                </option>
+                <option value="printers">
+                  الطابعات
+                </option>
+                <option value="accessories">
+                  الأكسسوارات
+                </option>
+                <option value="filament">
+                  Filament
+                </option>
               </select>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
