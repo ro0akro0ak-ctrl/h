@@ -11,6 +11,7 @@ import {
   Package,
   Plus,
   ShoppingCart,
+  Settings,
   Tag,
   Trash2,
   Truck,
@@ -62,7 +63,14 @@ export interface StoreSettingsData {
   shippingFee: string;
 }
 
-type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping';
+export interface BankSettingsData {
+  bankAccountName: string;
+  bankAccountNumber: string;
+  bankTransferNumber: string;
+  bankPaymentInstructions: string;
+}
+
+type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping' | 'settings';
 
 const toDateTimeLocalValue = (date: Date) => {
   const pad = (value: number) => String(value).padStart(2, '0');
@@ -130,6 +138,14 @@ export default function AdminDashboard() {
   });
   const [savingSettings, setSavingSettings] = useState(false);
 
+  const [bankSettings, setBankSettings] = useState<BankSettingsData>({
+    bankAccountName: '',
+    bankAccountNumber: '',
+    bankTransferNumber: '',
+    bankPaymentInstructions: '',
+  });
+  const [savingBankSettings, setSavingBankSettings] = useState(false);
+
   useEffect(() => {
     void fetchSupabaseData();
   }, []);
@@ -148,17 +164,27 @@ export default function AdminDashboard() {
       setLoading(true);
       setGlobalError(null);
 
-      const [prodRes, ordRes, discRes, setRes] = await Promise.all([
+      const [prodRes, ordRes, discRes, setRes, bankRes] = await Promise.all([
         supabase.from('products').select('*').order('id', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
         supabase.from('discount_codes').select('*').order('id', { ascending: false }),
         supabase.from('store_settings').select('*').eq('id', 1).maybeSingle(),
+        supabase
+          .from('site_settings')
+          .select('key, value')
+          .in('key', [
+            'bank_account_name',
+            'bank_account_number',
+            'bank_transfer_number',
+            'bank_payment_instructions',
+          ]),
       ]);
 
       if (prodRes.error) throw new Error(`خطأ في جلب المنتجات: ${prodRes.error.message}`);
       if (ordRes.error) throw new Error(`خطأ في جلب الطلبات: ${ordRes.error.message}`);
       if (discRes.error) throw new Error(`خطأ في جلب الخصومات: ${discRes.error.message}`);
       if (setRes.error) throw new Error(`خطأ في جلب إعدادات الشحن: ${setRes.error.message}`);
+      if (bankRes.error) throw new Error(`خطأ في جلب إعدادات البنك: ${bankRes.error.message}`);
 
       setProducts((prodRes.data ?? []) as Product[]);
       setOrders((ordRes.data ?? []) as Order[]);
@@ -169,6 +195,18 @@ export default function AdminDashboard() {
           shippingFee: setRes.data.shipping_fee?.toString() || '25',
         });
       }
+
+      const bankMap: Record<string, string> = {};
+      (bankRes.data ?? []).forEach((row: { key: string; value: string | null }) => {
+        bankMap[row.key] = row.value ?? '';
+      });
+
+      setBankSettings({
+        bankAccountName: bankMap.bank_account_name || '',
+        bankAccountNumber: bankMap.bank_account_number || '',
+        bankTransferNumber: bankMap.bank_transfer_number || '',
+        bankPaymentInstructions: bankMap.bank_payment_instructions || '',
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع أثناء الاتصال بقاعدة البيانات';
       console.error(err);
@@ -454,12 +492,53 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSaveBankSettings = async () => {
+    if (!bankSettings.bankAccountName.trim()) {
+      alert('اكتب اسم الحساب');
+      return;
+    }
+
+    if (!bankSettings.bankAccountNumber.trim()) {
+      alert('اكتب رقم الحساب');
+      return;
+    }
+
+    if (!bankSettings.bankTransferNumber.trim()) {
+      alert('اكتب رقم التحويل');
+      return;
+    }
+
+    setSavingBankSettings(true);
+
+    try {
+      const rows = [
+        { key: 'bank_account_name', value: bankSettings.bankAccountName.trim() },
+        { key: 'bank_account_number', value: bankSettings.bankAccountNumber.trim() },
+        { key: 'bank_transfer_number', value: bankSettings.bankTransferNumber.trim() },
+        { key: 'bank_payment_instructions', value: bankSettings.bankPaymentInstructions.trim() },
+      ];
+
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert(rows, { onConflict: 'key' });
+
+      if (error) throw new Error(error.message);
+
+      alert('تم حفظ معلومات التحويل البنكي بنجاح');
+    } catch (err) {
+      alert(`خطأ في الحفظ: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
+    } finally {
+      setSavingBankSettings(false);
+    }
+  };
+
   const menuItems = [
     { id: 'dashboard' as const, labelAr: 'الرئيسية', labelEn: 'Dashboard', icon: LayoutDashboard },
     { id: 'products' as const, labelAr: 'المنتجات', labelEn: 'Products', icon: Package },
     { id: 'orders' as const, labelAr: 'الطلبات', labelEn: 'Orders', icon: ShoppingCart },
     { id: 'discounts' as const, labelAr: 'الخصومات', labelEn: 'Discounts', icon: Tag },
     { id: 'shipping' as const, labelAr: 'الشحن', labelEn: 'Shipping', icon: Truck },
+    { id: 'settings' as const, labelAr: 'إعدادات البنك', labelEn: 'Bank Settings', icon: Settings },
   ];
 
   return (
@@ -855,6 +934,113 @@ export default function AdminDashboard() {
                 >
                   {savingSettings ? 'جاري الحفظ...' : 'حفظ تكلفة الشحن'}
                 </button>
+              </div>
+            </motion.div>
+          )}
+
+          {!loading && activeTab === 'settings' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div>
+                <h1 className="text-3xl font-black text-[#082E33] mb-1">إعدادات التحويل البنكي</h1>
+                <p className="text-sm text-[#6D8588]">هذه المعلومات تظهر للعميل مباشرة في صفحة إتمام الطلب.</p>
+              </div>
+
+              <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-6 shadow-xl backdrop-blur sm:p-8">
+                <div className="mb-6 flex items-center gap-3 border-b border-[#CDEBEC] pb-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#082E33]">
+                    <DollarSign className="h-6 w-6 text-[#17B8BE]" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-[#082E33]">معلومات التحويل البنكي</h2>
+                    <p className="text-xs text-[#6D8588]">عدّل البيانات ثم اضغط حفظ الإعدادات.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <label className="space-y-2">
+                    <span className="block text-sm font-bold text-[#082E33]">اسم الحساب</span>
+                    <input
+                      type="text"
+                      value={bankSettings.bankAccountName}
+                      onChange={(event) =>
+                        setBankSettings((current) => ({
+                          ...current,
+                          bankAccountName: event.target.value,
+                        }))
+                      }
+                      placeholder="مثال: 3D TECH"
+                      className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none transition focus:border-[#17B8BE] focus:ring-2 focus:ring-[#17B8BE]/20"
+                    />
+                  </label>
+
+                  <label className="space-y-2">
+                    <span className="block text-sm font-bold text-[#082E33]">رقم الحساب</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={bankSettings.bankAccountNumber}
+                      onChange={(event) =>
+                        setBankSettings((current) => ({
+                          ...current,
+                          bankAccountNumber: event.target.value,
+                        }))
+                      }
+                      placeholder="اكتب رقم الحساب البنكي"
+                      dir="ltr"
+                      className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-left text-[#082E33] outline-none transition focus:border-[#17B8BE] focus:ring-2 focus:ring-[#17B8BE]/20"
+                    />
+                  </label>
+
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="block text-sm font-bold text-[#082E33]">رقم التحويل</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={bankSettings.bankTransferNumber}
+                      onChange={(event) =>
+                        setBankSettings((current) => ({
+                          ...current,
+                          bankTransferNumber: event.target.value,
+                        }))
+                      }
+                      placeholder="مثال: رقم الهاتف المرتبط بالحساب"
+                      dir="ltr"
+                      className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-left text-[#082E33] outline-none transition focus:border-[#17B8BE] focus:ring-2 focus:ring-[#17B8BE]/20"
+                    />
+                  </label>
+
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="block text-sm font-bold text-[#082E33]">تعليمات الدفع</span>
+                    <textarea
+                      value={bankSettings.bankPaymentInstructions}
+                      onChange={(event) =>
+                        setBankSettings((current) => ({
+                          ...current,
+                          bankPaymentInstructions: event.target.value,
+                        }))
+                      }
+                      rows={5}
+                      placeholder="مثال: يرجى التحويل على الحساب أعلاه ورفع صورة الإيصال لإتمام الطلب."
+                      className="w-full resize-y rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 leading-7 text-[#082E33] outline-none transition focus:border-[#17B8BE] focus:ring-2 focus:ring-[#17B8BE]/20"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs leading-6 text-[#6D8588]">بعد الحفظ ستظهر التغييرات للعميل عند فتح صفحة الدفع أو تحديثها.</p>
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveBankSettings()}
+                    disabled={savingBankSettings}
+                    className="rounded-2xl bg-[#17B8BE] px-7 py-3 font-bold text-white shadow-lg shadow-[#17B8BE]/20 transition hover:bg-[#0B8F96] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {savingBankSettings ? 'جاري حفظ الإعدادات...' : 'حفظ إعدادات البنك'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
