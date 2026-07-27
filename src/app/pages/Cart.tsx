@@ -161,7 +161,7 @@ export default function Cart({
                         <div className="mt-2">
                           <Price
                             amount={item.price}
-                            className="text-lg font-black text-[#20CDD4]"
+                            className="text-lg font-black text-white"
                           />
                         </div>
                       </div>
@@ -231,7 +231,7 @@ export default function Cart({
 
             <Price
               amount={totalPrice}
-              className="text-2xl font-black text-[#20CDD4]"
+              className="text-2xl font-black text-white"
             />
           </div>
 
