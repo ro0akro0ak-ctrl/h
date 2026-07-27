@@ -22,6 +22,7 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import TrackOrder from './pages/TrackOrder';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import Checkout from './pages/Checkout';
@@ -32,6 +33,7 @@ type Page =
   | 'about'
   | 'contact'
   | 'shop'
+  | 'track-order'
   | 'admin'
   | 'checkout';
 
@@ -41,16 +43,31 @@ const allowedPages: Page[] = [
   'about',
   'contact',
   'shop',
+  'track-order',
   'admin',
   'checkout',
 ];
 
-function getPageFromHash(): Page {
-  const hash = window.location.hash.replace('#', '').trim();
+function normalizePageName(page: string): Page {
+  const cleanPage = page.replace('#', '').trim().toLowerCase();
 
-  return allowedPages.includes(hash as Page)
-    ? (hash as Page)
+  if (
+    cleanPage === 'tracking' ||
+    cleanPage === 'track' ||
+    cleanPage === 'trackorder' ||
+    cleanPage === 'track_order' ||
+    cleanPage === 'تتبع-الطلب'
+  ) {
+    return 'track-order';
+  }
+
+  return allowedPages.includes(cleanPage as Page)
+    ? (cleanPage as Page)
     : 'home';
+}
+
+function getPageFromHash(): Page {
+  return normalizePageName(window.location.hash);
 }
 
 function AdminPage() {
@@ -155,9 +172,7 @@ function MainApp() {
       return;
     }
 
-    const targetPage = allowedPages.includes(page as Page)
-      ? (page as Page)
-      : 'home';
+    const targetPage = normalizePageName(page);
 
     setIsCartOpen(false);
     window.location.hash = targetPage;
@@ -202,11 +217,7 @@ function MainApp() {
         );
 
       case 'shop':
-        return (
-          <Shop
-            onProductClick={handleProductClick}
-          />
-        );
+        return <Shop onProductClick={handleProductClick} />;
 
       case 'product-detail':
         return selectedProduct ? (
@@ -215,9 +226,7 @@ function MainApp() {
             onBack={() => handleNavigate('shop')}
           />
         ) : (
-          <Shop
-            onProductClick={handleProductClick}
-          />
+          <Shop onProductClick={handleProductClick} />
         );
 
       case 'about':
@@ -225,6 +234,9 @@ function MainApp() {
 
       case 'contact':
         return <Contact />;
+
+      case 'track-order':
+        return <TrackOrder />;
 
       case 'admin':
         return <AdminPage />;
@@ -247,9 +259,7 @@ function MainApp() {
 
   return (
     <>
-      {!isAdminPage && (
-        <SplashScreen show={showSplash} />
-      )}
+      {!isAdminPage && <SplashScreen show={showSplash} />}
 
       <div
         className={
@@ -267,9 +277,7 @@ function MainApp() {
           />
         )}
 
-        <main>
-          {renderPage()}
-        </main>
+        <main>{renderPage()}</main>
 
         {!isAdminPage && <Footer />}
 
