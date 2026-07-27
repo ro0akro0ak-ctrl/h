@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import { Search } from 'lucide-react';
 
 import { useProducts } from '../contexts/ProductsContext';
@@ -91,9 +92,34 @@ export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
   return (
     <div
       dir={ar ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-[#18B7BE] pb-16 pt-28 text-white"
+      className="relative min-h-screen overflow-hidden bg-[#18B7BE] pb-16 pt-28 text-white"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* نقاط خلفية متحركة */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {Array.from({ length: 38 }, (_, index) => (
+          <motion.span
+            key={index}
+            className="absolute rounded-full bg-white/20"
+            style={{
+              width: `${3 + (index % 3) * 2}px`,
+              height: `${3 + (index % 3) * 2}px`,
+              right: `${(index * 29) % 100}%`,
+              top: `${(index * 37) % 100}%`,
+            }}
+            animate={{
+              opacity: [0.12, 0.45, 0.12],
+              y: [0, -22, 0],
+            }}
+            transition={{
+              duration: 5 + (index % 6),
+              repeat: Infinity,
+              delay: (index % 8) * 0.25,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* عنوان الصفحة */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
