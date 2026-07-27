@@ -92,17 +92,18 @@ export default function AdminLogin() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+            {/* Email / Username */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
               <label className="block text-sm font-semibold text-[#063F43] mb-2">
-                البريد الإلكتروني
+                البريد الإلكتروني / اسم المستخدم
               </label>
               <input
-                type="email"
+                type="text"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@3dtech.store"
