@@ -7,6 +7,9 @@ import {
   Eye,
   Image as ImageIcon,
   LayoutDashboard,
+  MessageSquare,
+  Copy,
+  CheckCircle2,
   Loader,
   LogOut,
   Menu,
@@ -82,6 +85,16 @@ export interface Discount {
   is_active: boolean;
 }
 
+
+export interface Complaint {
+  id: number;
+  name: string;
+  phone: string;
+  message: string;
+  status: 'new' | 'read' | 'replied' | 'closed';
+  created_at: string;
+}
+
 export interface BankSettingsData {
   bankAccountName: string;
   bankAccountNumber: string;
@@ -89,7 +102,7 @@ export interface BankSettingsData {
   bankPaymentInstructions: string;
 }
 
-type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping' | 'settings';
+type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping' | 'complaints' | 'settings';
 
 const toDateTimeLocalValue = (date: Date) => {
   const pad = (value: number) => String(value).padStart(2, '0');
@@ -121,6 +134,8 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
@@ -191,11 +206,12 @@ export default function AdminDashboard() {
       setLoading(true);
       setGlobalError(null);
 
-      const [prodRes, ordRes, discRes, shippingRes, bankRes] = await Promise.all([
+      const [prodRes, ordRes, discRes, shippingRes, complaintRes, bankRes] = await Promise.all([
         supabase.from('products').select('*').order('id', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
         supabase.from('discount_codes').select('*').order('id', { ascending: false }),
         supabase.from('shipping_methods').select('*').order('sort_order', { ascending: true }),
+        supabase.from('contact_messages').select('*').order('created_at', { ascending: false }),
         supabase
           .from('site_settings')
           .select('key, value')
@@ -211,12 +227,14 @@ export default function AdminDashboard() {
       if (ordRes.error) throw new Error(`خطأ في جلب الطلبات: ${ordRes.error.message}`);
       if (discRes.error) throw new Error(`خطأ في جلب الخصومات: ${discRes.error.message}`);
       if (shippingRes.error) throw new Error(`خطأ في جلب طرق الشحن: ${shippingRes.error.message}`);
+      if (complaintRes.error) throw new Error(`خطأ في جلب الشكاوى: ${complaintRes.error.message}`);
       if (bankRes.error) throw new Error(`خطأ في جلب إعدادات البنك: ${bankRes.error.message}`);
 
       setProducts((prodRes.data ?? []) as Product[]);
       setOrders((ordRes.data ?? []) as Order[]);
       setDiscounts((discRes.data ?? []) as Discount[]);
       setShippingMethods((shippingRes.data ?? []) as ShippingMethod[]);
+      setComplaints((complaintRes.data ?? []) as Complaint[]);
 
       const bankMap: Record<string, string> = {};
       (bankRes.data ?? []).forEach((row: { key: string; value: string | null }) => {
@@ -700,12 +718,95 @@ export default function AdminDashboard() {
     }
   };
 
+
+  const handleUpdateComplaintStatus = async (
+    complaintId: number,
+    newStatus: Complaint['status'],
+  ) => {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ status: newStatus })
+        .eq('id', complaintId);
+
+      if (error) throw new Error(error.message);
+
+      setComplaints((current) =>
+        current.map((complaint) =>
+          complaint.id === complaintId
+            ? { ...complaint, status: newStatus }
+            : complaint,
+        ),
+      );
+
+      setSelectedComplaint((current) =>
+        current?.id === complaintId
+          ? { ...current, status: newStatus }
+          : current,
+      );
+    } catch (error) {
+      alert(
+        `تعذر تحديث حالة الشكوى: ${
+          error instanceof Error ? error.message : 'خطأ غير معروف'
+        }`,
+      );
+    }
+  };
+
+  const handleDeleteComplaint = async (complaintId: number) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذه الرسالة نهائيًا؟')) return;
+
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .delete()
+        .eq('id', complaintId);
+
+      if (error) throw new Error(error.message);
+
+      setComplaints((current) =>
+        current.filter((complaint) => complaint.id !== complaintId),
+      );
+      setSelectedComplaint(null);
+    } catch (error) {
+      alert(
+        `تعذر حذف الرسالة: ${
+          error instanceof Error ? error.message : 'خطأ غير معروف'
+        }`,
+      );
+    }
+  };
+
+  const copyComplaintPhone = async (phone: string) => {
+    try {
+      await navigator.clipboard.writeText(phone);
+      alert('تم نسخ رقم الهاتف');
+    } catch {
+      alert(`رقم الهاتف: ${phone}`);
+    }
+  };
+
+  const getComplaintStatusLabel = (status: Complaint['status']) => {
+    if (status === 'read') return 'تمت القراءة';
+    if (status === 'replied') return 'تم الرد';
+    if (status === 'closed') return 'مغلقة';
+    return 'جديدة';
+  };
+
+  const getComplaintStatusClasses = (status: Complaint['status']) => {
+    if (status === 'read') return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (status === 'replied') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (status === 'closed') return 'bg-gray-100 text-gray-600 border-gray-200';
+    return 'bg-amber-50 text-amber-700 border-amber-200';
+  };
+
   const menuItems = [
     { id: 'dashboard' as const, labelAr: 'الرئيسية', labelEn: 'Dashboard', icon: LayoutDashboard },
     { id: 'products' as const, labelAr: 'المنتجات', labelEn: 'Products', icon: Package },
     { id: 'orders' as const, labelAr: 'الطلبات', labelEn: 'Orders', icon: ShoppingCart },
     { id: 'discounts' as const, labelAr: 'الخصومات', labelEn: 'Discounts', icon: Tag },
     { id: 'shipping' as const, labelAr: 'الشحن', labelEn: 'Shipping', icon: Truck },
+    { id: 'complaints' as const, labelAr: 'الشكاوى', labelEn: 'Complaints', icon: MessageSquare },
     { id: 'settings' as const, labelAr: 'إعدادات البنك', labelEn: 'Bank Settings', icon: Settings },
   ];
 
@@ -813,7 +914,7 @@ export default function AdminDashboard() {
       </aside>
 
       <main className="relative z-10 flex-1 p-5 md:p-10 overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto w-full max-w-[1540px]">
           {globalError && (
             <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 flex items-center gap-3 text-red-700 text-sm">
               <AlertCircle className="w-5 h-5 shrink-0" />
@@ -832,7 +933,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-black text-[#082E33] mb-1">لوحة التحكم الرئيسية</h1>
-                  <p className="text-sm text-[#6D8588]">إدارة منتجات وطلبات وشحن وخصومات متجر 3D TECH</p>
+                  <p className="text-sm text-[#6D8588]">إدارة المنتجات والطلبات والشحن والخصومات والشكاوى في متجر 3D TECH</p>
                 </div>
                 <button
                   type="button"
@@ -968,8 +1069,8 @@ export default function AdminDashboard() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 className="text-3xl font-black text-[#082E33]">إدارة الطلبات</h1>
-                  <p className="mt-1 text-sm font-semibold leading-7 text-[#6D8588]">
-                    جميع بيانات الطلب ظاهرة بالكامل بدون تمرير أفقي. اضغط عرض لفتح الإيصال والتفاصيل الكاملة.
+                  <p className="mt-1 text-sm font-semibold text-[#6D8588]">
+                    جميع الطلبات وبيانات العميل في جدول واضح بألوان متجر 3D TECH.
                   </p>
                 </div>
 
@@ -987,40 +1088,72 @@ export default function AdminDashboard() {
                   لا توجد طلبات مسجلة.
                 </div>
               ) : (
-                <div className="space-y-5">
-                  {orders.map((order, index) => (
-                    <article
-                      key={order.id}
-                      className="overflow-hidden rounded-[28px] border border-[#BFE3E5] bg-white shadow-[0_18px_48px_rgba(8,46,51,0.10)]"
-                    >
-                      <div className="flex flex-col gap-4 border-b border-[#DCEEEF] bg-[#082E33] px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="inline-flex min-w-12 items-center justify-center rounded-xl bg-[#17B8BE] px-3 py-2 text-sm font-black">
-                            #{order.id}
-                          </span>
-                          <div>
-                            <h3 className="text-base font-black">
-                              {order.customer_name || 'عميل غير محدد'}
-                            </h3>
-                            <p className="mt-0.5 text-xs font-semibold text-white/55">
-                              {order.created_at
-                                ? new Date(order.created_at).toLocaleString('ar-OM', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })
-                                : 'بدون تاريخ'}
-                            </p>
-                          </div>
-                        </div>
+                <>
+                  {/* جدول سطح المكتب — كل الأعمدة تظهر من دون تمرير أفقي */}
+                  <div className="hidden overflow-hidden rounded-[26px] border border-[#BFE3E5] bg-white shadow-[0_16px_42px_rgba(8,46,51,0.10)] xl:block">
+                    <div className="grid grid-cols-[52px_1.05fr_.92fr_1.65fr_.72fr_.78fr_.78fr_.9fr_.9fr_1fr_.82fr_70px] items-center gap-2 bg-[#082E33] px-4 py-4 text-center text-[11px] font-black text-white">
+                      <span>ID</span>
+                      <span>الاسم</span>
+                      <span>الهاتف</span>
+                      <span>المنتج</span>
+                      <span>الإجمالي</span>
+                      <span>المحافظة</span>
+                      <span>الولاية</span>
+                      <span>التوصيل</span>
+                      <span>طريقة الدفع</span>
+                      <span>الحالة</span>
+                      <span>التاريخ</span>
+                      <span>التفاصيل</span>
+                    </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                    <div className="divide-y divide-[#DCEEEF]">
+                      {orders.map((order) => (
+                        <div
+                          key={order.id}
+                          className="grid grid-cols-[52px_1.05fr_.92fr_1.65fr_.72fr_.78fr_.78fr_.9fr_.9fr_1fr_.82fr_70px] items-center gap-2 px-4 py-4 text-center text-[12px] font-bold text-[#163F43] transition hover:bg-[#F2FBFB]"
+                        >
+                          <span className="font-black text-[#082E33]">#{order.id}</span>
+
+                          <span className="min-w-0 break-words font-black">
+                            {order.customer_name || '—'}
+                          </span>
+
+                          <span dir="ltr" className="min-w-0 break-all">
+                            {order.phone || '—'}
+                          </span>
+
+                          <span className="min-w-0 break-words leading-5">
+                            {order.product_name || '—'}
+                          </span>
+
                           <Price
                             amount={order.total}
-                            className="text-xl font-black text-white"
+                            className="justify-center text-sm font-black text-[#082E33]"
                           />
+
+                          <span className="inline-flex min-h-8 items-center justify-center rounded-full bg-[#17B8BE]/10 px-2 py-1 text-[11px] font-black text-[#0B8F96]">
+                            {order.governorate || '—'}
+                          </span>
+
+                          <span className="inline-flex min-h-8 items-center justify-center rounded-full bg-[#082E33]/[0.06] px-2 py-1 text-[11px] font-black">
+                            {order.city || '—'}
+                          </span>
+
+                          <span className="min-w-0 break-words">
+                            {getShippingMethodLabel(order.shipping_method)}
+                          </span>
+
+                          <span
+                            className={`inline-flex min-h-8 items-center justify-center rounded-full border px-2 py-1 text-[11px] font-black ${
+                              order.payment_method === 'cash_on_delivery'
+                                ? 'border-orange-200 bg-orange-50 text-orange-700'
+                                : 'border-blue-200 bg-blue-50 text-blue-700'
+                            }`}
+                          >
+                            {order.payment_method === 'cash_on_delivery'
+                              ? 'الدفع عند الاستلام'
+                              : 'تحويل بنكي'}
+                          </span>
 
                           <select
                             value={order.status || 'pending'}
@@ -1030,7 +1163,104 @@ export default function AdminDashboard() {
                                 event.target.value as Order['status'],
                               )
                             }
-                            className="rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-xs font-black text-white outline-none transition focus:border-[#17B8BE] [&>option]:text-[#082E33]"
+                            className="min-w-0 rounded-xl border border-[#BFE3E5] bg-[#F2FBFB] px-2 py-2 text-[11px] font-black text-[#082E33] outline-none focus:border-[#17B8BE]"
+                          >
+                            <option value="pending">قيد المعالجة</option>
+                            <option value="processing">جار التجهيز</option>
+                            <option value="shipped">تم الشحن</option>
+                            <option value="completed">مكتمل</option>
+                            <option value="cancelled">ملغي</option>
+                          </select>
+
+                          <span className="text-[10px] font-bold text-[#7B9295]">
+                            {order.created_at
+                              ? new Date(order.created_at).toLocaleDateString('ar-OM', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                })
+                              : '—'}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrder(order)}
+                            className="inline-flex items-center justify-center gap-1 rounded-full bg-[#082E33] px-3 py-2 text-[11px] font-black text-white transition hover:bg-[#17B8BE]"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            عرض
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* بطاقات الجوال والتابلت */}
+                  <div className="grid grid-cols-1 gap-4 xl:hidden">
+                    {orders.map((order) => (
+                      <article
+                        key={order.id}
+                        className="rounded-3xl border border-[#BFE3E5] bg-white p-5 shadow-lg"
+                      >
+                        <div className="mb-4 flex items-start justify-between gap-3 border-b border-[#DCEEEF] pb-4">
+                          <div>
+                            <div className="text-xs font-black text-[#17B8BE]">
+                              طلب #{order.id}
+                            </div>
+                            <h3 className="mt-1 text-lg font-black text-[#082E33]">
+                              {order.customer_name || '—'}
+                            </h3>
+                            <p dir="ltr" className="mt-1 text-left text-sm text-[#6D8588]">
+                              {order.phone || '—'}
+                            </p>
+                          </div>
+
+                          <Price
+                            amount={order.total}
+                            className="text-lg font-black text-[#082E33]"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          {[
+                            ['المنتج', order.product_name || '—'],
+                            ['المحافظة', order.governorate || '—'],
+                            ['الولاية', order.city || '—'],
+                            ['التوصيل', getShippingMethodLabel(order.shipping_method)],
+                            [
+                              'الدفع',
+                              order.payment_method === 'cash_on_delivery'
+                                ? 'الدفع عند الاستلام'
+                                : 'تحويل بنكي',
+                            ],
+                            [
+                              'التاريخ',
+                              order.created_at
+                                ? new Date(order.created_at).toLocaleDateString('ar-OM')
+                                : '—',
+                            ],
+                          ].map(([label, value]) => (
+                            <div key={label} className="rounded-2xl bg-[#F2FBFB] p-3">
+                              <div className="mb-1 text-[10px] font-black text-[#7B9295]">
+                                {label}
+                              </div>
+                              <div className="break-words font-black leading-6 text-[#163F43]">
+                                {value}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                          <select
+                            value={order.status || 'pending'}
+                            onChange={(event) =>
+                              void handleUpdateOrderStatus(
+                                order.id,
+                                event.target.value as Order['status'],
+                              )
+                            }
+                            className="flex-1 rounded-2xl border border-[#BFE3E5] bg-[#F2FBFB] px-4 py-3 text-sm font-black text-[#082E33] outline-none"
                           >
                             <option value="pending">قيد المعالجة</option>
                             <option value="processing">جار التجهيز</option>
@@ -1042,75 +1272,16 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => setSelectedOrder(order)}
-                            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-[#082E33] shadow-md transition hover:-translate-y-0.5 hover:bg-[#17B8BE] hover:text-white"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#082E33] px-5 py-3 font-black text-white"
                           >
                             <Eye className="h-4 w-4" />
                             عرض التفاصيل
                           </button>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 xl:grid-cols-4">
-                        {[
-                          {
-                            label: 'الهاتف',
-                            value: order.phone || '—',
-                            dir: 'ltr',
-                          },
-                          {
-                            label: 'المنتج',
-                            value: order.product_name || '—',
-                          },
-                          {
-                            label: 'المحافظة',
-                            value: order.governorate || '—',
-                          },
-                          {
-                            label: 'الولاية',
-                            value: order.city || '—',
-                          },
-                          {
-                            label: 'طريقة التوصيل',
-                            value: getShippingMethodLabel(order.shipping_method),
-                          },
-                          {
-                            label: 'طريقة الدفع',
-                            value:
-                              order.payment_method === 'cash_on_delivery'
-                                ? 'الدفع عند الاستلام'
-                                : 'تحويل بنكي',
-                          },
-                          {
-                            label: 'البريد الإلكتروني',
-                            value: order.customer_email || '—',
-                            dir: 'ltr',
-                          },
-                          {
-                            label: 'رقم الطلب',
-                            value: `#${order.id}`,
-                          },
-                        ].map((detail, detailIndex) => (
-                          <div
-                            key={`${order.id}-${detail.label}`}
-                            className={`min-w-0 border-[#DCEEEF] p-5 ${
-                              detailIndex % 2 === 0 ? 'sm:border-l' : ''
-                            } ${detailIndex < 4 ? 'xl:border-b' : ''}`}
-                          >
-                            <div className="mb-2 text-[11px] font-black tracking-wide text-[#7B9295]">
-                              {detail.label}
-                            </div>
-                            <div
-                              dir={detail.dir || 'rtl'}
-                              className="break-words text-sm font-black leading-7 text-[#163F43]"
-                            >
-                              {detail.value}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                      </article>
+                    ))}
+                  </div>
+                </>
               )}
             </motion.div>
           )}
@@ -1297,6 +1468,132 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
+          {!loading && activeTab === 'complaints' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h1 className="text-3xl font-black text-[#082E33]">الشكاوى والرسائل</h1>
+                  <p className="mt-1 text-sm font-semibold text-[#6D8588]">
+                    الرسائل المرسلة من صفحة اتصل بنا تظهر هنا مباشرة.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void fetchSupabaseData()}
+                  className="rounded-2xl bg-[#082E33] px-5 py-2.5 font-black text-white shadow-lg transition hover:bg-[#0B4A50]"
+                >
+                  تحديث الرسائل
+                </button>
+              </div>
+
+              {complaints.length === 0 ? (
+                <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-12 text-center">
+                  <MessageSquare className="mx-auto mb-4 h-12 w-12 text-[#17B8BE]" />
+                  <h3 className="text-xl font-black text-[#082E33]">لا توجد رسائل حاليًا</h3>
+                  <p className="mt-2 text-sm font-semibold text-[#6D8588]">
+                    أي رسالة جديدة من صفحة اتصل بنا ستظهر هنا.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  {complaints.map((complaint) => (
+                    <article
+                      key={complaint.id}
+                      className="rounded-[28px] border border-[#BFE3E5] bg-white p-5 shadow-[0_14px_38px_rgba(8,46,51,0.09)]"
+                    >
+                      <div className="mb-4 flex items-start justify-between gap-3 border-b border-[#DCEEEF] pb-4">
+                        <div className="min-w-0">
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-[#082E33] px-3 py-1 text-xs font-black text-white">
+                              #{complaint.id}
+                            </span>
+                            <span
+                              className={`rounded-full border px-3 py-1 text-xs font-black ${getComplaintStatusClasses(
+                                complaint.status,
+                              )}`}
+                            >
+                              {getComplaintStatusLabel(complaint.status)}
+                            </span>
+                          </div>
+
+                          <h3 className="text-lg font-black text-[#082E33]">
+                            {complaint.name}
+                          </h3>
+
+                          <button
+                            type="button"
+                            onClick={() => void copyComplaintPhone(complaint.phone)}
+                            className="mt-2 inline-flex items-center gap-2 text-sm font-bold text-[#0B8F96] hover:underline"
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span dir="ltr">{complaint.phone}</span>
+                          </button>
+                        </div>
+
+                        <span className="shrink-0 text-xs font-bold text-[#7B9295]">
+                          {complaint.created_at
+                            ? new Date(complaint.created_at).toLocaleString('ar-OM', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : '—'}
+                        </span>
+                      </div>
+
+                      <p className="line-clamp-4 min-h-[84px] whitespace-pre-wrap break-words rounded-2xl bg-[#F2FBFB] p-4 text-sm font-semibold leading-7 text-[#526D70]">
+                        {complaint.message}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedComplaint(complaint);
+                            if (complaint.status === 'new') {
+                              void handleUpdateComplaintStatus(complaint.id, 'read');
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 rounded-xl bg-[#082E33] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#17B8BE]"
+                        >
+                          <Eye className="h-4 w-4" />
+                          عرض الرسالة
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void handleUpdateComplaintStatus(complaint.id, 'replied')
+                          }
+                          className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-700 transition hover:bg-emerald-100"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          تم الرد
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteComplaint(complaint.id)}
+                          className="mr-auto inline-flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-black text-red-600 transition hover:bg-red-100"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          حذف
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
           {!loading && activeTab === 'settings' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -1405,6 +1702,111 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {selectedComplaint && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[30px] bg-white p-6 shadow-2xl sm:p-8"
+          >
+            <div className="mb-6 flex items-start justify-between gap-4 border-b border-[#DCEEEF] pb-5">
+              <div>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-[#082E33] px-3 py-1 text-xs font-black text-white">
+                    رسالة #{selectedComplaint.id}
+                  </span>
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs font-black ${getComplaintStatusClasses(
+                      selectedComplaint.status,
+                    )}`}
+                  >
+                    {getComplaintStatusLabel(selectedComplaint.status)}
+                  </span>
+                </div>
+
+                <h2 className="text-2xl font-black text-[#082E33]">
+                  {selectedComplaint.name}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedComplaint(null)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2FBFB] text-[#082E33] transition hover:bg-[#DCEEEF]"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl bg-[#F2FBFB] p-4">
+                <div className="mb-1 text-xs font-black text-[#7B9295]">رقم الهاتف</div>
+                <button
+                  type="button"
+                  onClick={() => void copyComplaintPhone(selectedComplaint.phone)}
+                  className="inline-flex items-center gap-2 font-black text-[#0B8F96]"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span dir="ltr">{selectedComplaint.phone}</span>
+                </button>
+              </div>
+
+              <div className="rounded-2xl bg-[#F2FBFB] p-4">
+                <div className="mb-1 text-xs font-black text-[#7B9295]">تاريخ الإرسال</div>
+                <div className="font-black text-[#163F43]">
+                  {selectedComplaint.created_at
+                    ? new Date(selectedComplaint.created_at).toLocaleString('ar-OM')
+                    : '—'}
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6 rounded-3xl border border-[#BFE3E5] bg-[#F2FBFB] p-5">
+              <div className="mb-3 text-sm font-black text-[#082E33]">نص الرسالة</div>
+              <p className="whitespace-pre-wrap break-words text-sm font-semibold leading-8 text-[#526D70]">
+                {selectedComplaint.message}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <select
+                value={selectedComplaint.status}
+                onChange={(event) =>
+                  void handleUpdateComplaintStatus(
+                    selectedComplaint.id,
+                    event.target.value as Complaint['status'],
+                  )
+                }
+                className="flex-1 rounded-2xl border border-[#BFE3E5] bg-[#F2FBFB] px-4 py-3 font-black text-[#082E33] outline-none"
+              >
+                <option value="new">جديدة</option>
+                <option value="read">تمت القراءة</option>
+                <option value="replied">تم الرد</option>
+                <option value="closed">مغلقة</option>
+              </select>
+
+              <a
+                href={`https://wa.me/${selectedComplaint.phone.replace(/\\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-2xl bg-[#17B8BE] px-6 py-3 font-black text-white transition hover:bg-[#0B8F96]"
+              >
+                الرد عبر واتساب
+              </a>
+
+              <button
+                type="button"
+                onClick={() => void handleDeleteComplaint(selectedComplaint.id)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-50 px-5 py-3 font-black text-red-600 transition hover:bg-red-100"
+              >
+                <Trash2 className="h-4 w-4" />
+                حذف
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {selectedOrder && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#082E33]/75 p-4 backdrop-blur-sm">
