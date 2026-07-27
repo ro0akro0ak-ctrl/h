@@ -4,6 +4,8 @@ import {
   AlertCircle,
   DollarSign,
   Edit,
+  Eye,
+  Image as ImageIcon,
   LayoutDashboard,
   Loader,
   LogOut,
@@ -40,10 +42,30 @@ export interface Product {
 export interface Order {
   id: number;
   customer_name: string;
-  customer_email: string;
+  customer_email?: string | null;
+  phone?: string | null;
+  product_name?: string | null;
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+  payment_status?: string | null;
+  receipt_url?: string | null;
+  governorate?: string | null;
+  city?: string | null;
+  address_details?: string | null;
+  notes?: string | null;
+  shipping_method?: string | null;
+  payment_method?: string | null;
   created_at: string;
+}
+
+export interface ShippingMethod {
+  id: number;
+  key: string;
+  label: string;
+  price: number;
+  duration: string;
+  is_active: boolean;
+  sort_order: number;
 }
 
 export interface Discount {
@@ -57,10 +79,6 @@ export interface Discount {
   starts_at: string | null;
   expires_at: string | null;
   is_active: boolean;
-}
-
-export interface StoreSettingsData {
-  shippingFee: string;
 }
 
 export interface BankSettingsData {
@@ -101,6 +119,7 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
@@ -133,10 +152,17 @@ export default function AdminDashboard() {
   const [discIsActive, setDiscIsActive] = useState(true);
   const [savingDiscount, setSavingDiscount] = useState(false);
 
-  const [storeSettings, setStoreSettings] = useState<StoreSettingsData>({
-    shippingFee: '25',
-  });
-  const [savingSettings, setSavingSettings] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [editingShippingMethod, setEditingShippingMethod] = useState<ShippingMethod | null>(null);
+  const [shippingKey, setShippingKey] = useState('');
+  const [shippingLabel, setShippingLabel] = useState('');
+  const [shippingPrice, setShippingPrice] = useState('');
+  const [shippingDuration, setShippingDuration] = useState('');
+  const [shippingSortOrder, setShippingSortOrder] = useState('0');
+  const [shippingIsActive, setShippingIsActive] = useState(true);
+  const [savingShippingMethod, setSavingShippingMethod] = useState(false);
 
   const [bankSettings, setBankSettings] = useState<BankSettingsData>({
     bankAccountName: '',
@@ -164,11 +190,11 @@ export default function AdminDashboard() {
       setLoading(true);
       setGlobalError(null);
 
-      const [prodRes, ordRes, discRes, setRes, bankRes] = await Promise.all([
+      const [prodRes, ordRes, discRes, shippingRes, bankRes] = await Promise.all([
         supabase.from('products').select('*').order('id', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
         supabase.from('discount_codes').select('*').order('id', { ascending: false }),
-        supabase.from('store_settings').select('*').eq('id', 1).maybeSingle(),
+        supabase.from('shipping_methods').select('*').order('sort_order', { ascending: true }),
         supabase
           .from('site_settings')
           .select('key, value')
@@ -183,18 +209,13 @@ export default function AdminDashboard() {
       if (prodRes.error) throw new Error(`خطأ في جلب المنتجات: ${prodRes.error.message}`);
       if (ordRes.error) throw new Error(`خطأ في جلب الطلبات: ${ordRes.error.message}`);
       if (discRes.error) throw new Error(`خطأ في جلب الخصومات: ${discRes.error.message}`);
-      if (setRes.error) throw new Error(`خطأ في جلب إعدادات الشحن: ${setRes.error.message}`);
+      if (shippingRes.error) throw new Error(`خطأ في جلب طرق الشحن: ${shippingRes.error.message}`);
       if (bankRes.error) throw new Error(`خطأ في جلب إعدادات البنك: ${bankRes.error.message}`);
 
       setProducts((prodRes.data ?? []) as Product[]);
       setOrders((ordRes.data ?? []) as Order[]);
       setDiscounts((discRes.data ?? []) as Discount[]);
-
-      if (setRes.data) {
-        setStoreSettings({
-          shippingFee: setRes.data.shipping_fee?.toString() || '25',
-        });
-      }
+      setShippingMethods((shippingRes.data ?? []) as ShippingMethod[]);
 
       const bankMap: Record<string, string> = {};
       (bankRes.data ?? []).forEach((row: { key: string; value: string | null }) => {
@@ -476,19 +497,107 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveShipping = async () => {
-    setSavingSettings(true);
+  const handleDeleteOrder = async (orderId: number) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا الطلب نهائيًا؟')) return;
+
     try {
-      const { error } = await supabase.from('store_settings').upsert({
-        id: 1,
-        shipping_fee: Number(storeSettings.shippingFee),
-      });
+      const { error } = await supabase.from('orders').delete().eq('id', orderId);
       if (error) throw new Error(error.message);
-      alert('تم حفظ تكلفة الشحن بنجاح');
+
+      setOrders((current) => current.filter((order) => order.id !== orderId));
+      setSelectedOrder(null);
     } catch (err) {
-      alert(`خطأ في الحفظ: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
+      alert(`فشل حذف الطلب: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
+    }
+  };
+
+  const resetShippingForm = () => {
+    setShowShippingModal(false);
+    setEditingShippingMethod(null);
+    setShippingKey('');
+    setShippingLabel('');
+    setShippingPrice('');
+    setShippingDuration('');
+    setShippingSortOrder('0');
+    setShippingIsActive(true);
+  };
+
+  const openAddShippingModal = () => {
+    resetShippingForm();
+    setShowShippingModal(true);
+  };
+
+  const openEditShippingModal = (method: ShippingMethod) => {
+    setEditingShippingMethod(method);
+    setShippingKey(method.key || '');
+    setShippingLabel(method.label || '');
+    setShippingPrice(String(method.price ?? 0));
+    setShippingDuration(method.duration || '');
+    setShippingSortOrder(String(method.sort_order ?? 0));
+    setShippingIsActive(method.is_active !== false);
+    setShowShippingModal(true);
+  };
+
+  const handleSaveShippingMethod = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const cleanKey = shippingKey.trim().toLowerCase().replace(/\s+/g, '_');
+    const cleanLabel = shippingLabel.trim();
+    const numericPrice = Number(shippingPrice);
+    const numericSortOrder = Number.parseInt(shippingSortOrder, 10) || 0;
+
+    if (!cleanKey) {
+      alert('اكتب رمز طريقة الشحن، مثال: office');
+      return;
+    }
+
+    if (!cleanLabel) {
+      alert('اكتب اسم طريقة الشحن');
+      return;
+    }
+
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      alert('اكتب سعر شحن صحيح');
+      return;
+    }
+
+    setSavingShippingMethod(true);
+
+    try {
+      const payload = {
+        key: cleanKey,
+        label: cleanLabel,
+        price: numericPrice,
+        duration: shippingDuration.trim(),
+        is_active: shippingIsActive,
+        sort_order: numericSortOrder,
+      };
+
+      const query = editingShippingMethod
+        ? supabase.from('shipping_methods').update(payload).eq('id', editingShippingMethod.id)
+        : supabase.from('shipping_methods').insert([payload]);
+
+      const { error } = await query;
+      if (error) throw new Error(error.message);
+
+      resetShippingForm();
+      await fetchSupabaseData();
+    } catch (err) {
+      alert(`فشل حفظ طريقة الشحن: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     } finally {
-      setSavingSettings(false);
+      setSavingShippingMethod(false);
+    }
+  };
+
+  const handleDeleteShippingMethod = async (method: ShippingMethod) => {
+    if (!window.confirm(`هل أنت متأكد من حذف طريقة الشحن "${method.label}"؟`)) return;
+
+    try {
+      const { error } = await supabase.from('shipping_methods').delete().eq('id', method.id);
+      if (error) throw new Error(error.message);
+      setShippingMethods((current) => current.filter((item) => item.id !== method.id));
+    } catch (err) {
+      alert(`فشل حذف طريقة الشحن: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     }
   };
 
@@ -664,7 +773,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-black text-[#082E33] mb-1">لوحة التحكم الرئيسية</h1>
-                  <p className="text-sm text-[#6D8588]">إدارة منتجات وطلبات وخصومات متجر 3D TECH</p>
+                  <p className="text-sm text-[#6D8588]">إدارة منتجات وطلبات وشحن وخصومات متجر 3D TECH</p>
                 </div>
                 <button
                   type="button"
@@ -780,36 +889,82 @@ export default function AdminDashboard() {
 
           {!loading && activeTab === 'orders' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <h1 className="text-3xl font-black text-[#082E33]">إدارة الطلبات</h1>
-              <div className="space-y-4">
-                {orders.length === 0 ? (
-                  <div className="p-12 text-center rounded-3xl bg-white/90 border border-[#CDEBEC] text-[#6D8588]">لا توجد طلبات مسجلة.</div>
-                ) : (
-                  orders.map((order) => (
-                    <div key={order.id} className="p-6 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      <div>
-                        <h3 className="font-bold text-[#082E33]">طلب #{order.id}</h3>
-                        <p className="text-sm text-[#6D8588]">العميل: {order.customer_name || 'عميل مسجل'}</p>
-                        <div className="mt-1 flex items-center gap-1 text-xs font-bold text-[#0B8F96]">
-                          <span>الإجمالي:</span>
-                          <Price amount={order.total} className="font-black" />
-                        </div>
-                      </div>
-                      <select
-                        value={order.status || 'pending'}
-                        onChange={(e) => void handleUpdateOrderStatus(order.id, e.target.value as Order['status'])}
-                        className="px-4 py-2.5 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] font-bold text-sm text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                      >
-                        <option value="pending">قيد المعالجة</option>
-                        <option value="processing">جار التجهيز</option>
-                        <option value="shipped">تم الشحن</option>
-                        <option value="completed">مكتمل</option>
-                        <option value="cancelled">ملغي</option>
-                      </select>
-                    </div>
-                  ))
-                )}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h1 className="text-3xl font-black text-[#082E33]">إدارة الطلبات</h1>
+                  <p className="mt-1 text-sm text-[#6D8588]">اضغط عرض لمشاهدة بيانات العميل والإيصال وكامل تفاصيل الطلب.</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void fetchSupabaseData()}
+                  className="rounded-2xl bg-[#082E33] px-5 py-2.5 font-bold text-white transition hover:bg-[#0B4A50]"
+                >
+                  تحديث الطلبات
+                </button>
               </div>
+
+              {orders.length === 0 ? (
+                <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-12 text-center text-[#6D8588]">
+                  لا توجد طلبات مسجلة.
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-3xl border border-[#CDEBEC] bg-white/90 shadow-xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[980px]">
+                      <thead className="bg-[#082E33] text-white">
+                        <tr>
+                          {['الطلب', 'العميل', 'الهاتف', 'المنتج', 'الموقع', 'الدفع', 'الإجمالي', 'الحالة', 'التاريخ', 'التفاصيل'].map((heading) => (
+                            <th key={heading} className="px-4 py-4 text-right text-xs font-black">{heading}</th>
+                          ))}
+                        </tr>
+                      </thead>
+
+                      <tbody className="divide-y divide-[#DCEEEF]">
+                        {orders.map((order) => (
+                          <tr key={order.id} className="transition hover:bg-[#F2FBFB]">
+                            <td className="px-4 py-4 font-black text-[#082E33]">#{order.id}</td>
+                            <td className="px-4 py-4 text-sm font-bold text-[#082E33]">{order.customer_name || 'غير محدد'}</td>
+                            <td className="px-4 py-4 text-sm text-[#5C7477]" dir="ltr">{order.phone || '—'}</td>
+                            <td className="max-w-[220px] truncate px-4 py-4 text-sm text-[#082E33]">{order.product_name || '—'}</td>
+                            <td className="px-4 py-4 text-xs text-[#5C7477]">{[order.governorate, order.city].filter(Boolean).join(' - ') || '—'}</td>
+                            <td className="px-4 py-4 text-xs font-bold text-[#5C7477]">
+                              {order.payment_method === 'cash_on_delivery' ? 'الدفع عند الاستلام' : 'تحويل بنكي'}
+                            </td>
+                            <td className="px-4 py-4"><Price amount={order.total} className="font-black text-[#082E33]" /></td>
+                            <td className="px-4 py-4">
+                              <select
+                                value={order.status || 'pending'}
+                                onChange={(event) => void handleUpdateOrderStatus(order.id, event.target.value as Order['status'])}
+                                className="rounded-xl border border-[#BDE5E7] bg-[#F2FBFB] px-3 py-2 text-xs font-black text-[#082E33] outline-none"
+                              >
+                                <option value="pending">قيد المعالجة</option>
+                                <option value="processing">جار التجهيز</option>
+                                <option value="shipped">تم الشحن</option>
+                                <option value="completed">مكتمل</option>
+                                <option value="cancelled">ملغي</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-4 text-xs text-[#7B9092]">
+                              {order.created_at ? new Date(order.created_at).toLocaleDateString('ar-OM') : '—'}
+                            </td>
+                            <td className="px-4 py-4">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedOrder(order)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#082E33] px-4 py-2 text-xs font-black text-white transition hover:bg-[#17B8BE]"
+                              >
+                                <Eye className="h-4 w-4" />
+                                عرض
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -917,24 +1072,81 @@ export default function AdminDashboard() {
 
           {!loading && activeTab === 'shipping' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <h1 className="text-3xl font-black text-[#082E33]">إعدادات الشحن والتوصيل</h1>
-              <div className="p-8 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-xl space-y-4 max-w-xl">
-                <label className="block text-sm font-bold text-[#082E33]">تكلفة الشحن الثابتة</label>
-                <input
-                  type="number"
-                  value={storeSettings.shippingFee}
-                  onChange={(e) => setStoreSettings({ shippingFee: e.target.value })}
-                  className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                />
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h1 className="text-3xl font-black text-[#082E33]">طرق الشحن</h1>
+                  <p className="mt-1 text-sm text-[#6D8588]">أضف وعدّل واحذف طرق الشحن التي تظهر للعميل في صفحة إتمام الطلب.</p>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => void handleSaveShipping()}
-                  disabled={savingSettings}
-                  className="px-6 py-3 bg-[#17B8BE] hover:bg-[#0B8F96] disabled:opacity-50 text-white font-bold rounded-2xl transition-colors"
+                  onClick={openAddShippingModal}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#17B8BE] px-6 py-3 font-black text-white shadow-lg shadow-[#17B8BE]/20 transition hover:bg-[#0B8F96]"
                 >
-                  {savingSettings ? 'جاري الحفظ...' : 'حفظ تكلفة الشحن'}
+                  <Plus className="h-5 w-5" />
+                  إضافة طريقة شحن
                 </button>
               </div>
+
+              {shippingMethods.length === 0 ? (
+                <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-12 text-center text-[#6D8588]">
+                  لا توجد طرق شحن. اضغط إضافة طريقة شحن لإنشاء أول طريقة.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  {shippingMethods.map((method) => (
+                    <div key={method.id} className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-6 shadow-xl">
+                      <div className="mb-5 flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#082E33] text-[#17B8BE]">
+                            <Truck className="h-6 w-6" />
+                          </span>
+
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg font-black text-[#082E33]">{method.label}</h3>
+                              <span className="rounded-full bg-[#082E33]/7 px-2 py-1 text-[10px] font-bold text-[#6D8588]">{method.key}</span>
+                              <span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${method.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                                {method.is_active ? 'مفعل' : 'متوقف'}
+                              </span>
+                            </div>
+
+                            <p className="mt-2 text-sm text-[#6D8588]">
+                              المدة: {method.duration || 'غير محددة'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <Price amount={method.price} className="text-xl font-black text-[#0B8F96]" />
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-[#E2F0F1] pt-4">
+                        <span className="text-xs font-bold text-[#6D8588]">الترتيب: {method.sort_order ?? 0}</span>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditShippingModal(method)}
+                            className="inline-flex items-center gap-2 rounded-xl bg-[#082E33]/10 px-4 py-2 text-xs font-black text-[#082E33] transition hover:bg-[#082E33]/20"
+                          >
+                            <Edit className="h-4 w-4" />
+                            تعديل
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteShippingMethod(method)}
+                            className="inline-flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-xs font-black text-red-600 transition hover:bg-red-100"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            حذف
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -1046,6 +1258,238 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#082E33]/75 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[30px] bg-white p-6 shadow-2xl sm:p-8"
+          >
+            <div className="mb-6 flex items-center justify-between border-b border-[#E2F0F1] pb-5">
+              <h2 className="text-2xl font-black text-[#082E33]">تفاصيل الطلب #{selectedOrder.id}</h2>
+              <button type="button" onClick={() => setSelectedOrder(null)} className="rounded-xl p-2 text-[#082E33] hover:bg-[#F2FBFB]">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-x-8 gap-y-4 text-sm md:grid-cols-2">
+              {[
+                ['الاسم', selectedOrder.customer_name || '—'],
+                ['الهاتف', selectedOrder.phone || '—'],
+                ['البريد الإلكتروني', selectedOrder.customer_email || '—'],
+                ['المنتج', selectedOrder.product_name || '—'],
+                ['المحافظة', selectedOrder.governorate || '—'],
+                ['الولاية / المدينة', selectedOrder.city || '—'],
+                ['طريقة التوصيل', selectedOrder.shipping_method || '—'],
+                ['طريقة الدفع', selectedOrder.payment_method === 'cash_on_delivery' ? 'الدفع عند الاستلام' : 'تحويل بنكي'],
+              ].map(([label, value]) => (
+                <div key={label} className="flex items-start justify-between gap-4 border-b border-[#EDF5F5] pb-3">
+                  <span className="font-black text-[#082E33]">{label}:</span>
+                  <span className="text-left text-[#4E686B]">{value}</span>
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between gap-4 border-b border-[#EDF5F5] pb-3">
+                <span className="font-black text-[#082E33]">الإجمالي:</span>
+                <Price amount={selectedOrder.total} className="text-lg font-black text-[#0B8F96]" />
+              </div>
+
+              <div className="flex items-center justify-between gap-4 border-b border-[#EDF5F5] pb-3">
+                <span className="font-black text-[#082E33]">التاريخ:</span>
+                <span className="text-[#4E686B]">
+                  {selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString('ar-OM') : '—'}
+                </span>
+              </div>
+            </div>
+
+            {(selectedOrder.address_details || selectedOrder.notes) && (
+              <div className="mt-6 space-y-4 rounded-2xl bg-[#F2FBFB] p-5">
+                {selectedOrder.address_details && (
+                  <div>
+                    <h3 className="mb-2 font-black text-[#082E33]">تفاصيل العنوان</h3>
+                    <p className="leading-7 text-[#526D70]">{selectedOrder.address_details}</p>
+                  </div>
+                )}
+
+                {selectedOrder.notes && (
+                  <div>
+                    <h3 className="mb-2 font-black text-[#082E33]">ملاحظات العميل</h3>
+                    <p className="leading-7 text-[#526D70]">{selectedOrder.notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6 border-t border-[#E2F0F1] pt-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-black text-[#082E33]">صورة الإيصال</h3>
+
+                {selectedOrder.receipt_url && (
+                  <a
+                    href={selectedOrder.receipt_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#082E33] px-4 py-2 text-xs font-black text-white hover:bg-[#17B8BE]"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    فتح الصورة
+                  </a>
+                )}
+              </div>
+
+              {selectedOrder.receipt_url ? (
+                <div className="flex min-h-[280px] items-center justify-center overflow-hidden rounded-2xl border border-[#D7EAEA] bg-[#FAFCFC] p-4">
+                  <img src={selectedOrder.receipt_url} alt="صورة إيصال الطلب" className="max-h-[460px] w-auto max-w-full object-contain" />
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-[#CDEBEC] bg-[#F8FCFC] p-10 text-center text-[#7B9092]">
+                  لا توجد صورة إيصال لهذا الطلب.
+                </div>
+              )}
+            </div>
+
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="button"
+                onClick={() => void handleDeleteOrder(selectedOrder.id)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-black text-white transition hover:bg-red-700"
+              >
+                <Trash2 className="h-5 w-5" />
+                حذف الطلب
+              </button>
+
+              <select
+                value={selectedOrder.status || 'pending'}
+                onChange={(event) => {
+                  const nextStatus = event.target.value as Order['status'];
+                  void handleUpdateOrderStatus(selectedOrder.id, nextStatus);
+                  setSelectedOrder((current) => current ? { ...current, status: nextStatus } : current);
+                }}
+                className="rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 font-black text-[#082E33] outline-none"
+              >
+                <option value="pending">قيد المعالجة</option>
+                <option value="processing">جار التجهيز</option>
+                <option value="shipped">تم الشحن</option>
+                <option value="completed">مكتمل</option>
+                <option value="cancelled">ملغي</option>
+              </select>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showShippingModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#082E33]/75 p-4 backdrop-blur-sm">
+          <motion.form
+            onSubmit={handleSaveShippingMethod}
+            initial={{ opacity: 0, scale: 0.97, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-xl rounded-[30px] bg-white p-6 shadow-2xl sm:p-8"
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-black text-[#082E33]">
+                {editingShippingMethod ? 'تعديل طريقة الشحن' : 'إضافة طريقة شحن'}
+              </h2>
+              <button type="button" onClick={resetShippingForm} className="rounded-xl p-2 text-[#082E33] hover:bg-[#F2FBFB]">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block space-y-2">
+                <span className="text-sm font-black text-[#082E33]">رمز الطريقة</span>
+                <input
+                  type="text"
+                  value={shippingKey}
+                  onChange={(event) => setShippingKey(event.target.value)}
+                  placeholder="مثال: office أو home"
+                  required
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/25"
+                />
+                <p className="text-xs text-[#7B9092]">استخدم حروفًا إنجليزية بدون مسافات. يتم تحويل المسافات تلقائيًا إلى _</p>
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm font-black text-[#082E33]">اسم طريقة الشحن</span>
+                <input
+                  type="text"
+                  value={shippingLabel}
+                  onChange={(event) => setShippingLabel(event.target.value)}
+                  placeholder="مثال: توصيل للمكتب"
+                  required
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/25"
+                />
+              </label>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label className="block space-y-2">
+                  <span className="text-sm font-black text-[#082E33]">السعر</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={shippingPrice}
+                    onChange={(event) => setShippingPrice(event.target.value)}
+                    placeholder="1.000"
+                    required
+                    className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/25"
+                  />
+                </label>
+
+                <label className="block space-y-2">
+                  <span className="text-sm font-black text-[#082E33]">الترتيب</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={shippingSortOrder}
+                    onChange={(event) => setShippingSortOrder(event.target.value)}
+                    className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/25"
+                  />
+                </label>
+              </div>
+
+              <label className="block space-y-2">
+                <span className="text-sm font-black text-[#082E33]">مدة التوصيل</span>
+                <input
+                  type="text"
+                  value={shippingDuration}
+                  onChange={(event) => setShippingDuration(event.target.value)}
+                  placeholder="مثال: 2-4 أيام عمل"
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/25"
+                />
+              </label>
+
+              <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] p-4">
+                <div>
+                  <span className="block font-black text-[#082E33]">تفعيل طريقة الشحن</span>
+                  <span className="mt-1 block text-xs text-[#7B9092]">الطرق المتوقفة لا تظهر للعميل.</span>
+                </div>
+
+                <input
+                  type="checkbox"
+                  checked={shippingIsActive}
+                  onChange={(event) => setShippingIsActive(event.target.checked)}
+                  className="h-5 w-5 accent-[#17B8BE]"
+                />
+              </label>
+            </div>
+
+            <div className="mt-7 flex justify-end gap-3">
+              <button type="button" onClick={resetShippingForm} className="rounded-2xl bg-gray-100 px-6 py-3 font-black text-gray-700">
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={savingShippingMethod}
+                className="rounded-2xl bg-[#17B8BE] px-6 py-3 font-black text-white transition hover:bg-[#0B8F96] disabled:opacity-50"
+              >
+                {savingShippingMethod ? 'جاري الحفظ...' : 'حفظ طريقة الشحن'}
+              </button>
+            </div>
+          </motion.form>
+        </div>
+      )}
 
       {showAddProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082E33]/70 backdrop-blur-sm">
