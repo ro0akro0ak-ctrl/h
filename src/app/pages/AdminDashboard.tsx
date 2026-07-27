@@ -287,6 +287,18 @@ export default function AdminDashboard() {
 
   const lowStockCount = products.filter((product) => product.stock <= 5).length;
 
+  const getShippingMethodLabel = (methodKey?: string | null) => {
+    if (!methodKey) return '—';
+
+    const savedMethod = shippingMethods.find((method) => method.key === methodKey);
+    if (savedMethod?.label) return savedMethod.label;
+
+    if (methodKey === 'office') return 'توصيل للمكتب';
+    if (methodKey === 'home') return 'توصيل للمنزل';
+
+    return methodKey;
+  };
+
   const getCategoryLabel = (category: string) => {
     if (category === 'printers') {
       return language === 'ar' ? 'الطابعات' : 'Printers';
@@ -948,11 +960,17 @@ export default function AdminDashboard() {
           )}
 
           {!loading && activeTab === 'orders' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 className="text-3xl font-black text-[#082E33]">إدارة الطلبات</h1>
-                  <p className="mt-1 text-sm font-semibold text-[#6D8588]">كل بيانات العميل والطلب ظاهرة بوضوح، واضغط عرض لمشاهدة الإيصال والتفاصيل الكاملة.</p>
+                  <p className="mt-1 text-sm font-semibold leading-7 text-[#6D8588]">
+                    جميع بيانات الطلب ظاهرة بالكامل بدون تمرير أفقي. اضغط عرض لفتح الإيصال والتفاصيل الكاملة.
+                  </p>
                 </div>
 
                 <button
@@ -969,106 +987,129 @@ export default function AdminDashboard() {
                   لا توجد طلبات مسجلة.
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-[28px] border border-[#BFE3E5] bg-white shadow-[0_18px_48px_rgba(8,46,51,0.10)]">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1480px] border-separate border-spacing-0">
-                      <thead>
-                        <tr className="bg-[#082E33] text-white">
-                          {['الطلب', 'العميل', 'الهاتف', 'المنتج', 'المحافظة', 'الولاية', 'التوصيل', 'طريقة الدفع', 'الإجمالي', 'الحالة', 'التاريخ', 'التفاصيل'].map((heading) => (
-                            <th
-                              key={heading}
-                              className="whitespace-nowrap border-b border-white/10 px-5 py-5 text-right text-[13px] font-black tracking-wide first:rounded-tr-[26px] last:rounded-tl-[26px]"
-                            >
-                              {heading}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
+                <div className="space-y-5">
+                  {orders.map((order, index) => (
+                    <article
+                      key={order.id}
+                      className="overflow-hidden rounded-[28px] border border-[#BFE3E5] bg-white shadow-[0_18px_48px_rgba(8,46,51,0.10)]"
+                    >
+                      <div className="flex flex-col gap-4 border-b border-[#DCEEEF] bg-[#082E33] px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex min-w-12 items-center justify-center rounded-xl bg-[#17B8BE] px-3 py-2 text-sm font-black">
+                            #{order.id}
+                          </span>
+                          <div>
+                            <h3 className="text-base font-black">
+                              {order.customer_name || 'عميل غير محدد'}
+                            </h3>
+                            <p className="mt-0.5 text-xs font-semibold text-white/55">
+                              {order.created_at
+                                ? new Date(order.created_at).toLocaleString('ar-OM', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
+                                : 'بدون تاريخ'}
+                            </p>
+                          </div>
+                        </div>
 
-                      <tbody className="divide-y divide-[#DCEEEF]">
-                        {orders.map((order, index) => (
-                          <tr
-                            key={order.id}
-                            className={`transition-colors hover:bg-[#EAF9F9] ${index % 2 === 0 ? 'bg-white' : 'bg-[#FAFEFE]'}`}
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Price
+                            amount={order.total}
+                            className="text-xl font-black text-white"
+                          />
+
+                          <select
+                            value={order.status || 'pending'}
+                            onChange={(event) =>
+                              void handleUpdateOrderStatus(
+                                order.id,
+                                event.target.value as Order['status'],
+                              )
+                            }
+                            className="rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-xs font-black text-white outline-none transition focus:border-[#17B8BE] [&>option]:text-[#082E33]"
                           >
-                            <td className="whitespace-nowrap px-5 py-5 text-base font-black text-[#082E33]">#{order.id}</td>
+                            <option value="pending">قيد المعالجة</option>
+                            <option value="processing">جار التجهيز</option>
+                            <option value="shipped">تم الشحن</option>
+                            <option value="completed">مكتمل</option>
+                            <option value="cancelled">ملغي</option>
+                          </select>
 
-                            <td className="min-w-[145px] px-5 py-5">
-                              <div className="font-black text-[#082E33]">{order.customer_name || 'غير محدد'}</div>
-                              {order.customer_email && (
-                                <div className="mt-1 max-w-[180px] truncate text-[11px] font-semibold text-[#829699]">{order.customer_email}</div>
-                              )}
-                            </td>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrder(order)}
+                            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-[#082E33] shadow-md transition hover:-translate-y-0.5 hover:bg-[#17B8BE] hover:text-white"
+                          >
+                            <Eye className="h-4 w-4" />
+                            عرض التفاصيل
+                          </button>
+                        </div>
+                      </div>
 
-                            <td className="whitespace-nowrap px-5 py-5 text-sm font-bold text-[#355B5F]" dir="ltr">{order.phone || '—'}</td>
-
-                            <td className="min-w-[235px] max-w-[300px] px-5 py-5 text-sm font-bold leading-6 text-[#163F43]">
-                              {order.product_name || '—'}
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5">
-                              <span className="inline-flex rounded-full bg-[#E8F7F7] px-3 py-1.5 text-xs font-black text-[#0B747A]">
-                                {order.governorate || '—'}
-                              </span>
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5">
-                              <span className="inline-flex rounded-full bg-[#F2F7F7] px-3 py-1.5 text-xs font-black text-[#486B6E]">
-                                {order.city || '—'}
-                              </span>
-                            </td>
-
-                            <td className="min-w-[135px] px-5 py-5 text-sm font-bold text-[#355B5F]">
-                              {order.shipping_method || '—'}
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5">
-                              <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-black ${
-                                order.payment_method === 'cash_on_delivery'
-                                  ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
-                                  : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
-                              }`}>
-                                {order.payment_method === 'cash_on_delivery' ? 'الدفع عند الاستلام' : 'تحويل بنكي'}
-                              </span>
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5">
-                              <Price amount={order.total} className="text-base font-black text-[#082E33]" />
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5">
-                              <select
-                                value={order.status || 'pending'}
-                                onChange={(event) => void handleUpdateOrderStatus(order.id, event.target.value as Order['status'])}
-                                className="min-w-[135px] rounded-xl border border-[#B7DEE0] bg-[#EFFAFA] px-3 py-2.5 text-xs font-black text-[#082E33] outline-none transition focus:border-[#17B8BE] focus:ring-2 focus:ring-[#17B8BE]/20"
-                              >
-                                <option value="pending">قيد المعالجة</option>
-                                <option value="processing">جار التجهيز</option>
-                                <option value="shipped">تم الشحن</option>
-                                <option value="completed">مكتمل</option>
-                                <option value="cancelled">ملغي</option>
-                              </select>
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5 text-xs font-bold text-[#789093]">
-                              {order.created_at ? new Date(order.created_at).toLocaleDateString('ar-OM') : '—'}
-                            </td>
-
-                            <td className="whitespace-nowrap px-5 py-5">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedOrder(order)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-[#082E33] px-4 py-2.5 text-xs font-black text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#17B8BE]"
-                              >
-                                <Eye className="h-4 w-4" />
-                                عرض
-                              </button>
-                            </td>
-                          </tr>
+                      <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 xl:grid-cols-4">
+                        {[
+                          {
+                            label: 'الهاتف',
+                            value: order.phone || '—',
+                            dir: 'ltr',
+                          },
+                          {
+                            label: 'المنتج',
+                            value: order.product_name || '—',
+                          },
+                          {
+                            label: 'المحافظة',
+                            value: order.governorate || '—',
+                          },
+                          {
+                            label: 'الولاية',
+                            value: order.city || '—',
+                          },
+                          {
+                            label: 'طريقة التوصيل',
+                            value: getShippingMethodLabel(order.shipping_method),
+                          },
+                          {
+                            label: 'طريقة الدفع',
+                            value:
+                              order.payment_method === 'cash_on_delivery'
+                                ? 'الدفع عند الاستلام'
+                                : 'تحويل بنكي',
+                          },
+                          {
+                            label: 'البريد الإلكتروني',
+                            value: order.customer_email || '—',
+                            dir: 'ltr',
+                          },
+                          {
+                            label: 'رقم الطلب',
+                            value: `#${order.id}`,
+                          },
+                        ].map((detail, detailIndex) => (
+                          <div
+                            key={`${order.id}-${detail.label}`}
+                            className={`min-w-0 border-[#DCEEEF] p-5 ${
+                              detailIndex % 2 === 0 ? 'sm:border-l' : ''
+                            } ${detailIndex < 4 ? 'xl:border-b' : ''}`}
+                          >
+                            <div className="mb-2 text-[11px] font-black tracking-wide text-[#7B9295]">
+                              {detail.label}
+                            </div>
+                            <div
+                              dir={detail.dir || 'rtl'}
+                              className="break-words text-sm font-black leading-7 text-[#163F43]"
+                            >
+                              {detail.value}
+                            </div>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               )}
             </motion.div>
