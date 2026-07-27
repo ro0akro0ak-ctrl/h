@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ChevronRight, Upload, Building2, House, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../utils/supabase';
 import {
   Select,
   SelectContent,
