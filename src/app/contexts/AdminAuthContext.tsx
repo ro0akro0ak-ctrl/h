@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../../utils/supabase';
 
 interface AdminAuthContextType {
@@ -11,43 +16,115 @@ interface AdminAuthContextType {
   isAuthenticated: boolean;
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
+const AdminAuthContext =
+  createContext<AdminAuthContextType | undefined>(undefined);
 
-export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
+export function AdminAuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check session on mount
+  const verifyAdmin = async (
+    currentSession: Session | null
+  ): Promise<boolean> => {
+    if (!currentSession?.user?.id) {
+      return false;
+    }
+
+    const { data, error: adminError } = await supabase
+      .from('admin_users')
+      .select('user_id')
+      .eq('user_id', currentSession.user.id)
+      .maybeSingle();
+
+    if (adminError) {
+      console.error('Admin verification error:', adminError);
+      return false;
+    }
+
+    return Boolean(data);
+  };
+
   useEffect(() => {
-    const checkSession = async () => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error checking session:', error);
-          setError(error.message);
-        } else {
-          setSession(data.session);
+        setLoading(true);
+
+        const {
+          data: { session: currentSession },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          throw sessionError;
         }
-      } catch (err) {
-        console.error('Unexpected error checking session:', err);
-        setError('Failed to check session');
+
+        const isAdmin = await verifyAdmin(currentSession);
+
+        if (!mounted) return;
+
+        if (currentSession && !isAdmin) {
+          await supabase.auth.signOut();
+          setSession(null);
+          setError('هذا الحساب غير مصرح له بدخول لوحة التحكم');
+        } else {
+          setSession(currentSession);
+        }
+      } catch (err: any) {
+        console.error('Auth initialization error:', err);
+        if (mounted) {
+          setSession(null);
+          setError('تعذر التحقق من جلسة تسجيل الدخول');
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    checkSession();
+    initializeAuth();
 
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setTimeout(async () => {
+        if (!mounted) return;
+
+        if (!newSession) {
+          setSession(null);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+
+        const isAdmin = await verifyAdmin(newSession);
+
+        if (!mounted) return;
+
+        if (isAdmin) {
+          setSession(newSession);
+          setError(null);
+        } else {
+          await supabase.auth.signOut();
+          setSession(null);
+          setError('هذا الحساب غير مصرح له بدخول لوحة التحكم');
+        }
+
+        setLoading(false);
+      }, 0);
+    });
 
     return () => {
-      authListener?.subscription.unsubscribe();
+      mounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -56,21 +133,40 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
 
-      if (error) {
-        setError(error.message);
-        throw error;
+      if (loginError) {
+        if (loginError.message.toLowerCase().includes('invalid login')) {
+          throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        }
+
+        throw loginError;
+      }
+
+      if (!data.session) {
+        throw new Error('تعذر إنشاء جلسة تسجيل الدخول');
+      }
+
+      const isAdmin = await verifyAdmin(data.session);
+
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        throw new Error('هذا الحساب غير مصرح له بدخول لوحة التحكم');
       }
 
       setSession(data.session);
+      setError(null);
     } catch (err: any) {
-      const errorMessage = err?.message || 'Login failed';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      const message =
+        err?.message || 'حدث خطأ أثناء تسجيل الدخول';
+
+      setSession(null);
+      setError(message);
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
@@ -81,22 +177,23 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        setError(error.message);
-        throw error;
+      const { error: logoutError } = await supabase.auth.signOut();
+
+      if (logoutError) {
+        throw logoutError;
       }
+
       setSession(null);
     } catch (err: any) {
-      const errorMessage = err?.message || 'Logout failed';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      const message =
+        err?.message || 'حدث خطأ أثناء تسجيل الخروج';
+
+      setError(message);
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
   };
-
-  const isAuthenticated = session !== null;
 
   return (
     <AdminAuthContext.Provider
@@ -106,7 +203,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         error,
         login,
         logout,
-        isAuthenticated,
+        isAuthenticated: Boolean(session),
       }}
     >
       {children}
@@ -116,8 +213,12 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAdminAuth() {
   const context = useContext(AdminAuthContext);
+
   if (!context) {
-    throw new Error('useAdminAuth must be used within AdminAuthProvider');
+    throw new Error(
+      'useAdminAuth must be used within AdminAuthProvider'
+    );
   }
+
   return context;
 }
