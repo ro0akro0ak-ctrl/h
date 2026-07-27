@@ -65,7 +65,7 @@ const FALLBACK_BANK = {
 const formatPriceText = (amount: number) => `${amount.toFixed(3)} ريال عُماني`;
 
 export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
-  const { items, getTotal, clearCart } = useCart();
+  const { items, totalPrice, clearCart } = useCart();
   const checkoutItems = items;
 
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>(FALLBACK_SHIPPING);
@@ -128,7 +128,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
   const [appliedDiscount, setAppliedDiscount] = useState<{ amount: number; label: string; codeId?: number } | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
-  const subtotal = getTotal();
+  const subtotal = Number(totalPrice) || 0;
   const selectedShipping = shippingOptions.find(s => s.key === formData.shippingMethod) ?? shippingOptions[0];
   const shippingCost = selectedShipping?.price ?? 0;
   const discountAmount = appliedDiscount?.amount ?? 0;
