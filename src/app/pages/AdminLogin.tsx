@@ -3,6 +3,9 @@ import { motion } from 'motion/react';
 import { LogIn, AlertCircle, Loader } from 'lucide-react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 
+// تعريف اللون الكحلي المستخدم كلون أساسي للوحة والخلفية (مشتق من image_0.png)
+const DARK_NAVY = '#06161C';
+
 export default function AdminLogin() {
   const { login, loading, error } = useAdminAuth();
   const [email, setEmail] = useState('');
@@ -27,15 +30,17 @@ export default function AdminLogin() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#16B8BE] to-[#087F84] relative overflow-hidden"
+      // تم تحديث الخلفية لتكون بتدرج لوني مبني على اللون الكحلي المطلوب
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a2530] to-[#041014] relative overflow-hidden"
       dir="rtl"
     >
-      {/* Animated background dots */}
+      {/* خلفية النقاط المتحركة (تم تعديل اللون ليتناسب مع الكحلي) */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {[...Array(30)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute h-2 w-2 rounded-full bg-white/35 shadow-[0_0_10px_rgba(255,255,255,0.45)]"
+            // النقاط الآن بيضاء خفيفة لتعطي تباين مع الخلفية الداكنة
+            className="absolute h-2 w-2 rounded-full bg-white/10"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -43,7 +48,7 @@ export default function AdminLogin() {
             animate={{
               y: [0, -35, 0],
               x: [0, 12, 0],
-              opacity: [0.25, 0.9, 0.25],
+              opacity: [0.05, 0.4, 0.05],
             }}
             transition={{
               duration: 6 + Math.random() * 4,
@@ -59,15 +64,19 @@ export default function AdminLogin() {
         animate={{ opacity: 1, scale: 1 }}
         className="relative z-10 w-full max-w-md px-6 sm:px-8"
       >
-        <div className="rounded-3xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl p-8 sm:p-10">
-          {/* Header */}
+        <div
+          // اللوحة الرئيسية أصبحت الآن باللون الكحلي الداكن
+          style={{ backgroundColor: DARK_NAVY }}
+          className="rounded-3xl backdrop-blur-xl border border-white/5 shadow-2xl p-8 sm:p-10"
+        >
+          {/* Header - تم تعديل خلفية الشعار لتتناسب مع الكحلي */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="mb-8 text-center"
           >
-            <div className="flex justify-center">
+            <div className="flex justify-center p-2 rounded-xl bg-white/5">
               <img
                 src="/logo.png?v=2"
                 alt="3D TECH"
@@ -81,10 +90,10 @@ export default function AdminLogin() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 flex gap-3 rounded-2xl bg-red-50 border border-red-200 p-4"
+              className="mb-6 flex gap-3 rounded-2xl bg-red-900/40 border border-red-700 p-4"
             >
-              <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700 font-medium">
+              <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-200 font-medium">
                 {error || localError}
               </p>
             </motion.div>
@@ -92,13 +101,16 @@ export default function AdminLogin() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email / Username */}
+            {/* Email / Username - تم ضبط الألوان لتكون بيضاء */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <label className="block text-sm font-semibold text-[#063F43] mb-2">
+              <label
+                style={{ color: 'white' }} // لون النص أبيض
+                className="block text-sm font-semibold mb-2"
+              >
                 البريد الإلكتروني / اسم المستخدم
               </label>
               <input
@@ -107,18 +119,22 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@3dtech.store"
-                className="w-full px-4 py-3 rounded-2xl border-2 border-[#D8EFEF] bg-[#F5FCFC] text-[#063F43] placeholder:text-[#6B7F80] focus:border-[#16B8BE] focus:outline-none transition-colors"
+                // حقول الإدخال بخلفية كحلية أغمق وحدود بيضاء خفيفة
+                className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-[#030b0e] text-white placeholder:text-gray-500 focus:border-[#16B8BE]/50 focus:outline-none transition-colors"
                 disabled={loading}
               />
             </motion.div>
 
-            {/* Password */}
+            {/* Password - تم ضبط الألوان لتكون بيضاء */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <label className="block text-sm font-semibold text-[#063F43] mb-2">
+              <label
+                style={{ color: 'white' }} // لون النص أبيض
+                className="block text-sm font-semibold mb-2"
+              >
                 كلمة المرور
               </label>
               <input
@@ -126,18 +142,18 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-2xl border-2 border-[#D8EFEF] bg-[#F5FCFC] text-[#063F43] placeholder:text-[#6B7F80] focus:border-[#16B8BE] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-[#030b0e] text-white placeholder:text-gray-500 focus:border-[#16B8BE]/50 focus:outline-none transition-colors"
                 disabled={loading}
               />
             </motion.div>
 
-            {/* Submit Button */}
+            {/* Submit Button - الزر أبيض والنص داخله كحلي */}
             <motion.button
               type="submit"
               disabled={loading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-[#16B8BE] to-[#087F84] text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-full bg-white text-black font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -153,15 +169,7 @@ export default function AdminLogin() {
             </motion.button>
           </form>
 
-          {/* Help Text */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-6 text-center text-sm text-[#6B7F80]"
-          >
-            هل تحتاج مساعدة؟ تواصل مع فريق الدعم
-          </motion.p>
+          {/* Help Text - تم إزالة النص كما طلبت */}
         </div>
       </motion.div>
     </div>
