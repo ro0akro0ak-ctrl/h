@@ -23,12 +23,12 @@ export default function Price({
   return (
     <span
       dir="ltr"
-      className={`inline-flex items-center whitespace-nowrap gap-2 ${className}`}
+      className={`inline-flex items-center gap-2 whitespace-nowrap ${className}`}
     >
       <img
-        src="/omr-symbol.png"
-        alt="OMR"
-        className={`w-auto h-[0.9em] shrink-0 ${symbolClassName}`}
+        src="/omr-symbol-white.png"
+        alt="ريال عُماني"
+        className={`h-[0.9em] w-auto shrink-0 object-contain ${symbolClassName}`}
       />
 
       <span>{safeAmount.toFixed(decimals)}</span>
