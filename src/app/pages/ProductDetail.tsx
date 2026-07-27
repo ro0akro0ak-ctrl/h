@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, ShoppingCart, Heart, Share2, Star, Truck, Shield, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, Share2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
 import Price from '../components/Price';
@@ -14,45 +14,57 @@ interface ProductDetailProps {
     category: string;
     categoryAr: string;
     retailPrice: number;
-    wholesalePrice: number;
+    wholesalePrice?: number;
     image: string;
     additionalImages?: string[];
+    description: string;
+    descriptionAr: string;
   };
 }
 
 export default function ProductDetail({ onBack, product }: ProductDetailProps) {
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedType, setSelectedType] = useState<'retail' | 'wholesale'>('retail');
   const [quantity, setQuantity] = useState(1);
-  const [customSize, setCustomSize] = useState({
-    height: 160,
-    width: 60,
-    sleeveLength: 60,
-  });
-  const [useCustomSize, setUseCustomSize] = useState(false);
-
-  const images = [
-    product.image,
-    ...(product.additionalImages || []),
-  ];
 
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
       name: product.name,
       nameAr: product.nameAr,
-      price: selectedType === 'retail' ? product.retailPrice : product.wholesalePrice,
+      price: product.retailPrice,
       image: product.image,
-      type: selectedType,
-      size: useCustomSize ? customSize : undefined,
+      type: 'retail',
+      quantity,
     });
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-[1400px] mx-auto">
+    <div className="min-h-screen pt-24 pb-16 px-6 bg-[#0B2C34] relative overflow-hidden text-white">
+      {/* نقاط الخلفية المتحركة */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {Array.from({ length: 30 }, (_, index) => (
+          <motion.span
+            key={index}
+            className="absolute h-1.5 w-1.5 rounded-full bg-[#18C2CF]/40"
+            style={{
+              right: `${(index * 29) % 100}%`,
+              top: `${(index * 37) % 100}%`,
+            }}
+            animate={{
+              opacity: [0.15, 0.55, 0.15],
+              y: [0, -18, 0],
+            }}
+            transition={{
+              duration: 5 + (index % 5),
+              repeat: Infinity,
+              delay: (index % 7) * 0.25,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="max-w-[1180px] mx-auto relative z-10">
         {/* زر العودة */}
         <motion.button
           type="button"
@@ -60,22 +72,22 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
           animate={{ opacity: 1, x: 0 }}
           onClick={onBack}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 mb-8 hover:gap-3 transition-all"
+          className="flex items-center gap-2 mb-8 text-white/80 hover:text-white hover:gap-3 transition-all"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className={`w-5 h-5 ${language === 'ar' ? 'rotate-180' : ''}`} />
           <span>{language === 'ar' ? 'العودة' : 'Back'}</span>
         </motion.button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* قسم الصور */}
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* قسم الصورة بأبعاد أقصر [4/5] */}
+          <div>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-black/10 dark:border-white/10"
+              className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-[#123943] border border-white/10 shadow-2xl"
             >
               <img
-                src={images[selectedImage]}
+                src={product.image}
                 alt={language === 'ar' ? product.nameAr : product.name}
                 className="w-full h-full object-cover"
               />
@@ -85,7 +97,7 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
                   type="button"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-full"
+                  className="p-3 bg-black/40 backdrop-blur-xl rounded-full text-white hover:bg-black/60 transition"
                 >
                   <Heart className="w-5 h-5" />
                 </motion.button>
@@ -93,31 +105,12 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
                   type="button"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-full"
+                  className="p-3 bg-black/40 backdrop-blur-xl rounded-full text-white hover:bg-black/60 transition"
                 >
                   <Share2 className="w-5 h-5" />
                 </motion.button>
               </div>
             </motion.div>
-
-            <div className="grid grid-cols-4 gap-4">
-              {images.map((img, index) => (
-                <motion.button
-                  key={index}
-                  type="button"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
-                    selectedImage === index
-                      ? 'border-black dark:border-white'
-                      : 'border-black/10 dark:border-white/10'
-                  }`}
-                >
-                  <img src={img} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
-                </motion.button>
-              ))}
-            </div>
           </div>
 
           {/* تفاصيل المنتج */}
@@ -126,167 +119,51 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
-            <div className="inline-block px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 text-sm">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-sm font-medium text-[#18C2CF] border border-white/10">
               {language === 'ar' ? product.categoryAr : product.category}
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold">
+            <h1 className="text-3xl md:text-4xl font-black text-white">
               {language === 'ar' ? product.nameAr : product.name}
             </h1>
 
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-500 text-yellow-500" />
-                ))}
+            {/* سعر البيع فقط */}
+            <div className="p-4 rounded-2xl border border-white/10 bg-[#123943]">
+              <div className="text-sm text-white/60 mb-1">
+                {language === 'ar' ? 'السعر' : 'Price'}
               </div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                (128 {language === 'ar' ? 'تقييم' : 'reviews'})
-              </span>
-            </div>
-
-            {/* تحديد نوع السعر */}
-            <div className="space-y-3">
-              <label className="text-sm font-semibold">
-                {language === 'ar' ? 'نوع السعر' : 'Price Type'}
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedType('retail')}
-                  className={`p-4 rounded-2xl border-2 transition-all text-start ${
-                    selectedType === 'retail'
-                      ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
-                      : 'border-black/10 dark:border-white/10'
-                  }`}
-                >
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {t('products.retail')}
-                  </div>
-                  <Price
-                    amount={product.retailPrice}
-                    className="text-2xl font-bold"
-                  />
-                </motion.button>
-
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedType('wholesale')}
-                  className={`p-4 rounded-2xl border-2 transition-all text-start ${
-                    selectedType === 'wholesale'
-                      ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
-                      : 'border-black/10 dark:border-white/10'
-                  }`}
-                >
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {t('products.wholesale')}
-                  </div>
-                  <Price
-                    amount={product.wholesalePrice}
-                    className="text-2xl font-bold text-green-600 dark:text-green-400"
-                  />
-                </motion.button>
-              </div>
+              <Price
+                amount={product.retailPrice}
+                className="text-3xl font-black text-[#18C2CF]"
+              />
             </div>
 
             {/* محدد الكمية */}
             <div className="space-y-3">
-              <label className="text-sm font-semibold">
+              <label className="text-sm font-semibold text-white/80">
                 {language === 'ar' ? 'الكمية' : 'Quantity'}
               </label>
               <div className="flex items-center gap-4">
                 <motion.button
                   type="button"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-xl font-bold"
+                  className="w-12 h-12 rounded-2xl bg-[#123943] border border-white/10 hover:bg-white/10 flex items-center justify-center text-xl font-bold transition"
                 >
                   -
                 </motion.button>
-                <div className="w-20 text-center text-2xl font-bold">{quantity}</div>
+                <div className="w-16 text-center text-2xl font-bold">{quantity}</div>
                 <motion.button
                   type="button"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-xl font-bold"
+                  className="w-12 h-12 rounded-2xl bg-[#123943] border border-white/10 hover:bg-white/10 flex items-center justify-center text-xl font-bold transition"
                 >
                   +
                 </motion.button>
               </div>
-            </div>
-
-            {/* المقاس المخصص */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="customSize"
-                  checked={useCustomSize}
-                  onChange={(e) => setUseCustomSize(e.target.checked)}
-                  className="w-5 h-5 rounded"
-                />
-                <label htmlFor="customSize" className="text-sm font-semibold cursor-pointer">
-                  {language === 'ar' ? 'مقاس مخصص' : 'Custom Size'}
-                </label>
-              </div>
-
-              {useCustomSize && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="space-y-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5"
-                >
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold mb-2">
-                        {language === 'ar' ? 'الطول (سم)' : 'Height (cm)'}
-                      </label>
-                      <input
-                        type="number"
-                        value={customSize.height}
-                        onChange={(e) => setCustomSize({ ...customSize, height: Number(e.target.value) })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors text-center font-semibold"
-                        min="100"
-                        max="200"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold mb-2">
-                        {language === 'ar' ? 'العرض (سم)' : 'Width (cm)'}
-                      </label>
-                      <input
-                        type="number"
-                        value={customSize.width}
-                        onChange={(e) => setCustomSize({ ...customSize, width: Number(e.target.value) })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors text-center font-semibold"
-                        min="40"
-                        max="100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold mb-2">
-                        {language === 'ar' ? 'طول اليد (سم)' : 'Sleeve (cm)'}
-                      </label>
-                      <input
-                        type="number"
-                        value={customSize.sleeveLength}
-                        onChange={(e) => setCustomSize({ ...customSize, sleeveLength: Number(e.target.value) })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/50 border border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white outline-none transition-colors text-center font-semibold"
-                        min="40"
-                        max="80"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
             </div>
 
             {/* زر إضافة إلى السلة */}
@@ -295,43 +172,21 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAddToCart}
-              className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center gap-3 text-lg font-semibold shadow-lg"
+              className="w-full py-4 bg-[#18C2CF] hover:bg-[#15b0bc] text-white rounded-2xl flex items-center justify-center gap-3 text-lg font-bold shadow-lg shadow-[#18C2CF]/20 transition"
             >
               <ShoppingCart className="w-6 h-6" />
               {t('products.addToCart')}
             </motion.button>
 
-            {/* المميزات */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-black/5 dark:bg-white/5">
-                <Truck className="w-5 h-5" />
-                <div className="text-sm">
-                  {language === 'ar' ? 'شحن مجاني' : 'Free Shipping'}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-black/5 dark:bg-white/5">
-                <Shield className="w-5 h-5" />
-                <div className="text-sm">
-                  {language === 'ar' ? 'ضمان الجودة' : 'Quality Guarantee'}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-black/5 dark:bg-white/5">
-                <RefreshCw className="w-5 h-5" />
-                <div className="text-sm">
-                  {language === 'ar' ? 'إرجاع سهل' : 'Easy Returns'}
-                </div>
-              </div>
-            </div>
-
-            {/* الوصف */}
-            <div className="pt-6 space-y-4">
-              <h3 className="text-xl font-bold">
+            {/* الوصف مع معالجة الحالة الفارغة */}
+            <div className="pt-4 space-y-3 border-t border-white/10">
+              <h3 className="text-xl font-bold text-white">
                 {language === 'ar' ? 'الوصف' : 'Description'}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-gray-300 leading-8">
                 {language === 'ar'
-                  ? 'عباية فاخرة مصنوعة من أجود أنواع الأقمشة، تتميز بتصميم عصري وأنيق يناسب جميع المناسبات. صُنعت بعناية فائقة لتوفر لك الراحة والأناقة في آن واحد.'
-                  : 'Luxury abaya crafted from the finest fabrics, featuring a modern and elegant design suitable for all occasions. Meticulously crafted to provide you with comfort and elegance simultaneously.'}
+                  ? product.descriptionAr || 'لا يوجد وصف لهذا المنتج حاليًا.'
+                  : product.description || 'No description available.'}
               </p>
             </div>
           </motion.div>
