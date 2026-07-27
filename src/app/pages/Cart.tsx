@@ -9,6 +9,7 @@ import {
 
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
+import Price from '../components/Price';
 
 interface CartProps {
   onNavigate: (page: string) => void;
@@ -157,12 +158,12 @@ export default function Cart({
                           {ar ? item.nameAr || item.name : item.name || item.nameAr}
                         </h3>
 
-                        <p
-                          dir="ltr"
-                          className="mt-2 text-lg font-black text-[#21CDD4]"
-                        >
-                          {Number(item.price).toFixed(3)} ر.ع
-                        </p>
+                        <div className="mt-2">
+                          <Price
+                            amount={item.price}
+                            className="text-lg font-black text-[#20CDD4]"
+                          />
+                        </div>
                       </div>
 
                       <button
@@ -228,12 +229,10 @@ export default function Cart({
               {ar ? 'الإجمالي' : 'Total'}
             </span>
 
-            <span
-              dir="ltr"
-              className="text-2xl font-black text-[#21CDD4]"
-            >
-              {Number(totalPrice).toFixed(3)} ر.ع
-            </span>
+            <Price
+              amount={totalPrice}
+              className="text-2xl font-black text-[#20CDD4]"
+            />
           </div>
 
           <button
