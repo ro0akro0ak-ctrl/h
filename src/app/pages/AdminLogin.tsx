@@ -35,14 +35,15 @@ export default function AdminLogin() {
         {[...Array(30)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute h-2 w-2 rounded-full bg-white/10"
+            className="absolute h-2 w-2 rounded-full bg-white/35 shadow-[0_0_10px_rgba(255,255,255,0.45)]"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
             }}
             animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.5, 0.2],
+              y: [0, -35, 0],
+              x: [0, 12, 0],
+              opacity: [0.25, 0.9, 0.25],
             }}
             transition={{
               duration: 6 + Math.random() * 4,
@@ -66,19 +67,13 @@ export default function AdminLogin() {
             transition={{ delay: 0.1 }}
             className="mb-8 text-center"
           >
-            <div className="mb-4 flex justify-center">
+            <div className="flex justify-center">
               <img
                 src="/logo.png?v=2"
                 alt="3D TECH"
-                className="h-16 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             </div>
-            <h1 className="text-3xl font-black text-[#063F43] mb-2">
-              3D TECH Admin
-            </h1>
-            <p className="text-sm text-[#6B7F80]">
-              لوحة التحكم
-            </p>
           </motion.div>
 
           {/* Error Message */}
