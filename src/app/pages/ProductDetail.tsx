@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, ShoppingCart, Heart, Share2, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
+import Price from '../components/Price';
 
 interface ProductDetailProps {
   onBack: () => void;
@@ -52,7 +53,7 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-[1400px] mx-auto">
-        {/* Back Button */}
+        {/* زر العودة */}
         <motion.button
           type="button"
           initial={{ opacity: 0, x: -20 }}
@@ -66,9 +67,8 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
         </motion.button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Images Section */}
+          {/* قسم الصور */}
           <div className="space-y-4">
-            {/* Main Image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -80,7 +80,6 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
                 className="w-full h-full object-cover"
               />
 
-              {/* Wishlist & Share */}
               <div className="absolute top-4 right-4 flex gap-2">
                 <motion.button
                   type="button"
@@ -101,7 +100,6 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               </div>
             </motion.div>
 
-            {/* Thumbnail Images */}
             <div className="grid grid-cols-4 gap-4">
               {images.map((img, index) => (
                 <motion.button
@@ -122,23 +120,20 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
             </div>
           </div>
 
-          {/* Product Info */}
+          {/* تفاصيل المنتج */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
-            {/* Category Badge */}
             <div className="inline-block px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 text-sm">
               {language === 'ar' ? product.categoryAr : product.category}
             </div>
 
-            {/* Title */}
             <h1 className="text-4xl md:text-5xl font-bold">
               {language === 'ar' ? product.nameAr : product.name}
             </h1>
 
-            {/* Rating */}
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => (
@@ -150,7 +145,7 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               </span>
             </div>
 
-            {/* Price Type Selection */}
+            {/* تحديد نوع السعر */}
             <div className="space-y-3">
               <label className="text-sm font-semibold">
                 {language === 'ar' ? 'نوع السعر' : 'Price Type'}
@@ -161,16 +156,19 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedType('retail')}
-                  className={`p-4 rounded-2xl border-2 transition-all ${
+                  className={`p-4 rounded-2xl border-2 transition-all text-start ${
                     selectedType === 'retail'
                       ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
                       : 'border-black/10 dark:border-white/10'
                   }`}
                 >
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                     {t('products.retail')}
                   </div>
-                  <div className="text-2xl font-bold">${product.retailPrice}</div>
+                  <Price
+                    amount={product.retailPrice}
+                    className="text-2xl font-bold"
+                  />
                 </motion.button>
 
                 <motion.button
@@ -178,23 +176,24 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedType('wholesale')}
-                  className={`p-4 rounded-2xl border-2 transition-all ${
+                  className={`p-4 rounded-2xl border-2 transition-all text-start ${
                     selectedType === 'wholesale'
                       ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
                       : 'border-black/10 dark:border-white/10'
                   }`}
                 >
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                     {t('products.wholesale')}
                   </div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    ${product.wholesalePrice}
-                  </div>
+                  <Price
+                    amount={product.wholesalePrice}
+                    className="text-2xl font-bold text-green-600 dark:text-green-400"
+                  />
                 </motion.button>
               </div>
             </div>
 
-            {/* Quantity Selector */}
+            {/* محدد الكمية */}
             <div className="space-y-3">
               <label className="text-sm font-semibold">
                 {language === 'ar' ? 'الكمية' : 'Quantity'}
@@ -222,7 +221,7 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               </div>
             </div>
 
-            {/* Custom Size Toggle */}
+            {/* المقاس المخصص */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <input
@@ -290,19 +289,19 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               )}
             </div>
 
-            {/* Add to Cart Button */}
+            {/* زر إضافة إلى السلة */}
             <motion.button
               type="button"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAddToCart}
-              className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center gap-3 text-lg font-semibold"
+              className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center gap-3 text-lg font-semibold shadow-lg"
             >
               <ShoppingCart className="w-6 h-6" />
               {t('products.addToCart')}
             </motion.button>
 
-            {/* Features */}
+            {/* المميزات */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-black/5 dark:bg-white/5">
                 <Truck className="w-5 h-5" />
@@ -324,7 +323,7 @@ export default function ProductDetail({ onBack, product }: ProductDetailProps) {
               </div>
             </div>
 
-            {/* Description */}
+            {/* الوصف */}
             <div className="pt-6 space-y-4">
               <h3 className="text-xl font-bold">
                 {language === 'ar' ? 'الوصف' : 'Description'}
