@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 
 import { useProducts } from '../contexts/ProductsContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCart } from '../contexts/CartContext';
 
 const categories = [
   'all',
@@ -13,9 +14,14 @@ const categories = [
 
 type Category = (typeof categories)[number];
 
-export const Shop: React.FC = () => {
+interface ShopProps {
+  onProductClick?: (product: any) => void;
+}
+
+export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
   const { products } = useProducts();
   const { language } = useLanguage();
+  const { addToCart } = useCart();
   const ar = language === 'ar';
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -199,7 +205,15 @@ export const Shop: React.FC = () => {
                   (product) => (
                     <article
                       key={product.id}
-                      className="overflow-hidden rounded-3xl border border-white/10 bg-[#10292D] shadow-xl transition duration-300 hover:-translate-y-1"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onProductClick?.(product)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          onProductClick?.(product);
+                        }
+                      }}
+                      className="cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-[#10292D] shadow-xl transition duration-300 hover:-translate-y-1 hover:border-[#16B8BE]/60 hover:shadow-2xl"
                     >
                       {/* صورة المنتج */}
                       <div className="aspect-square overflow-hidden bg-white/5">
@@ -232,24 +246,34 @@ export const Shop: React.FC = () => {
                           </p>
                         )}
 
-                        <div className="mt-5 flex items-center justify-between">
-                          <span
-                            dir="ltr"
-                            className="text-lg font-black text-[#16B8BE]"
-                          >
-                            {Number(
-                              product.retailPrice,
-                            ).toFixed(3)}{' '}
-                            {ar ? 'ر.ع.' : 'OMR'}
-                          </span>
-
-                          {typeof product.stock ===
-                            'number' && (
-                            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/60">
-                              {ar ? 'المتوفر:' : 'Stock:'}{' '}
-                              {product.stock}
+                        <div className="mt-5 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span
+                              dir="ltr"
+                              className="text-xl font-black text-[#20CDD4]"
+                            >
+                              {(Number(product.retailPrice) || 0).toFixed(3)}{' '}
+                              {ar ? 'ر.ع.' : 'OMR'}
                             </span>
-                          )}
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={product.stock === 0}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              addToCart(product);
+                            }}
+                            className="w-full rounded-2xl bg-[#16B8BE] px-5 py-3 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#0B969C] disabled:cursor-not-allowed disabled:bg-gray-500 disabled:opacity-60"
+                          >
+                            {product.stock === 0
+                              ? ar
+                                ? 'نفد من المخزون'
+                                : 'Out of stock'
+                              : ar
+                                ? 'إضافة إلى السلة'
+                                : 'Add to Cart'}
+                          </button>
                         </div>
                       </div>
                     </article>
