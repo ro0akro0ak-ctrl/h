@@ -190,7 +190,7 @@ export default function Checkout({ onBack, onSuccess }: CheckoutProps) {
       const { data, error } = await supabase
         .from('discount_codes')
         .select('*')
-        .eq('code', trimmedCode.toUpperCase())
+        .ilike('code', trimmedCode)
         .eq('is_active', true)
         .maybeSingle();
 
