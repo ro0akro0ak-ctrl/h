@@ -1,30 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  Tag, 
-  Truck, 
-  Settings, 
-  LogOut, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  DollarSign, 
-  Menu, 
-  X,
-  TrendingUp,
+import {
+  AlertCircle,
+  DollarSign,
+  Edit,
+  LayoutDashboard,
   Loader,
-  Gavel,
-  AlertCircle
+  LogOut,
+  Menu,
+  Package,
+  Plus,
+  ShoppingCart,
+  Tag,
+  Trash2,
+  Truck,
+  X,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../../utils/supabase';
 
-// TypeScript Interfaces دقيقة لكل الجداول مع مطابقة أسماء الأعمدة الفعلية
 export interface Product {
   id: number;
   name: string;
@@ -47,97 +42,64 @@ export interface Order {
   created_at: string;
 }
 
-export interface Customer {
-  id: number;
-  name: string;
-  email: string;
-  created_at?: string;
-}
-
 export interface Discount {
   id: number;
   code: string;
   percentage: number;
 }
 
-export interface Bid {
-  id: number;
-  auction_id: number;
-  user_email: string;
-  bid_amount: number;
-  created_at: string;
-}
-
-export interface Auction {
-  id: number;
-  title: string;
-  start_price: number;
-  current_price: number;
-  end_time: string;
-  status: 'active' | 'ended' | 'completed';
-  winner?: string;
-  bids?: Bid[];
-}
-
 export interface StoreSettingsData {
-  storeName: string;
-  supportEmail: string;
   shippingFee: string;
-  taxRate: string;
 }
+
+type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping';
+
+const BRAND = {
+  dark: '#082E33',
+  darkSoft: '#0B3A40',
+  teal: '#17B8BE',
+  tealDark: '#0B8F96',
+  page: '#F2FBFB',
+  border: '#CDEBEC',
+  muted: '#6D8588',
+};
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
   const { logout } = useAdminAuth();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'customers' | 'discounts' | 'shipping' | 'auctions' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  // States للبيانات
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [auctions, setAuctions] = useState<Auction[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // States لنموذج المنتجات
-  const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formNameAr, setFormNameAr] = useState<string>('');
-  const [formNameEn, setFormNameEn] = useState<string>('');
-  const [formCategory, setFormCategory] = useState<string>('');
-  const [formRetailPrice, setFormRetailPrice] = useState<string>('');
-  const [formWholesalePrice, setFormWholesalePrice] = useState<string>('');
-  const [formStock, setFormStock] = useState<string>('');
+  const [formNameAr, setFormNameAr] = useState('');
+  const [formNameEn, setFormNameEn] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formRetailPrice, setFormRetailPrice] = useState('');
+  const [formWholesalePrice, setFormWholesalePrice] = useState('');
+  const [formStock, setFormStock] = useState('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [savingProduct, setSavingProduct] = useState<boolean>(false);
+  const [savingProduct, setSavingProduct] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // الكوبونات
-  const [showAddDiscountModal, setShowAddDiscountModal] = useState<boolean>(false);
-  const [discCode, setDiscCode] = useState<string>('');
-  const [discPercentage, setDiscPercentage] = useState<string>('');
+  const [showAddDiscountModal, setShowAddDiscountModal] = useState(false);
+  const [discCode, setDiscCode] = useState('');
+  const [discPercentage, setDiscPercentage] = useState('');
 
-  // المزادات
-  const [showAddAuctionModal, setShowAddAuctionModal] = useState<boolean>(false);
-  const [auctionTitle, setAuctionTitle] = useState<string>('');
-  const [auctionStartPrice, setAuctionStartPrice] = useState<string>('');
-  const [auctionEndTime, setAuctionEndTime] = useState<string>('');
-
-  // إعدادات المتجر
   const [storeSettings, setStoreSettings] = useState<StoreSettingsData>({
-    storeName: '3D TECH',
-    supportEmail: 'support@3dtech.store',
     shippingFee: '25',
-    taxRate: '15'
   });
-  const [savingSettings, setSavingSettings] = useState<boolean>(false);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
-    fetchSupabaseData();
+    void fetchSupabaseData();
   }, []);
 
   const fetchSupabaseData = async () => {
@@ -145,38 +107,31 @@ export default function AdminDashboard() {
       setLoading(true);
       setGlobalError(null);
 
-      const [prodRes, ordRes, custRes, discRes, aucRes, setRes] = await Promise.all([
+      const [prodRes, ordRes, discRes, setRes] = await Promise.all([
         supabase.from('products').select('*').order('id', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        supabase.from('customers').select('*'),
-        supabase.from('discounts').select('*'),
-        supabase.from('auctions').select('*, bids(*)').order('id', { ascending: false }),
-        supabase.from('store_settings').select('*').single()
+        supabase.from('discounts').select('*').order('id', { ascending: false }),
+        supabase.from('store_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
 
       if (prodRes.error) throw new Error(`خطأ في جلب المنتجات: ${prodRes.error.message}`);
       if (ordRes.error) throw new Error(`خطأ في جلب الطلبات: ${ordRes.error.message}`);
-      if (custRes.error) throw new Error(`خطأ في جلب العملاء: ${custRes.error.message}`);
       if (discRes.error) throw new Error(`خطأ في جلب الخصومات: ${discRes.error.message}`);
-      if (aucRes.error) throw new Error(`خطأ في جلب المزادات: ${aucRes.error.message}`);
+      if (setRes.error) throw new Error(`خطأ في جلب إعدادات الشحن: ${setRes.error.message}`);
 
-      if (prodRes.data) setProducts(prodRes.data as Product[]);
-      if (ordRes.data) setOrders(ordRes.data as Order[]);
-      if (custRes.data) setCustomers(custRes.data as Customer[]);
-      if (discRes.data) setDiscounts(discRes.data as Discount[]);
-      if (aucRes.data) setAuctions(aucRes.data as Auction[]);
-      
+      setProducts((prodRes.data ?? []) as Product[]);
+      setOrders((ordRes.data ?? []) as Order[]);
+      setDiscounts((discRes.data ?? []) as Discount[]);
+
       if (setRes.data) {
         setStoreSettings({
-          storeName: setRes.data.store_name || '3D TECH',
-          supportEmail: setRes.data.support_email || 'support@3dtech.store',
           shippingFee: setRes.data.shipping_fee?.toString() || '25',
-          taxRate: setRes.data.tax_rate?.toString() || '15'
         });
       }
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع أثناء الاتصال بقاعدة البيانات';
       console.error(err);
-      setGlobalError(err.message || 'حدث خطأ غير متوقع أثناء الاتصال بقاعدة البيانات');
+      setGlobalError(message);
     } finally {
       setLoading(false);
     }
@@ -188,68 +143,61 @@ export default function AdminDashboard() {
     setActionError(null);
 
     try {
-      let finalImagesList = [...existingImages];
+      const finalImagesList = [...existingImages];
 
-      if (imageFiles.length > 0) {
-        for (const file of imageFiles) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
-          const filePath = `products/${fileName}`;
+      for (const file of imageFiles) {
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `products/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from('product-images')
-            .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
 
-          if (uploadError) throw new Error(`فشل رفع الصورة: ${uploadError.message}`);
+        if (uploadError) throw new Error(`فشل رفع الصورة: ${uploadError.message}`);
 
-          const { data: publicURLData } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(filePath);
-
-          finalImagesList.push(publicURLData.publicUrl);
-        }
+        const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+        finalImagesList.push(data.publicUrl);
       }
 
-      const primaryImage = finalImagesList.length > 0 ? finalImagesList[0] : 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80';
-
+      const primaryImage = finalImagesList[0] || '';
       const productPayload = {
         name: formNameEn || formNameAr,
         nameAr: formNameAr,
         category: formCategory,
         categoryAr: formCategory,
-        retailPrice: parseFloat(formRetailPrice) || 0,
-        wholesalePrice: parseFloat(formWholesalePrice) || 0,
-        stock: parseInt(formStock) || 0,
+        retailPrice: Number(formRetailPrice) || 0,
+        wholesalePrice: Number(formWholesalePrice) || 0,
+        stock: Number.parseInt(formStock, 10) || 0,
         image: primaryImage,
-        additionalImages: finalImagesList
+        additionalImages: finalImagesList,
       };
 
-      if (editingProduct) {
-        const { error } = await supabase.from('products').update(productPayload).eq('id', editingProduct.id);
-        if (error) throw new Error(`فشل التعديل: ${error.message}`);
-      } else {
-        const { error } = await supabase.from('products').insert([productPayload]);
-        if (error) throw new Error(`فشل الإضافة: ${error.message}`);
-      }
+      const query = editingProduct
+        ? supabase.from('products').update(productPayload).eq('id', editingProduct.id)
+        : supabase.from('products').insert([productPayload]);
 
-      closeModal();
-      fetchSupabaseData();
-    } catch (err: any) {
-      setActionError(err.message || 'فشل حفظ المنتج');
+      const { error } = await query;
+      if (error) throw new Error(editingProduct ? `فشل التعديل: ${error.message}` : `فشل الإضافة: ${error.message}`);
+
+      closeProductModal();
+      await fetchSupabaseData();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'فشل حفظ المنتج');
     } finally {
       setSavingProduct(false);
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المنتج؟' : 'Are you sure you want to delete this product?')) {
-      try {
-        const { error } = await supabase.from('products').delete().eq('id', id);
-        if (error) throw new Error(error.message);
-        setProducts(products.filter(p => p.id !== id));
-      } catch (err: any) {
-        alert('خطأ أثناء الحذف: ' + err.message);
-      }
+    if (!window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المنتج؟' : 'Delete this product?')) return;
+
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) throw new Error(error.message);
+      setProducts((current) => current.filter((product) => product.id !== id));
+    } catch (err) {
+      alert(`خطأ أثناء الحذف: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     }
   };
 
@@ -265,7 +213,7 @@ export default function AdminDashboard() {
     setShowAddProductModal(true);
   };
 
-  const closeModal = () => {
+  const closeProductModal = () => {
     setShowAddProductModal(false);
     setEditingProduct(null);
     setFormNameAr('');
@@ -283,167 +231,147 @@ export default function AdminDashboard() {
     try {
       const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
       if (error) throw new Error(error.message);
-      setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-    } catch (err: any) {
-      alert('فشل تحديث حالة الطلب: ' + err.message);
+      setOrders((current) => current.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)));
+    } catch (err) {
+      alert(`فشل تحديث حالة الطلب: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     }
   };
 
   const handleAddDiscount = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from('discounts').insert([{ code: discCode, percentage: parseFloat(discPercentage) }]);
+      const { error } = await supabase.from('discounts').insert([
+        { code: discCode.trim().toUpperCase(), percentage: Number(discPercentage) },
+      ]);
       if (error) throw new Error(error.message);
       setShowAddDiscountModal(false);
       setDiscCode('');
       setDiscPercentage('');
-      fetchSupabaseData();
-    } catch (err: any) {
-      alert('خطأ: ' + err.message);
+      await fetchSupabaseData();
+    } catch (err) {
+      alert(`خطأ: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     }
   };
 
   const handleDeleteDiscount = async (id: number) => {
     try {
-      await supabase.from('discounts').delete().eq('id', id);
-      setDiscounts(discounts.filter(d => d.id !== id));
-    } catch (err: any) {
-      alert('خطأ: ' + err.message);
-    }
-  };
-
-  const handleAddAuction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { error } = await supabase.from('auctions').insert([{
-        title: auctionTitle,
-        start_price: parseFloat(auctionStartPrice),
-        current_price: parseFloat(auctionStartPrice),
-        end_time: auctionEndTime,
-        status: 'active'
-      }]);
+      const { error } = await supabase.from('discounts').delete().eq('id', id);
       if (error) throw new Error(error.message);
-      setShowAddAuctionModal(false);
-      setAuctionTitle('');
-      setAuctionStartPrice('');
-      setAuctionEndTime('');
-      fetchSupabaseData();
-    } catch (err: any) {
-      alert('خطأ: ' + err.message);
+      setDiscounts((current) => current.filter((discount) => discount.id !== id));
+    } catch (err) {
+      alert(`خطأ: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     }
   };
 
-  const handleToggleAuctionStatus = async (auctionId: number, currentStatus: Auction['status']) => {
-    const nextStatus = currentStatus === 'active' ? 'ended' : 'active';
-    try {
-      await supabase.from('auctions').update({ status: nextStatus }).eq('id', auctionId);
-      fetchSupabaseData();
-    } catch (err: any) {
-      alert('خطأ: ' + err.message);
-    }
-  };
-
-  const handleAutoDetermineWinner = async (auction: Auction) => {
-    if (!auction.bids || auction.bids.length === 0) {
-      alert('لا توجد أي مزايدات على هذا المنتج حتى الآن.');
-      return;
-    }
-
-    const highestBid = auction.bids.reduce((max, current) => current.bid_amount > max.bid_amount ? current : max, auction.bids[0]);
-
-    try {
-      const { error } = await supabase.from('auctions').update({
-        status: 'completed',
-        winner: highestBid.user_email
-      }).eq('id', auction.id);
-
-      if (error) throw new Error(error.message);
-      alert(`تم إعلان الفائز تلقائياً بنجاح: ${highestBid.user_email} بقيمة $${highestBid.bid_amount}`);
-      fetchSupabaseData();
-    } catch (err: any) {
-      alert('خطأ أثناء اختيار الفائز: ' + err.message);
-    }
-  };
-
-  const handleSaveSettings = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSaveShipping = async () => {
     setSavingSettings(true);
     try {
       const { error } = await supabase.from('store_settings').upsert({
         id: 1,
-        store_name: storeSettings.storeName,
-        support_email: storeSettings.supportEmail,
-        shipping_fee: parseFloat(storeSettings.shippingFee),
-        tax_rate: parseFloat(storeSettings.taxRate)
+        shipping_fee: Number(storeSettings.shippingFee),
       });
       if (error) throw new Error(error.message);
-      alert('تم حفظ إعدادات المتجر بنجاح في قاعدة البيانات');
-    } catch (err: any) {
-      alert('خطأ في الحفظ: ' + err.message);
+      alert('تم حفظ تكلفة الشحن بنجاح');
+    } catch (err) {
+      alert(`خطأ في الحفظ: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
     } finally {
       setSavingSettings(false);
     }
   };
 
-  const totalSalesValue = orders.reduce((acc, curr) => acc + (curr.total || 0), 0);
+  const totalSalesValue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+  const lowStockCount = products.filter((product) => product.stock <= 5).length;
 
   const menuItems = [
-    { id: 'dashboard', labelAr: 'الرئيسية', labelEn: 'Dashboard', icon: LayoutDashboard },
-    { id: 'products', labelAr: 'المنتجات', labelEn: 'Products', icon: Package },
-    { id: 'orders', labelAr: 'الطلبات', labelEn: 'Orders', icon: ShoppingCart },
-    { id: 'customers', labelAr: 'العملاء', labelEn: 'Customers', icon: Users },
-    { id: 'discounts', labelAr: 'الخصومات', labelEn: 'Discounts', icon: Tag },
-    { id: 'shipping', labelAr: 'الشحن', labelEn: 'Shipping', icon: Truck },
-    { id: 'auctions', labelAr: 'المزادات', labelEn: 'Auctions', icon: Gavel },
-    { id: 'settings', labelAr: 'الإعدادات', labelEn: 'Settings', icon: Settings },
+    { id: 'dashboard' as const, labelAr: 'الرئيسية', labelEn: 'Dashboard', icon: LayoutDashboard },
+    { id: 'products' as const, labelAr: 'المنتجات', labelEn: 'Products', icon: Package },
+    { id: 'orders' as const, labelAr: 'الطلبات', labelEn: 'Orders', icon: ShoppingCart },
+    { id: 'discounts' as const, labelAr: 'الخصومات', labelEn: 'Discounts', icon: Tag },
+    { id: 'shipping' as const, labelAr: 'الشحن', labelEn: 'Shipping', icon: Truck },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5FCFC] dark:bg-gray-950 flex flex-col md:flex-row" dir="rtl">
-      {/* Mobile Header Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-[#D8EFEF] dark:border-gray-800 sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png?v=2" alt="3D TECH" className="h-8 w-auto object-contain" />
-          <span className="font-bold text-[#063F43] dark:text-white">3D TECH Admin</span>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-[#F2FBFB] flex flex-col md:flex-row" dir="rtl">
+      {/* نقاط خلفية بسيطة */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        {Array.from({ length: 42 }, (_, index) => (
+          <motion.span
+            key={index}
+            className="absolute rounded-full bg-[#17B8BE]/20"
+            style={{
+              width: `${4 + (index % 4) * 2}px`,
+              height: `${4 + (index % 4) * 2}px`,
+              right: `${(index * 23) % 100}%`,
+              top: `${(index * 31) % 100}%`,
+            }}
+            animate={{ opacity: [0.12, 0.42, 0.12], y: [0, -18, 0] }}
+            transition={{ duration: 5 + (index % 6), repeat: Infinity, delay: (index % 8) * 0.25 }}
+          />
+        ))}
+      </div>
+
+      {/* شريط الجوال */}
+      <div className="relative z-30 md:hidden flex items-center justify-between p-4 bg-[#082E33] border-b border-white/10 sticky top-0">
+        <img src="/logo.png?v=2" alt="3D TECH" className="h-10 w-auto object-contain" />
         <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 rounded-xl bg-[#F5FCFC] dark:bg-gray-800 text-[#063F43] dark:text-white"
+          type="button"
+          onClick={() => setIsSidebarOpen((open) => !open)}
+          className="p-2.5 rounded-xl bg-white/10 text-white border border-white/10"
         >
           {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed md:static inset-y-0 right-0 z-40 w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-l border-[#D8EFEF] dark:border-gray-800 flex flex-col transition-transform duration-300
-        ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-      `}>
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png?v=2" alt="3D TECH" className="h-10 w-auto object-contain" />
-            <div>
-              <h2 className="font-black text-lg text-[#063F43] dark:text-white">3D TECH</h2>
-              <span className="text-xs text-[#16B8BE] font-semibold">لوحة تحكم احترافية</span>
-            </div>
-          </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-1 rounded-lg text-gray-500">
+      {/* القائمة الجانبية */}
+      <aside
+        className={`fixed md:static inset-y-0 right-0 z-40 w-72 bg-[#082E33] border-l border-white/10 flex flex-col transition-transform duration-300 overflow-hidden ${
+          isSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'
+        }`}
+      >
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {Array.from({ length: 26 }, (_, index) => (
+            <motion.span
+              key={index}
+              className="absolute rounded-full bg-white/15"
+              style={{
+                width: `${3 + (index % 3) * 2}px`,
+                height: `${3 + (index % 3) * 2}px`,
+                right: `${(index * 29) % 100}%`,
+                top: `${(index * 37) % 100}%`,
+              }}
+              animate={{ opacity: [0.08, 0.35, 0.08], y: [0, -28, 0] }}
+              transition={{ duration: 6 + (index % 5), repeat: Infinity, delay: (index % 7) * 0.3 }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 p-7 border-b border-white/10 flex items-center justify-center">
+          <img src="/logo.png?v=2" alt="3D TECH" className="h-16 w-auto object-contain" />
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden absolute left-5 top-5 p-2 rounded-xl text-white/80 hover:bg-white/10"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav className="relative z-10 flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => { setActiveTab(item.id as any); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 ${
+                type="button"
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setIsSidebarOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#16B8BE] to-[#087F84] text-white shadow-lg shadow-[#16B8BE]/20'
-                    : 'text-[#6B7F80] hover:bg-[#F5FCFC] dark:hover:bg-gray-800 hover:text-[#063F43] dark:hover:text-white'
+                    ? 'bg-[#17B8BE] text-white shadow-[0_12px_28px_rgba(23,184,190,0.30)]'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <Icon className="w-5 h-5 shrink-0" />
@@ -453,21 +381,20 @@ export default function AdminDashboard() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="relative z-10 p-4 border-t border-white/10">
           <button
-            onClick={() => logout && logout()}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+            type="button"
+            onClick={() => logout?.()}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-white/80 hover:text-white hover:bg-red-500/20 transition-colors"
           >
-            <LogOut className="w-5 h-5 shrink-0" />
+            <LogOut className="w-5 h-5" />
             <span>{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="relative z-10 flex-1 p-5 md:p-10 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
-          
           {globalError && (
             <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 flex items-center gap-3 text-red-700 text-sm">
               <AlertCircle className="w-5 h-5 shrink-0" />
@@ -477,7 +404,7 @@ export default function AdminDashboard() {
 
           {loading && (
             <div className="flex items-center justify-center py-20">
-              <Loader className="w-10 h-10 animate-spin text-[#16B8BE]" />
+              <Loader className="w-10 h-10 animate-spin text-[#17B8BE]" />
             </div>
           )}
 
@@ -485,40 +412,40 @@ export default function AdminDashboard() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-black text-[#063F43] dark:text-white mb-1">لوحة التحكم الرئيسية</h1>
-                  <p className="text-sm text-[#6B7F80]">إدارة كاملة لمنتجات ومزادات وطلبات متجرك عبر Supabase بأمان تام</p>
+                  <h1 className="text-3xl font-black text-[#082E33] mb-1">لوحة التحكم الرئيسية</h1>
+                  <p className="text-sm text-[#6D8588]">إدارة منتجات وطلبات وخصومات متجر 3D TECH</p>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
+                  type="button"
                   onClick={() => setShowAddProductModal(true)}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#16B8BE] to-[#087F84] text-white rounded-2xl font-bold shadow-lg"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-[#17B8BE] hover:bg-[#0B8F96] text-white rounded-2xl font-bold shadow-lg shadow-[#17B8BE]/20 transition-colors"
                 >
                   <Plus className="w-5 h-5" /> إضافة منتج جديد
-                </motion.button>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[
-                  { icon: Package, label: 'المنتجات', value: products.length, color: 'from-[#16B8BE] to-[#087F84]' },
-                  { icon: DollarSign, label: 'إجمالي المبيعات', value: `$${totalSalesValue.toLocaleString()}`, color: 'from-emerald-500 to-teal-600' },
-                  { icon: ShoppingCart, label: 'الطلبات', value: orders.length, color: 'from-purple-500 to-indigo-600' },
-                  { icon: Gavel, label: 'المزادات النشطة', value: auctions.filter(a => a.status === 'active').length, color: 'from-amber-500 to-orange-600' }
+                  { icon: Package, label: 'المنتجات', value: products.length },
+                  { icon: DollarSign, label: 'إجمالي المبيعات', value: `$${totalSalesValue.toLocaleString()}` },
+                  { icon: ShoppingCart, label: 'الطلبات', value: orders.length },
+                  { icon: AlertCircle, label: 'مخزون منخفض', value: lowStockCount },
                 ].map((stat, index) => {
                   const Icon = stat.icon;
                   return (
-                    <div key={index} className="p-6 rounded-3xl bg-white dark:bg-gray-900 border border-[#D8EFEF] dark:border-gray-800 shadow-xl">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.color} shadow-md`}>
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3" /> متزامن
-                        </span>
+                    <motion.div
+                      key={stat.label}
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.06 }}
+                      className="p-6 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-xl shadow-[#082E33]/5 backdrop-blur"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-[#082E33] flex items-center justify-center mb-5 shadow-lg">
+                        <Icon className="w-6 h-6 text-[#17B8BE]" />
                       </div>
-                      <div className="text-2xl font-black text-[#063F43] dark:text-white mb-1">{stat.value}</div>
-                      <div className="text-xs text-[#6B7F80] font-medium">{stat.label}</div>
-                    </div>
+                      <div className="text-2xl font-black text-[#082E33] mb-1">{stat.value}</div>
+                      <div className="text-xs text-[#6D8588] font-semibold">{stat.label}</div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -527,61 +454,55 @@ export default function AdminDashboard() {
 
           {!loading && activeTab === 'products' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-black text-[#063F43] dark:text-white mb-1">إدارة المنتجات</h1>
-                  <p className="text-sm text-[#6B7F80]">إدارة معرض الصور المتعددة وتعديل بيانات المنتجات</p>
+                  <h1 className="text-3xl font-black text-[#082E33] mb-1">إدارة المنتجات</h1>
+                  <p className="text-sm text-[#6D8588]">إضافة وتعديل وحذف منتجات المتجر</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowAddProductModal(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#16B8BE] to-[#087F84] text-white rounded-2xl font-bold shadow-lg"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[#17B8BE] hover:bg-[#0B8F96] text-white rounded-2xl font-bold shadow-lg transition-colors"
                 >
                   <Plus className="w-5 h-5" /> إضافة منتج
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-white dark:bg-gray-900 border border-[#D8EFEF] dark:border-gray-800 shadow-xl overflow-hidden">
+              <div className="rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-xl overflow-hidden backdrop-blur">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-[#F5FCFC] dark:bg-gray-800/50 border-b">
+                    <thead className="bg-[#082E33] text-white">
                       <tr>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-[#063F43] dark:text-gray-300">الصورة</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-[#063F43] dark:text-gray-300">الاسم</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-[#063F43] dark:text-gray-300">الفئة</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-[#063F43] dark:text-gray-300">القطاعي</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-[#063F43] dark:text-gray-300">المخزون</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-[#063F43] dark:text-gray-300">الإجراءات</th>
+                        {['الصورة', 'الاسم', 'الفئة', 'القطاعي', 'المخزون', 'الإجراءات'].map((heading) => (
+                          <th key={heading} className="px-6 py-4 text-right text-xs font-bold">{heading}</th>
+                        ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-[#CDEBEC]">
                       {products.map((product) => (
-                        <tr key={product.id} className="hover:bg-[#F5FCFC]/50 transition-colors">
+                        <tr key={product.id} className="hover:bg-[#F2FBFB] transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
-                              <img src={product.image} alt="" className="w-12 h-12 rounded-xl object-cover border" />
+                              <img src={product.image} alt={product.nameAr || product.name} className="w-12 h-12 rounded-xl object-cover border border-[#CDEBEC]" />
                               {product.additionalImages && product.additionalImages.length > 1 && (
-                                <span className="text-[10px] font-bold bg-[#16B8BE]/10 text-[#16B8BE] px-1.5 py-0.5 rounded-md">
+                                <span className="text-[10px] font-bold bg-[#17B8BE]/10 text-[#0B8F96] px-1.5 py-0.5 rounded-md">
                                   +{product.additionalImages.length - 1}
                                 </span>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 font-bold text-[#063F43] dark:text-white text-sm">
-                            {product.nameAr || product.name}
-                          </td>
-                          <td className="px-6 py-4 text-xs text-[#6B7F80]">{product.category}</td>
-                          <td className="px-6 py-4 font-bold text-sm">${product.retailPrice}</td>
+                          <td className="px-6 py-4 font-bold text-[#082E33] text-sm">{product.nameAr || product.name}</td>
+                          <td className="px-6 py-4 text-xs text-[#6D8588]">{product.category}</td>
+                          <td className="px-6 py-4 font-bold text-sm text-[#082E33]">${product.retailPrice}</td>
                           <td className="px-6 py-4">
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-[#16B8BE]">
-                              {product.stock || 0}
-                            </span>
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#17B8BE]/10 text-[#0B8F96]">{product.stock || 0}</span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => openEditModal(product)} className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                              <button type="button" onClick={() => openEditModal(product)} className="p-2 rounded-xl bg-[#082E33]/10 text-[#082E33] hover:bg-[#082E33]/20">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteProduct(product.id)} className="p-2 rounded-xl bg-red-50 text-red-600">
+                              <button type="button" onClick={() => void handleDeleteProduct(product.id)} className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -597,31 +518,29 @@ export default function AdminDashboard() {
 
           {!loading && activeTab === 'orders' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <h1 className="text-3xl font-black text-[#063F43] dark:text-white">إدارة الطلبات الحقيقية</h1>
+              <h1 className="text-3xl font-black text-[#082E33]">إدارة الطلبات</h1>
               <div className="space-y-4">
                 {orders.length === 0 ? (
-                  <p className="text-center py-12 text-[#6B7F80]">لا توجد طلبات مسجلة.</p>
+                  <div className="p-12 text-center rounded-3xl bg-white/90 border border-[#CDEBEC] text-[#6D8588]">لا توجد طلبات مسجلة.</div>
                 ) : (
                   orders.map((order) => (
-                    <div key={order.id} className="p-6 rounded-3xl bg-white dark:bg-gray-900 border border-[#D8EFEF] dark:border-gray-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div key={order.id} className="p-6 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                       <div>
-                        <h3 className="font-bold text-[#063F43] dark:text-white">طلب #{order.id}</h3>
-                        <p className="text-sm text-[#6B7F80]">العميل: {order.customer_name || 'عميل مسجل'}</p>
-                        <p className="text-xs text-emerald-600 font-bold mt-1">الإجمالي: ${order.total}</p>
+                        <h3 className="font-bold text-[#082E33]">طلب #{order.id}</h3>
+                        <p className="text-sm text-[#6D8588]">العميل: {order.customer_name || 'عميل مسجل'}</p>
+                        <p className="text-xs text-[#0B8F96] font-bold mt-1">الإجمالي: ${order.total}</p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <select 
-                          value={order.status || 'pending'} 
-                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as Order['status'])}
-                          className="px-4 py-2 rounded-2xl border bg-[#F5FCFC] dark:bg-gray-800 font-bold text-sm"
-                        >
-                          <option value="pending">قيد المعالجة (Pending)</option>
-                          <option value="processing">جار التجهيز (Processing)</option>
-                          <option value="shipped">تم الشحن (Shipped)</option>
-                          <option value="completed">مكتمل (Completed)</option>
-                          <option value="cancelled">ملغي (Cancelled)</option>
-                        </select>
-                      </div>
+                      <select
+                        value={order.status || 'pending'}
+                        onChange={(e) => void handleUpdateOrderStatus(order.id, e.target.value as Order['status'])}
+                        className="px-4 py-2.5 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] font-bold text-sm text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                      >
+                        <option value="pending">قيد المعالجة</option>
+                        <option value="processing">جار التجهيز</option>
+                        <option value="shipped">تم الشحن</option>
+                        <option value="completed">مكتمل</option>
+                        <option value="cancelled">ملغي</option>
+                      </select>
                     </div>
                   ))
                 )}
@@ -629,40 +548,23 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {!loading && activeTab === 'customers' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <h1 className="text-3xl font-black text-[#063F43] dark:text-white">قائمة العملاء</h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {customers.map((cust) => (
-                  <div key={cust.id} className="p-6 rounded-3xl bg-white dark:bg-gray-900 border shadow-xl">
-                    <h3 className="font-bold text-[#063F43] dark:text-white">{cust.name}</h3>
-                    <p className="text-sm text-[#6B7F80]">{cust.email}</p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
           {!loading && activeTab === 'discounts' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-black text-[#063F43] dark:text-white">أكواد الخصم</h1>
-                <button 
-                  onClick={() => setShowAddDiscountModal(true)}
-                  className="px-5 py-2.5 bg-[#16B8BE] text-white rounded-2xl font-bold"
-                >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 className="text-3xl font-black text-[#082E33]">أكواد الخصم</h1>
+                <button type="button" onClick={() => setShowAddDiscountModal(true)} className="px-5 py-2.5 bg-[#17B8BE] hover:bg-[#0B8F96] text-white rounded-2xl font-bold transition-colors">
                   إضافة كود خصم
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {discounts.map((d) => (
-                  <div key={d.id} className="p-6 rounded-3xl bg-white dark:bg-gray-900 border shadow-xl flex justify-between items-center">
+                {discounts.map((discount) => (
+                  <div key={discount.id} className="p-6 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-lg flex justify-between items-center">
                     <div>
-                      <h3 className="font-black text-lg text-[#063F43] dark:text-white">{d.code}</h3>
-                      <p className="text-sm text-emerald-600 font-bold">خصم بنسبة {d.percentage}%</p>
+                      <h3 className="font-black text-lg text-[#082E33]">{discount.code}</h3>
+                      <p className="text-sm text-[#0B8F96] font-bold">خصم {discount.percentage}%</p>
                     </div>
-                    <button onClick={() => handleDeleteDiscount(d.id)} className="p-2 bg-red-50 text-red-600 rounded-xl">
+                    <button type="button" onClick={() => void handleDeleteDiscount(discount.id)} className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -673,195 +575,95 @@ export default function AdminDashboard() {
 
           {!loading && activeTab === 'shipping' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <h1 className="text-3xl font-black text-[#063F43] dark:text-white">إعدادات الشحن والتوصيل</h1>
-              <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 border shadow-xl space-y-4">
-                <label className="block text-sm font-semibold text-[#063F43]">تكلفة الشحن الثابتة ($)</label>
-                <input 
-                  type="number" 
-                  value={storeSettings.shippingFee} 
-                  onChange={(e) => setStoreSettings({...storeSettings, shippingFee: e.target.value})}
-                  className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" 
+              <h1 className="text-3xl font-black text-[#082E33]">إعدادات الشحن والتوصيل</h1>
+              <div className="p-8 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-xl space-y-4 max-w-xl">
+                <label className="block text-sm font-bold text-[#082E33]">تكلفة الشحن الثابتة ($)</label>
+                <input
+                  type="number"
+                  value={storeSettings.shippingFee}
+                  onChange={(e) => setStoreSettings({ shippingFee: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
                 />
-                <button 
+                <button
                   type="button"
-                  onClick={() => handleSaveSettings()}
-                  className="px-6 py-3 bg-[#16B8BE] text-white font-bold rounded-2xl"
-                >
-                  حفظ تكلفة الشحن
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {!loading && activeTab === 'auctions' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-black text-[#063F43] dark:text-white">لوحة المزادات المباشرة</h1>
-                <button 
-                  onClick={() => setShowAddAuctionModal(true)}
-                  className="px-5 py-2.5 bg-gradient-to-r from-[#16B8BE] to-[#087F84] text-white rounded-2xl font-bold"
-                >
-                  إنشاء مزاد جديد
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {auctions.map((auc) => {
-                  const highestBid = auc.bids && auc.bids.length > 0 
-                    ? auc.bids.reduce((max, current) => current.bid_amount > max.bid_amount ? current : max, auc.bids[0])
-                    : null;
-
-                  return (
-                    <div key={auc.id} className="p-6 rounded-3xl bg-white dark:bg-gray-900 border shadow-xl flex flex-col gap-4">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                          <h3 className="font-bold text-lg text-[#063F43] dark:text-white">{auc.title}</h3>
-                          <p className="text-sm text-[#6B7F80]">السعر الابتدائي: ${auc.start_price} | أعلى مزايدة حالياً: <span className="text-emerald-600 font-bold">${highestBid ? highestBid.bid_amount : auc.start_price}</span></p>
-                          <p className="text-xs text-blue-600 font-semibold mt-1">عدد المشاركين: {auc.bids ? auc.bids.length : 0} مزايدين</p>
-                          {auc.winner && <p className="text-xs font-bold text-purple-600 mt-1">الفائز المُعلن: {auc.winner}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => handleToggleAuctionStatus(auc.id, auc.status)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold ${auc.status === 'active' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}
-                          >
-                            {auc.status === 'active' ? 'إيقاف المزاد' : 'تشغيل المزاد'}
-                          </button>
-                          <button 
-                            onClick={() => handleAutoDetermineWinner(auc)}
-                            className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-600"
-                          >
-                            اختيار الفائز تلقائياً
-                          </button>
-                        </div>
-                      </div>
-
-                      {auc.bids && auc.bids.length > 0 && (
-                        <div className="mt-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-                          <p className="text-xs font-bold text-gray-500 mb-2">سجل المزايدات:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {auc.bids.map((b) => (
-                              <div key={b.id} className="px-3 py-1.5 rounded-xl bg-[#F5FCFC] dark:bg-gray-800 border text-xs flex items-center gap-2">
-                                <span className="font-bold text-[#063F43] dark:text-white">{b.user_email}</span>
-                                <span className="text-emerald-600 font-black">${b.bid_amount}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-
-          {!loading && activeTab === 'settings' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <h1 className="text-3xl font-black text-[#063F43] dark:text-white">إعدادات المتجر العامة</h1>
-              <form onSubmit={handleSaveSettings} className="p-8 rounded-3xl bg-white dark:bg-gray-900 border shadow-xl space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-1">اسم المتجر</label>
-                  <input 
-                    type="text" 
-                    value={storeSettings.storeName}
-                    onChange={(e) => setStoreSettings({...storeSettings, storeName: e.target.value})}
-                    className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">إيميل الدعم</label>
-                  <input 
-                    type="email" 
-                    value={storeSettings.supportEmail}
-                    onChange={(e) => setStoreSettings({...storeSettings, supportEmail: e.target.value})}
-                    className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" 
-                  />
-                </div>
-                <button 
-                  type="submit" 
+                  onClick={() => void handleSaveShipping()}
                   disabled={savingSettings}
-                  className="px-6 py-3 bg-[#16B8BE] text-white font-bold rounded-2xl shadow-lg"
+                  className="px-6 py-3 bg-[#17B8BE] hover:bg-[#0B8F96] disabled:opacity-50 text-white font-bold rounded-2xl transition-colors"
                 >
-                  {savingSettings ? 'جاري الحفظ...' : 'حفظ التغييرات في قاعدة البيانات'}
+                  {savingSettings ? 'جاري الحفظ...' : 'حفظ تكلفة الشحن'}
                 </button>
-              </form>
+              </div>
             </motion.div>
           )}
-
         </div>
       </main>
 
-      {/* Modal إضافة/تعديل منتج */}
       {showAddProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-xl p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082E33]/70 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-xl p-8 rounded-3xl bg-white shadow-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-[#063F43] dark:text-white">{editingProduct ? 'تعديل منتج' : 'إضافة منتج جديد'}</h2>
-              <button onClick={closeModal}><X className="w-5 h-5" /></button>
+              <h2 className="text-2xl font-black text-[#082E33]">{editingProduct ? 'تعديل منتج' : 'إضافة منتج جديد'}</h2>
+              <button type="button" onClick={closeProductModal} className="p-2 rounded-xl hover:bg-[#F2FBFB]"><X className="w-5 h-5" /></button>
             </div>
 
-            {actionError && <div className="mb-4 p-4 rounded-2xl bg-red-50 text-red-700 text-sm">{actionError}</div>}
+            {actionError && <div className="mb-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">{actionError}</div>}
 
             <form onSubmit={handleSaveProduct} className="space-y-4">
-              <input type="text" placeholder="اسم المنتج (عربي)" value={formNameAr} onChange={(e) => setFormNameAr(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" />
-              <input type="text" placeholder="اسم المنتج (إنجليزي)" value={formNameEn} onChange={(e) => setFormNameEn(e.target.value)} className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" />
-              <input type="text" placeholder="الفئة" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" />
-              
-              <div className="grid grid-cols-3 gap-4">
-                <input type="number" step="0.01" placeholder="سعر القطاعي" value={formRetailPrice} onChange={(e) => setFormRetailPrice(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" />
-                <input type="number" step="0.01" placeholder="سعر الجملة" value={formWholesalePrice} onChange={(e) => setFormWholesalePrice(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" />
-                <input type="number" placeholder="المخزون" value={formStock} onChange={(e) => setFormStock(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border bg-[#F5FCFC]" />
+              {[{
+                value: formNameAr, set: setFormNameAr, placeholder: 'اسم المنتج (عربي)', required: true,
+              }, {
+                value: formNameEn, set: setFormNameEn, placeholder: 'اسم المنتج (إنجليزي)', required: false,
+              }, {
+                value: formCategory, set: setFormCategory, placeholder: 'الفئة', required: true,
+              }].map((field) => (
+                <input
+                  key={field.placeholder}
+                  type="text"
+                  placeholder={field.placeholder}
+                  value={field.value}
+                  onChange={(e) => field.set(e.target.value)}
+                  required={field.required}
+                  className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                />
+              ))}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <input type="number" step="0.01" placeholder="سعر القطاعي" value={formRetailPrice} onChange={(e) => setFormRetailPrice(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
+                <input type="number" step="0.01" placeholder="سعر الجملة" value={formWholesalePrice} onChange={(e) => setFormWholesalePrice(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
+                <input type="number" placeholder="المخزون" value={formStock} onChange={(e) => setFormStock(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">رفع صور جديدة لمعرض المنتج</label>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  onChange={(e) => e.target.files && setImageFiles(Array.from(e.target.files))} 
-                  className="w-full px-4 py-3 rounded-2xl border border-dashed border-[#16B8BE] bg-[#F5FCFC]" 
+                <label className="block text-sm font-bold text-[#082E33] mb-2">رفع صور المنتج</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-[#17B8BE] bg-[#F2FBFB]"
                 />
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={closeModal} className="px-6 py-3 rounded-2xl bg-gray-100 font-bold">إلغاء</button>
-                <button type="submit" disabled={savingProduct} className="px-6 py-3 rounded-2xl bg-[#16B8BE] text-white font-bold">
-                  {savingProduct ? 'جاري الرفع...' : 'حفظ المنتج'}
+                <button type="button" onClick={closeProductModal} className="px-6 py-3 rounded-2xl bg-gray-100 text-gray-700 font-bold">إلغاء</button>
+                <button type="submit" disabled={savingProduct} className="px-6 py-3 rounded-2xl bg-[#17B8BE] hover:bg-[#0B8F96] disabled:opacity-50 text-white font-bold transition-colors">
+                  {savingProduct ? 'جاري الحفظ...' : 'حفظ المنتج'}
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Modal إضافة كود خصم */}
       {showAddDiscountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-          <form onSubmit={handleAddDiscount} className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-gray-900 space-y-4">
-            <h3 className="font-bold text-xl">إضافة كوبون خصم</h3>
-            <input type="text" placeholder="كود الخصم (مثال: SAVE20)" value={discCode} onChange={(e) => setDiscCode(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border" />
-            <input type="number" placeholder="نسبة الخصم %" value={discPercentage} onChange={(e) => setDiscPercentage(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082E33]/70 backdrop-blur-sm">
+          <form onSubmit={handleAddDiscount} className="w-full max-w-md p-6 rounded-3xl bg-white shadow-2xl space-y-4">
+            <h3 className="font-black text-xl text-[#082E33]">إضافة كوبون خصم</h3>
+            <input type="text" placeholder="كود الخصم" value={discCode} onChange={(e) => setDiscCode(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
+            <input type="number" min="1" max="100" placeholder="نسبة الخصم %" value={discPercentage} onChange={(e) => setDiscPercentage(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setShowAddDiscountModal(false)} className="px-4 py-2 bg-gray-100 rounded-xl">إلغاء</button>
-              <button type="submit" className="px-4 py-2 bg-[#16B8BE] text-white rounded-xl">إضافة</button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Modal إضافة مزاد */}
-      {showAddAuctionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-          <form onSubmit={handleAddAuction} className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-gray-900 space-y-4">
-            <h3 className="font-bold text-xl">إضافة مزاد جديد</h3>
-            <input type="text" placeholder="عنوان المزاد" value={auctionTitle} onChange={(e) => setAuctionTitle(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border" />
-            <input type="number" step="0.01" placeholder="السعر الابتدائي ($)" value={auctionStartPrice} onChange={(e) => setAuctionStartPrice(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border" />
-            <input type="datetime-local" value={auctionEndTime} onChange={(e) => setAuctionEndTime(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border" />
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setShowAddAuctionModal(false)} className="px-4 py-2 bg-gray-100 rounded-xl">إلغاء</button>
-              <button type="submit" className="px-4 py-2 bg-[#16B8BE] text-white rounded-xl">إنشاء</button>
+              <button type="button" onClick={() => setShowAddDiscountModal(false)} className="px-4 py-2 bg-gray-100 rounded-xl font-bold">إلغاء</button>
+              <button type="submit" className="px-4 py-2 bg-[#17B8BE] text-white rounded-xl font-bold">إضافة</button>
             </div>
           </form>
         </div>
