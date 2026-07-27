@@ -54,16 +54,6 @@ export interface StoreSettingsData {
 
 type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping';
 
-const BRAND = {
-  dark: '#082E33',
-  darkSoft: '#0B3A40',
-  teal: '#17B8BE',
-  tealDark: '#0B8F96',
-  page: '#F2FBFB',
-  border: '#CDEBEC',
-  muted: '#6D8588',
-};
-
 export default function AdminDashboard() {
   const { language } = useLanguage();
   const { logout } = useAdminAuth();
@@ -609,23 +599,35 @@ export default function AdminDashboard() {
             {actionError && <div className="mb-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">{actionError}</div>}
 
             <form onSubmit={handleSaveProduct} className="space-y-4">
-              {[{
-                value: formNameAr, set: setFormNameAr, placeholder: 'اسم المنتج (عربي)', required: true,
-              }, {
-                value: formNameEn, set: setFormNameEn, placeholder: 'اسم المنتج (إنجليزي)', required: false,
-              }, {
-                value: formCategory, set: setFormCategory, placeholder: 'الفئة', required: true,
-              }].map((field) => (
-                <input
-                  key={field.placeholder}
-                  type="text"
-                  placeholder={field.placeholder}
-                  value={field.value}
-                  onChange={(e) => field.set(e.target.value)}
-                  required={field.required}
-                  className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                />
-              ))}
+              <input
+                type="text"
+                placeholder="اسم المنتج (عربي)"
+                value={formNameAr}
+                onChange={(e) => setFormNameAr(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+              />
+              <input
+                type="text"
+                placeholder="اسم المنتج (إنجليزي)"
+                value={formNameEn}
+                onChange={(e) => setFormNameEn(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+              />
+              
+              {/* قائمة الفئات المحدثة */}
+              <select
+                value={formCategory}
+                onChange={(e) => setFormCategory(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-2xl border border-[#BDE5E7] bg-[#F3FCFC] text-[#073B3F] outline-none focus:border-[#16B8BE]"
+              >
+                <option value="">اختر فئة المنتج</option>
+                <option value="printers">الطابعات</option>
+                <option value="filaments">خيوط الطباعة</option>
+                <option value="accessories">الملحقات</option>
+                <option value="spare_parts">قطع الغيار</option>
+              </select>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <input type="number" step="0.01" placeholder="سعر القطاعي" value={formRetailPrice} onChange={(e) => setFormRetailPrice(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
