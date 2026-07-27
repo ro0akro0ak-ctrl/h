@@ -48,7 +48,14 @@ export interface Order {
 export interface Discount {
   id: number;
   code: string;
-  percentage: number;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  min_order: number | null;
+  max_uses: number | null;
+  used_count: number;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
 }
 
 export interface StoreSettingsData {
@@ -87,7 +94,17 @@ export default function AdminDashboard() {
 
   const [showAddDiscountModal, setShowAddDiscountModal] = useState(false);
   const [discCode, setDiscCode] = useState('');
-  const [discPercentage, setDiscPercentage] = useState('');
+  const [discType, setDiscType] = useState<'percentage' | 'fixed'>('percentage');
+  const [discValue, setDiscValue] = useState('');
+  const [discMinOrder, setDiscMinOrder] = useState('');
+  const [discMaxUsesPreset, setDiscMaxUsesPreset] = useState('unlimited');
+  const [discMaxUsesCustom, setDiscMaxUsesCustom] = useState('');
+  const [discStartPreset, setDiscStartPreset] = useState('now');
+  const [discStartCustom, setDiscStartCustom] = useState('');
+  const [discEndPreset, setDiscEndPreset] = useState('month');
+  const [discEndCustom, setDiscEndCustom] = useState('');
+  const [discIsActive, setDiscIsActive] = useState(true);
+  const [savingDiscount, setSavingDiscount] = useState(false);
 
   const [storeSettings, setStoreSettings] = useState<StoreSettingsData>({
     shippingFee: '25',
@@ -115,7 +132,7 @@ export default function AdminDashboard() {
       const [prodRes, ordRes, discRes, setRes] = await Promise.all([
         supabase.from('products').select('*').order('id', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        supabase.from('discounts').select('*').order('id', { ascending: false }),
+        supabase.from('discount_codes').select('*').order('id', { ascending: false }),
         supabase.from('store_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
 
@@ -277,25 +294,155 @@ export default function AdminDashboard() {
     }
   };
 
+  const closeDiscountModal = () => {
+    setShowAddDiscountModal(false);
+    setDiscCode('');
+    setDiscType('percentage');
+    setDiscValue('');
+    setDiscMinOrder('');
+    setDiscMaxUsesPreset('unlimited');
+    setDiscMaxUsesCustom('');
+    setDiscStartPreset('now');
+    setDiscStartCustom('');
+    setDiscEndPreset('month');
+    setDiscEndCustom('');
+    setDiscIsActive(true);
+  };
+
+  const startOfSelectedDay = (date: Date) => {
+    const copy = new Date(date);
+    copy.setHours(0, 0, 0, 0);
+    return copy;
+  };
+
+  const endOfSelectedDay = (date: Date) => {
+    const copy = new Date(date);
+    copy.setHours(23, 59, 59, 999);
+    return copy;
+  };
+
+  const resolveStartDate = () => {
+    const now = new Date();
+
+    if (discStartPreset === 'now') return now.toISOString();
+
+    if (discStartPreset === 'tomorrow') {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return startOfSelectedDay(tomorrow).toISOString();
+    }
+
+    if (discStartPreset === '3days') {
+      const afterThreeDays = new Date(now);
+      afterThreeDays.setDate(afterThreeDays.getDate() + 3);
+      return startOfSelectedDay(afterThreeDays).toISOString();
+    }
+
+    if (discStartPreset === 'custom' && discStartCustom) {
+      return startOfSelectedDay(new Date(`${discStartCustom}T00:00:00`)).toISOString();
+    }
+
+    return now.toISOString();
+  };
+
+  const resolveEndDate = () => {
+    const now = new Date();
+
+    if (discEndPreset === 'none') return null;
+
+    if (discEndPreset === 'week') {
+      const afterWeek = new Date(now);
+      afterWeek.setDate(afterWeek.getDate() + 7);
+      return endOfSelectedDay(afterWeek).toISOString();
+    }
+
+    if (discEndPreset === 'month') {
+      const afterMonth = new Date(now);
+      afterMonth.setMonth(afterMonth.getMonth() + 1);
+      return endOfSelectedDay(afterMonth).toISOString();
+    }
+
+    if (discEndPreset === '3months') {
+      const afterThreeMonths = new Date(now);
+      afterThreeMonths.setMonth(afterThreeMonths.getMonth() + 3);
+      return endOfSelectedDay(afterThreeMonths).toISOString();
+    }
+
+    if (discEndPreset === 'custom' && discEndCustom) {
+      return endOfSelectedDay(new Date(`${discEndCustom}T00:00:00`)).toISOString();
+    }
+
+    return null;
+  };
+
+  const resolveMaxUses = () => {
+    if (discMaxUsesPreset === 'unlimited') return null;
+    if (discMaxUsesPreset === 'custom') {
+      const customValue = Number.parseInt(discMaxUsesCustom, 10);
+      return Number.isFinite(customValue) && customValue > 0 ? customValue : null;
+    }
+
+    return Number.parseInt(discMaxUsesPreset, 10);
+  };
+
   const handleAddDiscount = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanCode = discCode.trim();
+    const numericValue = Number(discValue);
+    const numericMinOrder = discMinOrder.trim() ? Number(discMinOrder) : null;
+
+    if (!cleanCode) {
+      alert('اكتب كود الخصم');
+      return;
+    }
+
+    if (!Number.isFinite(numericValue) || numericValue <= 0) {
+      alert('اكتب قيمة خصم صحيحة');
+      return;
+    }
+
+    if (discType === 'percentage' && numericValue > 100) {
+      alert('نسبة الخصم لا يمكن أن تتجاوز 100%');
+      return;
+    }
+
+    setSavingDiscount(true);
+
     try {
-      const { error } = await supabase.from('discounts').insert([
-        { code: discCode.trim().toUpperCase(), percentage: Number(discPercentage) },
+      const { error } = await supabase.from('discount_codes').insert([
+        {
+          code: cleanCode.toUpperCase(),
+          discount_type: discType,
+          discount_value: numericValue,
+          min_order:
+            numericMinOrder !== null && Number.isFinite(numericMinOrder) && numericMinOrder > 0
+              ? numericMinOrder
+              : null,
+          max_uses: resolveMaxUses(),
+          used_count: 0,
+          starts_at: resolveStartDate(),
+          expires_at: resolveEndDate(),
+          is_active: discIsActive,
+        },
       ]);
+
       if (error) throw new Error(error.message);
-      setShowAddDiscountModal(false);
-      setDiscCode('');
-      setDiscPercentage('');
+
+      closeDiscountModal();
       await fetchSupabaseData();
     } catch (err) {
       alert(`خطأ: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`);
+    } finally {
+      setSavingDiscount(false);
     }
   };
 
   const handleDeleteDiscount = async (id: number) => {
+    if (!window.confirm('هل أنت متأكد من حذف كود الخصم؟')) return;
+
     try {
-      const { error } = await supabase.from('discounts').delete().eq('id', id);
+      const { error } = await supabase.from('discount_codes').delete().eq('id', id);
       if (error) throw new Error(error.message);
       setDiscounts((current) => current.filter((discount) => discount.id !== id));
     } catch (err) {
@@ -608,19 +755,96 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {discounts.map((discount) => (
-                  <div key={discount.id} className="p-6 rounded-3xl bg-white/90 border border-[#CDEBEC] shadow-lg flex justify-between items-center">
-                    <div>
-                      <h3 className="font-black text-lg text-[#082E33]">{discount.code}</h3>
-                      <p className="text-sm text-[#0B8F96] font-bold">خصم {discount.percentage}%</p>
-                    </div>
-                    <button type="button" onClick={() => void handleDeleteDiscount(discount.id)} className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              {discounts.length === 0 ? (
+                <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-12 text-center text-[#6D8588]">
+                  لا توجد أكواد خصم حتى الآن.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {discounts.map((discount) => {
+                    const valueText =
+                      discount.discount_type === 'percentage'
+                        ? `${discount.discount_value}%`
+                        : (
+                          <Price
+                            amount={discount.discount_value}
+                            className="font-black text-[#0B8F96]"
+                          />
+                        );
+
+                    const expiresText = discount.expires_at
+                      ? new Date(discount.expires_at).toLocaleDateString('ar-OM')
+                      : 'بدون انتهاء';
+
+                    const usageText =
+                      discount.max_uses === null
+                        ? `${discount.used_count || 0} استخدام • غير محدود`
+                        : `${discount.used_count || 0} من ${discount.max_uses}`;
+
+                    return (
+                      <div
+                        key={discount.id}
+                        className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-6 shadow-lg"
+                      >
+                        <div className="mb-5 flex items-start justify-between gap-3">
+                          <div>
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg font-black text-[#082E33]">
+                                {discount.code}
+                              </h3>
+                              <span
+                                className={`rounded-full px-2.5 py-1 text-[11px] font-black ${
+                                  discount.is_active
+                                    ? 'bg-emerald-50 text-emerald-700'
+                                    : 'bg-gray-100 text-gray-500'
+                                }`}
+                              >
+                                {discount.is_active ? 'مفعل' : 'متوقف'}
+                              </span>
+                            </div>
+
+                            <div className="text-sm font-bold text-[#0B8F96]">
+                              خصم {valueText}
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteDiscount(discount.id)}
+                            className="rounded-xl bg-red-50 p-2 text-red-600 transition hover:bg-red-100"
+                            aria-label="حذف كود الخصم"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 border-t border-[#E2F0F1] pt-4 text-xs font-semibold text-[#6D8588]">
+                          <div className="flex items-center justify-between gap-3">
+                            <span>عدد الاستخدامات</span>
+                            <span className="text-[#082E33]">{usageText}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <span>الحد الأدنى</span>
+                            <span className="text-[#082E33]">
+                              {discount.min_order ? (
+                                <Price amount={discount.min_order} className="font-black" />
+                              ) : (
+                                'بدون حد أدنى'
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <span>ينتهي</span>
+                            <span className="text-[#082E33]">{expiresText}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -787,16 +1011,217 @@ export default function AdminDashboard() {
       )}
 
       {showAddDiscountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082E33]/70 backdrop-blur-sm">
-          <form onSubmit={handleAddDiscount} className="w-full max-w-md p-6 rounded-3xl bg-white shadow-2xl space-y-4">
-            <h3 className="font-black text-xl text-[#082E33]">إضافة كوبون خصم</h3>
-            <input type="text" placeholder="كود الخصم" value={discCode} onChange={(e) => setDiscCode(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
-            <input type="number" min="1" max="100" placeholder="نسبة الخصم %" value={discPercentage} onChange={(e) => setDiscPercentage(e.target.value)} required className="w-full px-4 py-3 rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] outline-none" />
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setShowAddDiscountModal(false)} className="px-4 py-2 bg-gray-100 rounded-xl font-bold">إلغاء</button>
-              <button type="submit" className="px-4 py-2 bg-[#17B8BE] text-white rounded-xl font-bold">إضافة</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#082E33]/70 p-4 backdrop-blur-sm">
+          <motion.form
+            onSubmit={handleAddDiscount}
+            initial={{ opacity: 0, scale: 0.97, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8"
+          >
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-black text-[#082E33]">
+                  إضافة كوبون خصم
+                </h3>
+                <p className="mt-1 text-sm text-[#6D8588]">
+                  اختر الإعدادات السريعة، والتاريخ والوقت سيتم ضبطهما تلقائيًا.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeDiscountModal}
+                className="rounded-xl p-2 text-[#082E33] transition hover:bg-[#F2FBFB]"
+                aria-label="إغلاق"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          </form>
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  كود الخصم
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: SAVE20"
+                  value={discCode}
+                  onChange={(e) => setDiscCode(e.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] uppercase outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  نوع الخصم
+                </label>
+                <select
+                  value={discType}
+                  onChange={(e) =>
+                    setDiscType(e.target.value as 'percentage' | 'fixed')
+                  }
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                >
+                  <option value="percentage">نسبة مئوية (%)</option>
+                  <option value="fixed">مبلغ ثابت</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  قيمة الخصم
+                </label>
+                <input
+                  type="number"
+                  min="0.001"
+                  max={discType === 'percentage' ? '100' : undefined}
+                  step="0.001"
+                  placeholder={discType === 'percentage' ? 'مثال: 10' : 'مثال: 5.000'}
+                  value={discValue}
+                  onChange={(e) => setDiscValue(e.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  الحد الأدنى للطلب
+                  <span className="mr-1 font-medium text-[#6D8588]">
+                    (اختياري)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  placeholder="اتركه فارغًا بدون حد أدنى"
+                  value={discMinOrder}
+                  onChange={(e) => setDiscMinOrder(e.target.value)}
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  عدد مرات الاستخدام
+                </label>
+                <select
+                  value={discMaxUsesPreset}
+                  onChange={(e) => setDiscMaxUsesPreset(e.target.value)}
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                >
+                  <option value="unlimited">غير محدود</option>
+                  <option value="1">مرة واحدة</option>
+                  <option value="10">10 مرات</option>
+                  <option value="50">50 مرة</option>
+                  <option value="100">100 مرة</option>
+                  <option value="custom">رقم مخصص</option>
+                </select>
+
+                {discMaxUsesPreset === 'custom' && (
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="اكتب العدد"
+                    value={discMaxUsesCustom}
+                    onChange={(e) => setDiscMaxUsesCustom(e.target.value)}
+                    required
+                    className="mt-2 w-full rounded-2xl border border-[#CDEBEC] bg-white px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  بداية الكوبون
+                </label>
+                <select
+                  value={discStartPreset}
+                  onChange={(e) => setDiscStartPreset(e.target.value)}
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                >
+                  <option value="now">يبدأ الآن</option>
+                  <option value="tomorrow">غدًا الساعة 12:00 صباحًا</option>
+                  <option value="3days">بعد 3 أيام</option>
+                  <option value="custom">تحديد تاريخ</option>
+                </select>
+
+                {discStartPreset === 'custom' && (
+                  <input
+                    type="date"
+                    value={discStartCustom}
+                    onChange={(e) => setDiscStartCustom(e.target.value)}
+                    required
+                    className="mt-2 w-full rounded-2xl border border-[#CDEBEC] bg-white px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-black text-[#082E33]">
+                  انتهاء الكوبون
+                </label>
+                <select
+                  value={discEndPreset}
+                  onChange={(e) => setDiscEndPreset(e.target.value)}
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                >
+                  <option value="week">بعد أسبوع</option>
+                  <option value="month">بعد شهر</option>
+                  <option value="3months">بعد 3 أشهر</option>
+                  <option value="none">بدون انتهاء</option>
+                  <option value="custom">تحديد تاريخ</option>
+                </select>
+
+                {discEndPreset === 'custom' && (
+                  <input
+                    type="date"
+                    value={discEndCustom}
+                    onChange={(e) => setDiscEndCustom(e.target.value)}
+                    required
+                    className="mt-2 w-full rounded-2xl border border-[#CDEBEC] bg-white px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
+                  />
+                )}
+              </div>
+            </div>
+
+            <label className="mt-6 flex cursor-pointer items-center justify-between rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-4">
+              <div>
+                <div className="font-black text-[#082E33]">تفعيل الكوبون</div>
+                <div className="mt-1 text-xs text-[#6D8588]">
+                  عند إيقافه سيبقى محفوظًا لكنه لن يعمل في صفحة الدفع.
+                </div>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={discIsActive}
+                onChange={(e) => setDiscIsActive(e.target.checked)}
+                className="h-5 w-5 accent-[#17B8BE]"
+              />
+            </label>
+
+            <div className="mt-7 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={closeDiscountModal}
+                className="rounded-2xl bg-gray-100 px-6 py-3 font-bold text-gray-700"
+              >
+                إلغاء
+              </button>
+
+              <button
+                type="submit"
+                disabled={savingDiscount}
+                className="rounded-2xl bg-[#17B8BE] px-7 py-3 font-bold text-white transition hover:bg-[#0B8F96] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingDiscount ? 'جاري الحفظ...' : 'حفظ الكوبون'}
+              </button>
+            </div>
+          </motion.form>
         </div>
       )}
     </div>
