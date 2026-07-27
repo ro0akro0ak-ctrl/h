@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { useProducts } from '../contexts/ProductsContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
+import Price from '../components/Price';
 
 const categories = [
   'all',
@@ -248,13 +249,10 @@ export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
 
                         <div className="mt-5 space-y-4">
                           <div className="flex items-center justify-between">
-                            <span
-                              dir="ltr"
+                            <Price
+                              amount={product.retailPrice}
                               className="text-xl font-black text-white"
-                            >
-                              {(Number(product.retailPrice) || 0).toFixed(3)}{' '}
-                              {ar ? 'ر.ع.' : 'OMR'}
-                            </span>
+                            />
                           </div>
 
                           <button
