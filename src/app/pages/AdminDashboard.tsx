@@ -64,6 +64,26 @@ export interface StoreSettingsData {
 
 type AdminTab = 'dashboard' | 'products' | 'orders' | 'discounts' | 'shipping';
 
+const toDateTimeLocalValue = (date: Date) => {
+  const pad = (value: number) => String(value).padStart(2, '0');
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const getDefaultStartDateTime = () => {
+  const now = new Date();
+  now.setSeconds(0, 0);
+  return toDateTimeLocalValue(now);
+};
+
+const getDefaultEndDateTime = () => {
+  const afterMonth = new Date();
+  afterMonth.setMonth(afterMonth.getMonth() + 1);
+  afterMonth.setSeconds(0, 0);
+  return toDateTimeLocalValue(afterMonth);
+};
+
+
 export default function AdminDashboard() {
   const { language } = useLanguage();
   const { logout } = useAdminAuth();
@@ -99,10 +119,9 @@ export default function AdminDashboard() {
   const [discMinOrder, setDiscMinOrder] = useState('');
   const [discMaxUsesPreset, setDiscMaxUsesPreset] = useState('unlimited');
   const [discMaxUsesCustom, setDiscMaxUsesCustom] = useState('');
-  const [discStartPreset, setDiscStartPreset] = useState('now');
-  const [discStartCustom, setDiscStartCustom] = useState('');
-  const [discEndPreset, setDiscEndPreset] = useState('month');
-  const [discEndCustom, setDiscEndCustom] = useState('');
+  const [discStartDateTime, setDiscStartDateTime] = useState(getDefaultStartDateTime);
+  const [discHasEndDate, setDiscHasEndDate] = useState(true);
+  const [discEndDateTime, setDiscEndDateTime] = useState(getDefaultEndDateTime);
   const [discIsActive, setDiscIsActive] = useState(true);
   const [savingDiscount, setSavingDiscount] = useState(false);
 
@@ -302,77 +321,25 @@ export default function AdminDashboard() {
     setDiscMinOrder('');
     setDiscMaxUsesPreset('unlimited');
     setDiscMaxUsesCustom('');
-    setDiscStartPreset('now');
-    setDiscStartCustom('');
-    setDiscEndPreset('month');
-    setDiscEndCustom('');
+    setDiscStartDateTime(getDefaultStartDateTime());
+    setDiscHasEndDate(true);
+    setDiscEndDateTime(getDefaultEndDateTime());
     setDiscIsActive(true);
   };
 
-  const startOfSelectedDay = (date: Date) => {
-    const copy = new Date(date);
-    copy.setHours(0, 0, 0, 0);
-    return copy;
-  };
-
-  const endOfSelectedDay = (date: Date) => {
-    const copy = new Date(date);
-    copy.setHours(23, 59, 59, 999);
-    return copy;
-  };
-
   const resolveStartDate = () => {
-    const now = new Date();
+    if (!discStartDateTime) return null;
 
-    if (discStartPreset === 'now') return now.toISOString();
-
-    if (discStartPreset === 'tomorrow') {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return startOfSelectedDay(tomorrow).toISOString();
-    }
-
-    if (discStartPreset === '3days') {
-      const afterThreeDays = new Date(now);
-      afterThreeDays.setDate(afterThreeDays.getDate() + 3);
-      return startOfSelectedDay(afterThreeDays).toISOString();
-    }
-
-    if (discStartPreset === 'custom' && discStartCustom) {
-      return startOfSelectedDay(new Date(`${discStartCustom}T00:00:00`)).toISOString();
-    }
-
-    return now.toISOString();
+    const startDate = new Date(discStartDateTime);
+    return Number.isNaN(startDate.getTime()) ? null : startDate.toISOString();
   };
 
   const resolveEndDate = () => {
-    const now = new Date();
+    if (!discHasEndDate) return null;
+    if (!discEndDateTime) return null;
 
-    if (discEndPreset === 'none') return null;
-
-    if (discEndPreset === 'week') {
-      const afterWeek = new Date(now);
-      afterWeek.setDate(afterWeek.getDate() + 7);
-      return endOfSelectedDay(afterWeek).toISOString();
-    }
-
-    if (discEndPreset === 'month') {
-      const afterMonth = new Date(now);
-      afterMonth.setMonth(afterMonth.getMonth() + 1);
-      return endOfSelectedDay(afterMonth).toISOString();
-    }
-
-    if (discEndPreset === '3months') {
-      const afterThreeMonths = new Date(now);
-      afterThreeMonths.setMonth(afterThreeMonths.getMonth() + 3);
-      return endOfSelectedDay(afterThreeMonths).toISOString();
-    }
-
-    if (discEndPreset === 'custom' && discEndCustom) {
-      return endOfSelectedDay(new Date(`${discEndCustom}T00:00:00`)).toISOString();
-    }
-
-    return null;
+    const endDate = new Date(discEndDateTime);
+    return Number.isNaN(endDate.getTime()) ? null : endDate.toISOString();
   };
 
   const resolveMaxUses = () => {
@@ -407,6 +374,27 @@ export default function AdminDashboard() {
       return;
     }
 
+    const resolvedStartDate = resolveStartDate();
+    const resolvedEndDate = resolveEndDate();
+
+    if (!resolvedStartDate) {
+      alert('اختر تاريخ ووقت بداية صحيحين');
+      return;
+    }
+
+    if (discHasEndDate && !resolvedEndDate) {
+      alert('اختر تاريخ ووقت انتهاء صحيحين');
+      return;
+    }
+
+    if (
+      resolvedEndDate &&
+      new Date(resolvedEndDate).getTime() <= new Date(resolvedStartDate).getTime()
+    ) {
+      alert('وقت الانتهاء يجب أن يكون بعد وقت البداية');
+      return;
+    }
+
     setSavingDiscount(true);
 
     try {
@@ -421,8 +409,8 @@ export default function AdminDashboard() {
               : null,
           max_uses: resolveMaxUses(),
           used_count: 0,
-          starts_at: resolveStartDate(),
-          expires_at: resolveEndDate(),
+          starts_at: resolvedStartDate,
+          expires_at: resolvedEndDate,
           is_active: discIsActive,
         },
       ]);
@@ -1138,53 +1126,49 @@ export default function AdminDashboard() {
                 <label className="block text-sm font-black text-[#082E33]">
                   بداية الكوبون
                 </label>
-                <select
-                  value={discStartPreset}
-                  onChange={(e) => setDiscStartPreset(e.target.value)}
+                <input
+                  type="datetime-local"
+                  step="60"
+                  value={discStartDateTime}
+                  onChange={(e) => setDiscStartDateTime(e.target.value)}
+                  required
                   className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                >
-                  <option value="now">يبدأ الآن</option>
-                  <option value="tomorrow">غدًا الساعة 12:00 صباحًا</option>
-                  <option value="3days">بعد 3 أيام</option>
-                  <option value="custom">تحديد تاريخ</option>
-                </select>
-
-                {discStartPreset === 'custom' && (
-                  <input
-                    type="date"
-                    value={discStartCustom}
-                    onChange={(e) => setDiscStartCustom(e.target.value)}
-                    required
-                    className="mt-2 w-full rounded-2xl border border-[#CDEBEC] bg-white px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                  />
-                )}
+                />
+                <p className="text-xs leading-5 text-[#6D8588]">
+                  اختر اليوم والساعة والدقيقة التي يبدأ فيها الكوبون بالضبط.
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-black text-[#082E33]">
-                  انتهاء الكوبون
-                </label>
-                <select
-                  value={discEndPreset}
-                  onChange={(e) => setDiscEndPreset(e.target.value)}
-                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                >
-                  <option value="week">بعد أسبوع</option>
-                  <option value="month">بعد شهر</option>
-                  <option value="3months">بعد 3 أشهر</option>
-                  <option value="none">بدون انتهاء</option>
-                  <option value="custom">تحديد تاريخ</option>
-                </select>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="block text-sm font-black text-[#082E33]">
+                    انتهاء الكوبون
+                  </label>
 
-                {discEndPreset === 'custom' && (
-                  <input
-                    type="date"
-                    value={discEndCustom}
-                    onChange={(e) => setDiscEndCustom(e.target.value)}
-                    required
-                    className="mt-2 w-full rounded-2xl border border-[#CDEBEC] bg-white px-4 py-3 text-[#082E33] outline-none focus:ring-2 focus:ring-[#17B8BE]/30"
-                  />
-                )}
+                  <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-[#55777A]">
+                    <input
+                      type="checkbox"
+                      checked={!discHasEndDate}
+                      onChange={(e) => setDiscHasEndDate(!e.target.checked)}
+                      className="h-4 w-4 accent-[#17B8BE]"
+                    />
+                    بدون انتهاء
+                  </label>
+                </div>
+
+                <input
+                  type="datetime-local"
+                  step="60"
+                  value={discEndDateTime}
+                  min={discStartDateTime || undefined}
+                  onChange={(e) => setDiscEndDateTime(e.target.value)}
+                  required={discHasEndDate}
+                  disabled={!discHasEndDate}
+                  className="w-full rounded-2xl border border-[#CDEBEC] bg-[#F2FBFB] px-4 py-3 text-[#082E33] outline-none transition focus:ring-2 focus:ring-[#17B8BE]/30 disabled:cursor-not-allowed disabled:opacity-45"
+                />
+                <p className="text-xs leading-5 text-[#6D8588]">
+                  اختر اليوم والساعة والدقيقة التي يتوقف فيها الكوبون، أو فعّل «بدون انتهاء».
+                </p>
               </div>
             </div>
 
