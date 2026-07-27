@@ -262,7 +262,16 @@ export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
                             disabled={product.stock === 0}
                             onClick={(event) => {
                               event.stopPropagation();
-                              addToCart(product);
+
+                              addToCart({
+                                id: product.id,
+                                name: product.name || product.nameAr,
+                                nameAr: product.nameAr || product.name,
+                                price: Number(product.retailPrice) || 0,
+                                quantity: 1,
+                                image: product.image || '',
+                                type: 'retail',
+                              });
                             }}
                             className="w-full rounded-2xl bg-[#16B8BE] px-5 py-3 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#0B969C] disabled:cursor-not-allowed disabled:bg-gray-500 disabled:opacity-60"
                           >
