@@ -17,6 +17,7 @@ import {
   Tag,
   Trash2,
   Truck,
+  TrendingUp,
   X,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -238,6 +239,52 @@ export default function AdminDashboard() {
   };
 
   const totalSalesValue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+
+  // الربح التقديري = (سعر القطاعي - سعر الجملة) × الكمية المباعة.
+  // تتم مطابقة اسم المنتج المكتوب داخل الطلب مع المنتجات الموجودة في لوحة الأدمن.
+  const normalizeProductName = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[×x*]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const estimatedProfit = orders.reduce((ordersProfit, order) => {
+    const orderProducts = (order.product_name || '')
+      .split(/[,،]/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    const orderProfit = orderProducts.reduce((sum, entry) => {
+      const quantityMatch = entry.match(/[×x*]\s*(\d+)/i);
+      const quantity = quantityMatch ? Math.max(1, Number(quantityMatch[1])) : 1;
+      const cleanEntryName = normalizeProductName(
+        entry.replace(/[×x*]\s*\d+/i, '').trim(),
+      );
+
+      const matchedProduct = products.find((product) => {
+        const names = [product.name, product.nameAr]
+          .filter(Boolean)
+          .map((name) => normalizeProductName(String(name)));
+
+        return names.some(
+          (name) =>
+            name === cleanEntryName ||
+            name.includes(cleanEntryName) ||
+            cleanEntryName.includes(name),
+        );
+      });
+
+      if (!matchedProduct) return sum;
+
+      const retailPrice = Number(matchedProduct.retailPrice) || 0;
+      const wholesalePrice = Number(matchedProduct.wholesalePrice) || 0;
+      return sum + Math.max(0, retailPrice - wholesalePrice) * quantity;
+    }, 0);
+
+    return ordersProfit + orderProfit;
+  }, 0);
+
   const lowStockCount = products.filter((product) => product.stock <= 5).length;
 
   const getCategoryLabel = (category: string) => {
@@ -784,9 +831,9 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {[
-                  { icon: Package, label: 'المنتجات', value: products.length },
+                  { icon: Package, label: 'المنتجات', value: products.length, hint: 'إجمالي المنتجات' },
                   {
                     icon: DollarSign,
                     label: 'إجمالي المبيعات',
@@ -796,9 +843,21 @@ export default function AdminDashboard() {
                         className="text-2xl font-black text-[#082E33]"
                       />
                     ),
+                    hint: 'قيمة الطلبات المسجلة',
                   },
-                  { icon: ShoppingCart, label: 'الطلبات', value: orders.length },
-                  { icon: AlertCircle, label: 'مخزون منخفض', value: lowStockCount },
+                  {
+                    icon: TrendingUp,
+                    label: 'الأرباح',
+                    value: (
+                      <Price
+                        amount={estimatedProfit}
+                        className="text-2xl font-black text-[#082E33]"
+                      />
+                    ),
+                    hint: 'القطاعي ناقص الجملة',
+                  },
+                  { icon: ShoppingCart, label: 'الطلبات', value: orders.length, hint: 'إجمالي الطلبات' },
+                  { icon: AlertCircle, label: 'مخزون منخفض', value: lowStockCount, hint: '5 قطع أو أقل' },
                 ].map((stat, index) => {
                   const Icon = stat.icon;
                   return (
@@ -813,7 +872,8 @@ export default function AdminDashboard() {
                         <Icon className="w-6 h-6 text-[#17B8BE]" />
                       </div>
                       <div className="text-2xl font-black text-[#082E33] mb-1">{stat.value}</div>
-                      <div className="text-xs text-[#6D8588] font-semibold">{stat.label}</div>
+                      <div className="text-sm font-black text-[#082E33]">{stat.label}</div>
+                      <div className="mt-1 text-[11px] font-semibold text-[#789093]">{stat.hint}</div>
                     </motion.div>
                   );
                 })}
@@ -892,51 +952,95 @@ export default function AdminDashboard() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 className="text-3xl font-black text-[#082E33]">إدارة الطلبات</h1>
-                  <p className="mt-1 text-sm text-[#6D8588]">اضغط عرض لمشاهدة بيانات العميل والإيصال وكامل تفاصيل الطلب.</p>
+                  <p className="mt-1 text-sm font-semibold text-[#6D8588]">كل بيانات العميل والطلب ظاهرة بوضوح، واضغط عرض لمشاهدة الإيصال والتفاصيل الكاملة.</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => void fetchSupabaseData()}
-                  className="rounded-2xl bg-[#082E33] px-5 py-2.5 font-bold text-white transition hover:bg-[#0B4A50]"
+                  className="rounded-2xl bg-[#082E33] px-5 py-2.5 font-black text-white shadow-lg transition hover:bg-[#0B4A50]"
                 >
                   تحديث الطلبات
                 </button>
               </div>
 
               {orders.length === 0 ? (
-                <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-12 text-center text-[#6D8588]">
+                <div className="rounded-3xl border border-[#CDEBEC] bg-white/90 p-12 text-center font-bold text-[#6D8588]">
                   لا توجد طلبات مسجلة.
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-3xl border border-[#CDEBEC] bg-white/90 shadow-xl">
+                <div className="overflow-hidden rounded-[28px] border border-[#BFE3E5] bg-white shadow-[0_18px_48px_rgba(8,46,51,0.10)]">
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[980px]">
-                      <thead className="bg-[#082E33] text-white">
-                        <tr>
-                          {['الطلب', 'العميل', 'الهاتف', 'المنتج', 'الموقع', 'الدفع', 'الإجمالي', 'الحالة', 'التاريخ', 'التفاصيل'].map((heading) => (
-                            <th key={heading} className="px-4 py-4 text-right text-xs font-black">{heading}</th>
+                    <table className="w-full min-w-[1480px] border-separate border-spacing-0">
+                      <thead>
+                        <tr className="bg-[#082E33] text-white">
+                          {['الطلب', 'العميل', 'الهاتف', 'المنتج', 'المحافظة', 'الولاية', 'التوصيل', 'طريقة الدفع', 'الإجمالي', 'الحالة', 'التاريخ', 'التفاصيل'].map((heading) => (
+                            <th
+                              key={heading}
+                              className="whitespace-nowrap border-b border-white/10 px-5 py-5 text-right text-[13px] font-black tracking-wide first:rounded-tr-[26px] last:rounded-tl-[26px]"
+                            >
+                              {heading}
+                            </th>
                           ))}
                         </tr>
                       </thead>
 
                       <tbody className="divide-y divide-[#DCEEEF]">
-                        {orders.map((order) => (
-                          <tr key={order.id} className="transition hover:bg-[#F2FBFB]">
-                            <td className="px-4 py-4 font-black text-[#082E33]">#{order.id}</td>
-                            <td className="px-4 py-4 text-sm font-bold text-[#082E33]">{order.customer_name || 'غير محدد'}</td>
-                            <td className="px-4 py-4 text-sm text-[#5C7477]" dir="ltr">{order.phone || '—'}</td>
-                            <td className="max-w-[220px] truncate px-4 py-4 text-sm text-[#082E33]">{order.product_name || '—'}</td>
-                            <td className="px-4 py-4 text-xs text-[#5C7477]">{[order.governorate, order.city].filter(Boolean).join(' - ') || '—'}</td>
-                            <td className="px-4 py-4 text-xs font-bold text-[#5C7477]">
-                              {order.payment_method === 'cash_on_delivery' ? 'الدفع عند الاستلام' : 'تحويل بنكي'}
+                        {orders.map((order, index) => (
+                          <tr
+                            key={order.id}
+                            className={`transition-colors hover:bg-[#EAF9F9] ${index % 2 === 0 ? 'bg-white' : 'bg-[#FAFEFE]'}`}
+                          >
+                            <td className="whitespace-nowrap px-5 py-5 text-base font-black text-[#082E33]">#{order.id}</td>
+
+                            <td className="min-w-[145px] px-5 py-5">
+                              <div className="font-black text-[#082E33]">{order.customer_name || 'غير محدد'}</div>
+                              {order.customer_email && (
+                                <div className="mt-1 max-w-[180px] truncate text-[11px] font-semibold text-[#829699]">{order.customer_email}</div>
+                              )}
                             </td>
-                            <td className="px-4 py-4"><Price amount={order.total} className="font-black text-[#082E33]" /></td>
-                            <td className="px-4 py-4">
+
+                            <td className="whitespace-nowrap px-5 py-5 text-sm font-bold text-[#355B5F]" dir="ltr">{order.phone || '—'}</td>
+
+                            <td className="min-w-[235px] max-w-[300px] px-5 py-5 text-sm font-bold leading-6 text-[#163F43]">
+                              {order.product_name || '—'}
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-5">
+                              <span className="inline-flex rounded-full bg-[#E8F7F7] px-3 py-1.5 text-xs font-black text-[#0B747A]">
+                                {order.governorate || '—'}
+                              </span>
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-5">
+                              <span className="inline-flex rounded-full bg-[#F2F7F7] px-3 py-1.5 text-xs font-black text-[#486B6E]">
+                                {order.city || '—'}
+                              </span>
+                            </td>
+
+                            <td className="min-w-[135px] px-5 py-5 text-sm font-bold text-[#355B5F]">
+                              {order.shipping_method || '—'}
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-5">
+                              <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-black ${
+                                order.payment_method === 'cash_on_delivery'
+                                  ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+                                  : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
+                              }`}>
+                                {order.payment_method === 'cash_on_delivery' ? 'الدفع عند الاستلام' : 'تحويل بنكي'}
+                              </span>
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-5">
+                              <Price amount={order.total} className="text-base font-black text-[#082E33]" />
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-5">
                               <select
                                 value={order.status || 'pending'}
                                 onChange={(event) => void handleUpdateOrderStatus(order.id, event.target.value as Order['status'])}
-                                className="rounded-xl border border-[#BDE5E7] bg-[#F2FBFB] px-3 py-2 text-xs font-black text-[#082E33] outline-none"
+                                className="min-w-[135px] rounded-xl border border-[#B7DEE0] bg-[#EFFAFA] px-3 py-2.5 text-xs font-black text-[#082E33] outline-none transition focus:border-[#17B8BE] focus:ring-2 focus:ring-[#17B8BE]/20"
                               >
                                 <option value="pending">قيد المعالجة</option>
                                 <option value="processing">جار التجهيز</option>
@@ -945,14 +1049,16 @@ export default function AdminDashboard() {
                                 <option value="cancelled">ملغي</option>
                               </select>
                             </td>
-                            <td className="px-4 py-4 text-xs text-[#7B9092]">
+
+                            <td className="whitespace-nowrap px-5 py-5 text-xs font-bold text-[#789093]">
                               {order.created_at ? new Date(order.created_at).toLocaleDateString('ar-OM') : '—'}
                             </td>
-                            <td className="px-4 py-4">
+
+                            <td className="whitespace-nowrap px-5 py-5">
                               <button
                                 type="button"
                                 onClick={() => setSelectedOrder(order)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-[#082E33] px-4 py-2 text-xs font-black text-white transition hover:bg-[#17B8BE]"
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#082E33] px-4 py-2.5 text-xs font-black text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#17B8BE]"
                               >
                                 <Eye className="h-4 w-4" />
                                 عرض
