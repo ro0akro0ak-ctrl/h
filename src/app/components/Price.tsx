@@ -1,29 +1,23 @@
 interface PriceProps {
-  amount: number | string;
-  decimals?: number;
+  value: number | string;
   className?: string;
-  symbolClassName?: string;
 }
 
 export default function Price({
-  amount,
-  decimals = 3,
-  className = '',
-  symbolClassName = '',
+  value,
+  className = "",
 }: PriceProps) {
-  const numericAmount = Number(amount) || 0;
-
   return (
     <span
+      className={`inline-flex items-center gap-1 ${className}`}
       dir="ltr"
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap ${className}`}
     >
-      <span>{numericAmount.toFixed(decimals)}</span>
+      <span>{Number(value).toFixed(3)}</span>
 
       <img
-        src="/omr-symbol.svg"
-        alt="ريال عُماني"
-        className={`inline-block h-[0.9em] w-auto object-contain ${symbolClassName}`}
+        src="/omr-symbol.png"
+        alt="OMR"
+        className="h-4 w-auto object-contain"
       />
     </span>
   );
