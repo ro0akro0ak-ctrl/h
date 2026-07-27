@@ -250,7 +250,7 @@ export const Shop: React.FC<ShopProps> = ({ onProductClick }) => {
                           <div className="flex items-center justify-between">
                             <span
                               dir="ltr"
-                              className="text-xl font-black text-[#20CDD4]"
+                              className="text-xl font-black text-white"
                             >
                               {(Number(product.retailPrice) || 0).toFixed(3)}{' '}
                               {ar ? 'ر.ع.' : 'OMR'}
