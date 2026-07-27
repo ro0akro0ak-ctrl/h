@@ -13,7 +13,7 @@ import Price from '../components/Price';
 
 interface CartProps {
   onNavigate: (page: string) => void;
-  onCheckout: () => void;
+  onCheckout?: () => void;
   onClose: () => void;
 }
 
@@ -39,7 +39,13 @@ export default function Cart({
     }
 
     onClose();
-    onCheckout();
+
+    if (onCheckout) {
+      onCheckout();
+      return;
+    }
+
+    onNavigate('checkout');
   };
 
   const handleContinueShopping = () => {
@@ -155,7 +161,9 @@ export default function Cart({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h3 className="truncate text-base font-black text-white">
-                          {ar ? item.nameAr || item.name : item.name || item.nameAr}
+                          {ar
+                            ? item.nameAr || item.name
+                            : item.name || item.nameAr}
                         </h3>
 
                         <div className="mt-2">
