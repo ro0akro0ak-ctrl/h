@@ -81,10 +81,7 @@ function AdminPage() {
       >
         <div className="flex flex-col items-center gap-4 text-white">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-white" />
-
-          <p className="text-lg font-bold">
-            جاري التحقق من تسجيل الدخول...
-          </p>
+          <p className="text-lg font-bold">جاري التحقق من تسجيل الدخول...</p>
         </div>
       </div>
     );
