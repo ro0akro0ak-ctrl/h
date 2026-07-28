@@ -256,10 +256,18 @@ export default function AdminDashboard() {
     }
   };
 
-  const totalSalesValue = orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+  // الطلبات الملغية لا تدخل في إجمالي المبيعات أو الأرباح.
+  // بمجرد تغيير حالة الطلب إلى cancelled تتحدث البطاقات مباشرة.
+  const salesOrders = orders.filter((order) => order.status !== 'cancelled');
+
+  const totalSalesValue = salesOrders.reduce(
+    (sum, order) => sum + (Number(order.total) || 0),
+    0,
+  );
 
   // الربح التقديري = (سعر القطاعي - سعر الجملة) × الكمية المباعة.
   // تتم مطابقة اسم المنتج المكتوب داخل الطلب مع المنتجات الموجودة في لوحة الأدمن.
+  // الطلبات الملغية مستبعدة بالكامل من حساب الأرباح.
   const normalizeProductName = (value: string) =>
     value
       .toLowerCase()
@@ -267,7 +275,7 @@ export default function AdminDashboard() {
       .replace(/\s+/g, ' ')
       .trim();
 
-  const estimatedProfit = orders.reduce((ordersProfit, order) => {
+  const estimatedProfit = salesOrders.reduce((ordersProfit, order) => {
     const orderProducts = (order.product_name || '')
       .split(/[,،]/)
       .map((entry) => entry.trim())
@@ -956,7 +964,7 @@ export default function AdminDashboard() {
                         className="text-2xl font-black text-[#082E33]"
                       />
                     ),
-                    hint: 'قيمة الطلبات المسجلة',
+                    hint: 'باستثناء الطلبات الملغية',
                   },
                   {
                     icon: TrendingUp,
@@ -967,7 +975,7 @@ export default function AdminDashboard() {
                         className="text-2xl font-black text-[#082E33]"
                       />
                     ),
-                    hint: 'القطاعي ناقص الجملة',
+                    hint: 'باستثناء الطلبات الملغية',
                   },
                   { icon: ShoppingCart, label: 'الطلبات', value: orders.length, hint: 'إجمالي الطلبات' },
                   { icon: AlertCircle, label: 'مخزون منخفض', value: lowStockCount, hint: '5 قطع أو أقل' },
