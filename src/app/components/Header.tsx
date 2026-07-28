@@ -61,7 +61,7 @@ export default function Header({
     },
     {
       key: 'tracking',
-      page: 'about',
+      page: 'track-order',
       labelAr: 'تتبع الطلب',
       labelEn: 'Track Order',
       icon: MapPin,
