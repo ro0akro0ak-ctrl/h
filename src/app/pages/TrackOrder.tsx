@@ -197,23 +197,18 @@ export default function TrackOrder() {
             {ar ? 'تتبع الطلب' : 'Track Your Order'}
           </h1>
 
-          <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold text-white/80 sm:text-base">
-            {ar
-              ? 'أدخل رقم الهاتف المستخدم عند الطلب، مع أو بدون رمز سلطنة عُمان.'
-              : 'Enter the phone number used for your order, with or without Oman’s country code.'}
-          </p>
         </motion.div>
 
         <motion.form
           onSubmit={handleSearch}
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-7 rounded-[30px] border border-white/25 bg-white/95 p-5 shadow-[0_18px_55px_rgba(8,46,51,0.18)] backdrop-blur sm:p-7"
+          className="mb-7 rounded-[28px] border border-white/15 bg-[#082E33]/92 p-4 shadow-[0_20px_60px_rgba(8,46,51,0.28)] backdrop-blur-xl sm:p-5"
         >
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <UserRound
-                className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 text-[#6D8588] ${
+                className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 text-[#16B8BE] ${
                   ar ? 'right-5' : 'left-5'
                 }`}
               />
@@ -227,9 +222,9 @@ export default function TrackOrder() {
                   setPhone(event.target.value);
                   setErrorMessage('');
                 }}
-                placeholder="+968 7240 2313 أو 72402313"
-                className={`h-14 w-full rounded-2xl border border-[#CDEBEC] bg-white text-left text-base font-bold text-[#082E33] outline-none transition placeholder:text-[#9AAEB0] focus:border-[#16B8BE] focus:ring-4 focus:ring-[#16B8BE]/10 ${
-                  ar ? 'pl-5 pr-12' : 'pl-12 pr-5'
+                placeholder={ar ? 'اكتب رقم الهاتف' : 'Enter phone number'}
+                className={`h-14 w-full rounded-2xl border border-white/10 bg-white px-5 text-center text-base font-black text-[#082E33] outline-none transition placeholder:text-center placeholder:font-bold placeholder:text-[#8EA1A3] focus:border-[#16B8BE] focus:ring-4 focus:ring-[#16B8BE]/20 ${
+                  ar ? 'pl-12 pr-12' : 'pl-12 pr-12'
                 }`}
               />
             </div>
@@ -237,7 +232,7 @@ export default function TrackOrder() {
             <button
               type="submit"
               disabled={isSearching}
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#082E33] px-8 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#0B4A50] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#16B8BE] px-8 font-black text-white shadow-[0_12px_28px_rgba(22,184,190,0.28)] transition hover:-translate-y-0.5 hover:bg-[#13A7AD] disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[150px]"
             >
               {isSearching ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
